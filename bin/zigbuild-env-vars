@@ -1,0 +1,20 @@
+#!/bin/bash
+#--------------------------------------------------------------------------------
+# this script is called by other scripts
+#--------------------------------------------------------------------------------
+#################################################################################
+#--------------------------------------------------------------------------------
+# export ZIG_BUILD_MODE=${ZIG_BUILD_MODE:-Debug}
+# export ZIG_BUILD_MODE=${ZIG_BUILD_MODE:-ReleaseFast}
+# export ZIG_BUILD_MODE=${ZIG_BUILD_MODE:-ReleaseSafe}
+export ZIG_BUILD_MODE=${ZIG_BUILD_MODE:-ReleaseSmall}
+
+export ZIG_BUILD_TARGET=${ZIG_BUILD_TARGET:-native}
+# export ZIG_BUILD_TARGET=${ZIG_BUILD_TARGET:-x86_64-linux-gnu}
+# export ZIG_BUILD_TARGET=${ZIG_BUILD_TARGET:-x86_64-macos-gnu}
+# export ZIG_BUILD_TARGET=${ZIG_BUILD_TARGET:-x86_64-windows-gnu}
+
+export ZIG_BUILD_CPU=${ZIG_BUILD_CPU:-baseline}
+#--------------------------------------------------------------------------------
+#################################################################################
+#--------------------------------------------------------------------------------

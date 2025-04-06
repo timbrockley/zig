@@ -1,0 +1,79 @@
+#--------------------------------------------------------------------------------
+#
+#
+# run "sudo su" first or do as root
+#
+#
+#--------------------------------------------------------------------------------
+
+(backup old versions if required)
+
+install latest version from zig
+-------------------------------
+
+go to https://ziglang.org/download/
+(choose OS)
+
+unzip downloaded file
+
+(copy contents of directory containing zig executable to /usr/local/zig directory)
+
+ln -s /usr/local/zig/zig /usr/local/bin/zig
+
+#--------------------------------------------------------------------------------
+
+install latest version of language server
+-----------------------------------------
+
+go to https://zigtools.org/zls/install/
+
+enter version og ziglang downloaded and click "Prebuilt Binary"
+(choose OS)
+
+unzip downloaded file
+
+(copy contents of directory containing zig executable to /usr/local/zls directory)
+
+ln -s /usr/local/zig/zig /usr/local/bin/zig
+
+#--------------------------------------------------------------------------------
+
+~/.bashrc
+---------
+export PATH=$PATH:/www/zig/bin
+
+#--------------------------------------------------------------------------------
+
+.gitignore
+----------
+
+*.a
+*.dll
+*.DS_Store
+*.dylib
+*.exe
+*.o
+*.so
+*.swo
+*.swp
+
+**/Thumbs.db
+
+**/.idea/
+**/.vscode/
+**/.zig-cache/
+**/zig-out/
+
+hello/hello
+todo.txt
+
+#--------------------------------------------------------------------------------
+
+naming conventions
+------------------
+struct: PascalCase
+function: camelCase
+variable: snake_case
+contants: snake_case
+
+#--------------------------------------------------------------------------------

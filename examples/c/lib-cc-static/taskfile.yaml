@@ -1,0 +1,24 @@
+version: '3'
+
+vars:
+  CACHE_PATH: ".zig-cache"
+  OUTPUT_PATH: "zig-out"
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+
+  build:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig cc -o math.o -c ../math.c
+      - zig ar rcs libmath.a math.o
+      - zig cc -o lib-cc-static ../main.c -L. -lmath -target native -mcpu=baseline
+      - rm -rf libmath.a math.o
+
+  run:
+    deps: [build]
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - ./lib-cc-static {{.CLI_ARGS}}
