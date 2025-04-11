@@ -1,0 +1,30 @@
+version: '3'
+
+vars:
+  SOURCE: "main.zig"
+  CACHE_PATH: ".zig-cache"
+  OUTPUT_PATH: "zig-out"
+  DEPLOY_PATH: "/wwwdev/zig/bin"
+  OUTPUT:
+    sh: basename $(pwd)
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+
+  build:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -target native -mcpu=baseline
+
+  deploy:
+    deps: [build]
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - cp {{.OUTPUT}} {{.DEPLOY_PATH}}/{{.OUTPUT}}
+
+  run:
+    cmds:
+      - zig run {{.SOURCE}} -- {{.CLI_ARGS}}
+
