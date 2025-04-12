@@ -1,3 +1,7 @@
+//--------------------------------------------------------------------------------
+// Copyright 2025, Tim Brockley. All rights reserved.
+// This software is licensed under the MIT License.
+//--------------------------------------------------------------------------------
 const std = @import("std");
 
 pub fn main() !void {
