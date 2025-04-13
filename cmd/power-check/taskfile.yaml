@@ -26,5 +26,11 @@ tasks:
 
   run:
     cmds:
-      - zig run {{.SOURCE}} -- {{.CLI_ARGS}}
+      - silent: true
+        cmd: |
+          if [ -x "{{.OUTPUT_PATH}}/{{.OUTPUT}}" ]; then
+            "{{.OUTPUT_PATH}}/{{.OUTPUT}}" {{.CLI_ARGS}}
+          else
+            zig run {{.SOURCE}} -- {{.CLI_ARGS}}
+          fi
 
