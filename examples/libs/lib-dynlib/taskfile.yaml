@@ -17,7 +17,6 @@ tasks:
       - rm -rf lib-shared.{o,so.o}
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - ./lib-shared {{.CLI_ARGS}}

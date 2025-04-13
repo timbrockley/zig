@@ -18,7 +18,6 @@ tasks:
       - rm -rf libmath.{a,a.o} zigmain.o
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - ./cmain {{.CLI_ARGS}}

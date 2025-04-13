@@ -16,8 +16,8 @@ tasks:
       - zig build-exe ../main.zig -femit-bin=lib-cc-shared -fstrip -lc -L. -lmath -O ReleaseSmall -target native -mcpu=baseline
       - patchelf --replace-needed liblibmath.so ./libmath.so ./lib-cc-shared
       - rm -rf lib-cc-shared.o
+
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - ./lib-cc-shared {{.CLI_ARGS}}
