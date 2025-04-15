@@ -18,6 +18,23 @@ tasks:
     cmds:
       - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -target native -mcpu=baseline
 
+
+  build-darwin:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-darwin -fstrip -O ReleaseSmall -target x86_64-macos -mcpu=baseline
+
+  build-linux:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -target x86_64-linux -mcpu=baseline
+
+  build-windows:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-windows.exe -fstrip -O ReleaseSmall -target x86_64-windows -mcpu=baseline
+      - cp power-check-windows.exe /data/Shared/
+
   deploy:
     deps: [build]
     dir: "{{.OUTPUT_PATH}}"
