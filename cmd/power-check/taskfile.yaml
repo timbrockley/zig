@@ -4,7 +4,6 @@ vars:
   SOURCE: "main.zig"
   CACHE_PATH: ".zig-cache"
   OUTPUT_PATH: "zig-out"
-  DEPLOY_PATH: "/wwwdev/zig/bin"
   OUTPUT:
     sh: basename $(pwd)
 
@@ -16,30 +15,35 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -target native -mcpu=baseline
-
-
-  build-darwin:
-    dir: "{{.OUTPUT_PATH}}"
-    cmds:
-      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-darwin -fstrip -O ReleaseSmall -target x86_64-macos -mcpu=baseline
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ${ZIG_BUILD_MODE} -target native -mcpu=baseline
 
   build-linux:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -target x86_64-linux -mcpu=baseline
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ${ZIG_BUILD_MODE} -target x86_64-linux -mcpu=baseline
+
+  build-macos:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-darwin -fstrip -O ${ZIG_BUILD_MODE} -target x86_64-macos -mcpu=baseline
 
   build-windows:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-windows.exe -fstrip -O ReleaseSmall -target x86_64-windows -mcpu=baseline
-      - cp power-check-windows.exe /data/Shared/
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-windows.exe -fstrip -O ${ZIG_BUILD_MODE} -target x86_64-windows -mcpu=baseline
 
   deploy:
-    deps: [build]
+    deps: [build, build-windows]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - cp {{.OUTPUT}} {{.DEPLOY_PATH}}/{{.OUTPUT}}
+      - |
+        if [ -n "${DEPLOY_PATH_WINDOWS}" ]; then
+          cp {{.OUTPUT}}-windows.exe "${DEPLOY_PATH_WINDOWS}/{{.OUTPUT}}-windows.exe"
+        fi
+      - |
+        if [ -n "${DEPLOY_PATH_ZIG}" ]; then
+          cp {{.OUTPUT}} "${DEPLOY_PATH_ZIG}/{{.OUTPUT}}"
+        fi
 
   run:
     cmds:

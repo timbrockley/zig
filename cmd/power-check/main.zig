@@ -5,10 +5,18 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-
 const OS = builtin.os.tag;
-const MAX_OUTPUT_BYTES: usize = 2 * 1024;
-const PS_SEARCH_PATH = "/sys/class/power_supply";
+
+pub const MAX_OUTPUT_BYTES: usize = 10 * 1024;
+pub const PS_SEARCH_PATH = "/sys/class/power_supply";
+
+//--------------------------------------------------------------------------------
+
+pub const PowerStatus = enum {
+    Mains,
+    Battery,
+    Unknown,
+};
 
 //--------------------------------------------------------------------------------
 
@@ -18,10 +26,10 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
     //------------------------------------------------------------
-    const usingBattery = switch (OS) {
-        .linux => power_check_linux(allocator),
-        .macos => power_check_macos(allocator),
-        .windows => power_check_windows(),
+    const powerStatus = switch (OS) {
+        .linux => try power_check_linux(allocator),
+        .macos => try power_check_macos(allocator),
+        .windows => try power_check_windows(),
         else => {
             std.debug.print("Unsupported OS: {s}\n", .{@tagName(OS)});
             std.process.exit(1);
@@ -33,20 +41,22 @@ pub fn main() !void {
     _ = it.skip();
     //------------------------------------------------------------
     if (it.next()) |arg1| {
-        if (std.mem.eql(u8, arg1, "battery")) {
-            std.process.exit(if (usingBattery) 0 else 1);
-        } else if (std.mem.eql(u8, arg1, "mains")) {
-            std.process.exit(if (!usingBattery) 0 else 1);
+        if (std.mem.eql(u8, arg1, "mains")) {
+            std.process.exit(if (powerStatus == .Mains) 0 else 1);
+        } else if (std.mem.eql(u8, arg1, "battery")) {
+            std.process.exit(if (powerStatus == .Battery) 0 else 1);
         } else {
             std.debug.print("invalid arguments\n", .{});
             std.process.exit(1);
         }
     }
     //------------------------------------------------------------
-    if (usingBattery) {
+    if (powerStatus == .Mains) {
+        try std.io.getStdOut().writer().writeAll("power supply: mains power\n");
+    } else if (powerStatus == .Battery) {
         try std.io.getStdOut().writer().writeAll("power supply: battery power\n");
     } else {
-        try std.io.getStdOut().writer().writeAll("power supply: mains power\n");
+        try std.io.getStdOut().writer().writeAll("power supply: unknown source\n");
     }
     //------------------------------------------------------------
     std.process.exit(0);
@@ -57,15 +67,16 @@ pub fn main() !void {
 // linux functions
 //------------------------------------------------------------
 
-fn power_check_linux(allocator: std.mem.Allocator) bool {
+pub fn power_check_linux(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    return power_check_filepath(allocator) catch return power_check_upower(allocator);
+    return power_check_filepath(allocator) catch power_check_upower(allocator);
     //------------------------------------------------------------
 }
 
-fn power_check_filepath(allocator: std.mem.Allocator) !bool {
+pub fn power_check_filepath(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
     const psFilePath = try find_ps_filepath(allocator);
+    defer allocator.free(psFilePath);
     //------------------------------------------------------------
     var file = try std.fs.cwd().openFile(psFilePath, .{});
     defer file.close();
@@ -73,15 +84,13 @@ fn power_check_filepath(allocator: std.mem.Allocator) !bool {
     var buffer: [1]u8 = undefined;
     const bytesRead = try file.readAll(&buffer);
     //------------------------------------------------------------
-    if (bytesRead == 0) {
-        return error.ReadError;
-    }
+    if (bytesRead == 0) return error.ReadError;
     //------------------------------------------------------------
-    return buffer[0] == '0'; // 0 = using battery, 1 = using mains
+    return if (buffer[0] == '1') .Mains else .Battery;
     //------------------------------------------------------------
 }
 
-fn find_ps_filepath(allocator: std.mem.Allocator) ![]const u8 {
+pub fn find_ps_filepath(allocator: std.mem.Allocator) ![]const u8 {
     //------------------------------------------------------------
     var dir = try std.fs.cwd().openDir(PS_SEARCH_PATH, .{ .iterate = true });
     defer dir.close();
@@ -93,11 +102,11 @@ fn find_ps_filepath(allocator: std.mem.Allocator) ![]const u8 {
         }
     }
     //------------------------------------------------------------
-    return error.PowerSupplyNotFound;
+    return error.FilePathNotFound;
     //------------------------------------------------------------
 }
 
-fn power_check_upower(allocator: std.mem.Allocator) bool {
+pub fn power_check_upower(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
     var stdout = std.ArrayListUnmanaged(u8){};
     var stderr = std.ArrayListUnmanaged(u8){};
@@ -111,18 +120,21 @@ fn power_check_upower(allocator: std.mem.Allocator) bool {
         &stderr,
         MAX_OUTPUT_BYTES,
     ) catch |err| {
-        std.debug.print("process error: {s}\n", .{@errorName(err)});
-        std.process.exit(1);
+        if (err == error.FileNotFound) {
+            return error.ProcessNotFound;
+        } else {
+            std.debug.print("{s}", .{stderr.items});
+            std.debug.print("{s}\n", .{@errorName(err)});
+            return error.ProcessError;
+        }
     };
 
     if (stderr.items.len > 0) {
         std.debug.print("{s}", .{stderr.items});
-        std.process.exit(1);
     }
 
     if (exitCode > 0) {
-        std.debug.print("invalid exit code: {d}\n", .{exitCode});
-        std.process.exit(exitCode);
+        return error.InvalidExitCode;
     }
     //------------------------------------------------------------
     var usingBattery = false;
@@ -137,12 +149,9 @@ fn power_check_upower(allocator: std.mem.Allocator) bool {
         }
     }
 
-    if (!lineMatched) {
-        std.debug.print("unable to check power supply status\n", .{});
-        std.process.exit(1);
-    }
+    if (!lineMatched) return error.PowerStatusUnknown;
     //------------------------------------------------------------
-    return usingBattery;
+    return if (!usingBattery) .Mains else .Battery;
     //------------------------------------------------------------
 }
 
@@ -150,7 +159,7 @@ fn power_check_upower(allocator: std.mem.Allocator) bool {
 // macos functions
 //------------------------------------------------------------
 
-fn power_check_macos(allocator: std.mem.Allocator) bool {
+pub fn power_check_macos(allocator: std.mem.Allocator) !PowerStatus {
     //----------------------------------------
     var stdout = std.ArrayListUnmanaged(u8){};
     var stderr = std.ArrayListUnmanaged(u8){};
@@ -164,8 +173,13 @@ fn power_check_macos(allocator: std.mem.Allocator) bool {
         &stderr,
         MAX_OUTPUT_BYTES,
     ) catch |err| {
-        std.debug.print("process error: {s}\n", .{@errorName(err)});
-        std.process.exit(1);
+        if (err == error.FileNotFound) {
+            return error.ProcessNotFound;
+        } else {
+            std.debug.print("{s}", .{stderr.items});
+            std.debug.print("{s}\n", .{@errorName(err)});
+            return error.ProcessError;
+        }
     };
 
     if (stderr.items.len > 0) {
@@ -173,8 +187,7 @@ fn power_check_macos(allocator: std.mem.Allocator) bool {
     }
 
     if (exitCode > 0) {
-        std.debug.print("invalid exit code: {d}\n", .{exitCode});
-        std.process.exit(exitCode);
+        return error.InvalidExitCode;
     }
     //------------------------------------------------------------
     var usingBattery = false;
@@ -189,12 +202,9 @@ fn power_check_macos(allocator: std.mem.Allocator) bool {
         }
     }
 
-    if (!lineMatched) {
-        std.debug.print("unable to check power supply status\n", .{});
-        std.process.exit(1);
-    }
+    if (!lineMatched) return error.PowerStatusUnknown;
     //------------------------------------------------------------
-    return usingBattery;
+    return if (!usingBattery) .Mains else .Battery;
     //------------------------------------------------------------
 }
 
@@ -202,7 +212,7 @@ fn power_check_macos(allocator: std.mem.Allocator) bool {
 // linux and macos supporting functions
 //------------------------------------------------------------
 
-fn child_process(
+pub fn child_process(
     allocator: std.mem.Allocator,
     argv: []const []const u8,
     stdout: *std.ArrayListUnmanaged(u8),
@@ -226,7 +236,7 @@ fn child_process(
 // windows functions
 //------------------------------------------------------------
 
-const windows = if (OS == .windows) std.os.windows else struct {};
+const windows = std.os.windows;
 
 const SYSTEM_POWER_STATUS = extern struct {
     ACLineStatus: u8,
@@ -237,18 +247,19 @@ const SYSTEM_POWER_STATUS = extern struct {
     BatteryFullLifeTime: u32,
 };
 
-//------------------------------------------------------------
-
 extern "kernel32" fn GetSystemPowerStatus(lpSystemPowerStatus: *SYSTEM_POWER_STATUS) callconv(.C) windows.BOOL;
 
-fn power_check_windows() bool {
+pub fn power_check_windows() !PowerStatus {
+    //------------------------------------------------------------
+    if (OS != .windows) return error.IncompatibleOS;
     //------------------------------------------------------------
     var status: SYSTEM_POWER_STATUS = undefined;
+    //------------------------------------------------------------
     if (GetSystemPowerStatus(&status) == windows.FALSE) {
-        std.debug.print("GetSystemPowerStatus: error checking power supply status\n", .{});
-        std.process.exit(1);
+        return error.GetSystemPowerStatusError;
     }
-    return status.ACLineStatus != 1; // 0 = using battery, 1 = using mains
+    //------------------------------------------------------------
+    return if (status.ACLineStatus == 1) .Mains else .Battery;
     //------------------------------------------------------------
 }
 
