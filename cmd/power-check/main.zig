@@ -15,7 +15,6 @@ pub const PS_SEARCH_PATH = "/sys/class/power_supply";
 pub const PowerStatus = enum {
     Mains,
     Battery,
-    Unknown,
 };
 
 //--------------------------------------------------------------------------------
@@ -53,10 +52,8 @@ pub fn main() !void {
     //------------------------------------------------------------
     if (powerStatus == .Mains) {
         try std.io.getStdOut().writer().writeAll("power supply: mains power\n");
-    } else if (powerStatus == .Battery) {
-        try std.io.getStdOut().writer().writeAll("power supply: battery power\n");
     } else {
-        try std.io.getStdOut().writer().writeAll("power supply: unknown source\n");
+        try std.io.getStdOut().writer().writeAll("power supply: battery power\n");
     }
     //------------------------------------------------------------
     std.process.exit(0);
@@ -108,38 +105,16 @@ pub fn find_ps_filepath(allocator: std.mem.Allocator) ![]const u8 {
 
 pub fn power_check_upower(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    var stdout = std.ArrayListUnmanaged(u8){};
-    var stderr = std.ArrayListUnmanaged(u8){};
-    defer stdout.deinit(allocator);
-    defer stderr.deinit(allocator);
-    //------------------------------------------------------------
-    const exitCode = child_process(
+    const stdout = try child_process(
         allocator,
         &[_][]const u8{ "upower", "--dump" },
-        &stdout,
-        &stderr,
-        MAX_OUTPUT_BYTES,
-    ) catch |err| {
-        if (err == error.FileNotFound) {
-            return error.ProcessNotFound;
-        } else {
-            std.debug.print("{s}", .{stderr.items});
-            std.debug.print("{s}\n", .{@errorName(err)});
-            return error.ProcessError;
-        }
-    };
-
-    if (stderr.items.len > 0) {
-        std.debug.print("{s}", .{stderr.items});
-    }
-
-    if (exitCode > 0) {
-        return error.InvalidExitCode;
-    }
+    );
+    //------------------------------------------------------------
+    defer allocator.free(stdout);
     //------------------------------------------------------------
     var usingBattery = false;
     var lineMatched = false;
-    var lines = std.mem.splitScalar(u8, stdout.items, '\n');
+    var lines = std.mem.splitScalar(u8, stdout, '\n');
 
     while (lines.next()) |line| {
         if (std.mem.indexOf(u8, line, "on-battery:")) |pos| {
@@ -160,39 +135,23 @@ pub fn power_check_upower(allocator: std.mem.Allocator) !PowerStatus {
 //------------------------------------------------------------
 
 pub fn power_check_macos(allocator: std.mem.Allocator) !PowerStatus {
-    //----------------------------------------
-    var stdout = std.ArrayListUnmanaged(u8){};
-    var stderr = std.ArrayListUnmanaged(u8){};
-    defer stdout.deinit(allocator);
-    defer stderr.deinit(allocator);
     //------------------------------------------------------------
-    const exitCode = child_process(
+    return power_check_pmset(allocator);
+    //------------------------------------------------------------
+}
+
+pub fn power_check_pmset(allocator: std.mem.Allocator) !PowerStatus {
+    //------------------------------------------------------------
+    const stdout = try child_process(
         allocator,
         &[_][]const u8{ "pmset", "-g", "batt" },
-        &stdout,
-        &stderr,
-        MAX_OUTPUT_BYTES,
-    ) catch |err| {
-        if (err == error.FileNotFound) {
-            return error.ProcessNotFound;
-        } else {
-            std.debug.print("{s}", .{stderr.items});
-            std.debug.print("{s}\n", .{@errorName(err)});
-            return error.ProcessError;
-        }
-    };
-
-    if (stderr.items.len > 0) {
-        std.debug.print("{s}", .{stderr.items});
-    }
-
-    if (exitCode > 0) {
-        return error.InvalidExitCode;
-    }
+    );
+    //------------------------------------------------------------
+    defer allocator.free(stdout);
     //------------------------------------------------------------
     var usingBattery = false;
     var lineMatched = false;
-    var lines = std.mem.splitScalar(u8, stdout.items, '\n');
+    var lines = std.mem.splitScalar(u8, stdout, '\n');
 
     while (lines.next()) |line| {
         if (std.mem.indexOf(u8, line, "Now drawing")) |pos| {
@@ -215,20 +174,37 @@ pub fn power_check_macos(allocator: std.mem.Allocator) !PowerStatus {
 pub fn child_process(
     allocator: std.mem.Allocator,
     argv: []const []const u8,
-    stdout: *std.ArrayListUnmanaged(u8),
-    stderr: *std.ArrayListUnmanaged(u8),
-    maxOutputBytes: usize,
-) !u8 {
+) ![]const u8 {
+    //------------------------------------------------------------
+    var stdout = std.ArrayListUnmanaged(u8){};
+    var stderr = std.ArrayListUnmanaged(u8){};
+    defer stdout.deinit(allocator);
+    defer stderr.deinit(allocator);
     //------------------------------------------------------------
     var child = std.process.Child.init(argv, allocator);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
     //------------------------------------------------------------
     try child.spawn();
-    try child.collectOutput(allocator, stdout, stderr, maxOutputBytes);
+    try child.collectOutput(allocator, &stdout, &stderr, MAX_OUTPUT_BYTES);
     //------------------------------------------------------------
-    const term = try child.wait();
-    return term.Exited;
+    if (stderr.items.len > 0) {
+        std.debug.print("{s}", .{stderr.items});
+    }
+
+    const term = child.wait() catch |err| return switch (err) {
+        error.FileNotFound => error.ProcessNotFound,
+        else => err,
+    };
+
+    const exitCode = switch (term) {
+        .Exited => term.Exited,
+        else => 1,
+    };
+
+    if (exitCode > 0) return error.InvalidExitCode;
+
+    return try stdout.toOwnedSlice(allocator);
     //------------------------------------------------------------
 }
 
