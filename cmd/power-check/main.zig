@@ -25,10 +25,10 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
     //------------------------------------------------------------
-    const powerStatus = switch (OS) {
-        .linux => try power_check_linux(allocator),
-        .macos => try power_check_macos(allocator),
-        .windows => try power_check_windows(),
+    const power_status = switch (OS) {
+        .linux => try powerCheckLinux(allocator),
+        .macos => try powerCheckMacos(allocator),
+        .windows => try powerCheckWindows(),
         else => {
             std.debug.print("Unsupported OS: {s}\n", .{@tagName(OS)});
             std.process.exit(1);
@@ -41,16 +41,16 @@ pub fn main() !void {
     //------------------------------------------------------------
     if (it.next()) |arg1| {
         if (std.mem.eql(u8, arg1, "mains")) {
-            std.process.exit(if (powerStatus == .Mains) 0 else 1);
+            std.process.exit(if (power_status == .Mains) 0 else 1);
         } else if (std.mem.eql(u8, arg1, "battery")) {
-            std.process.exit(if (powerStatus == .Battery) 0 else 1);
+            std.process.exit(if (power_status == .Battery) 0 else 1);
         } else {
             std.debug.print("invalid arguments\n", .{});
             std.process.exit(1);
         }
     }
     //------------------------------------------------------------
-    if (powerStatus == .Mains) {
+    if (power_status == .Mains) {
         try std.io.getStdOut().writer().writeAll("power supply: mains power\n");
     } else {
         try std.io.getStdOut().writer().writeAll("power supply: battery power\n");
@@ -64,38 +64,38 @@ pub fn main() !void {
 // linux functions
 //------------------------------------------------------------
 
-pub fn power_check_linux(allocator: std.mem.Allocator) !PowerStatus {
+pub fn powerCheckLinux(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    return power_check_filepath(allocator) catch power_check_upower(allocator);
+    return powerCheckFilePath(allocator) catch powerCheck_upower(allocator);
     //------------------------------------------------------------
 }
 
-pub fn power_check_filepath(allocator: std.mem.Allocator) !PowerStatus {
+pub fn powerCheckFilePath(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    const psFilePath = try find_ps_filepath(allocator);
-    defer allocator.free(psFilePath);
+    const ps_filepath = try findPSFilePath(allocator);
+    defer allocator.free(ps_filepath);
     //------------------------------------------------------------
-    var file = try std.fs.cwd().openFile(psFilePath, .{});
+    var file = try std.fs.cwd().openFile(ps_filepath, .{});
     defer file.close();
     //------------------------------------------------------------
     var buffer: [1]u8 = undefined;
-    const bytesRead = try file.readAll(&buffer);
+    const bytes_read = try file.readAll(&buffer);
     //------------------------------------------------------------
-    if (bytesRead == 0) return error.ReadError;
+    if (bytes_read == 0) return error.ReadError;
     //------------------------------------------------------------
     return if (buffer[0] == '1') .Mains else .Battery;
     //------------------------------------------------------------
 }
 
-pub fn find_ps_filepath(allocator: std.mem.Allocator) ![]const u8 {
+pub fn findPSFilePath(allocator: std.mem.Allocator) ![]const u8 {
     //------------------------------------------------------------
     var dir = try std.fs.cwd().openDir(PS_SEARCH_PATH, .{ .iterate = true });
     defer dir.close();
     //------------------------------------------------------------
     var dirIterator = dir.iterate();
-    while (try dirIterator.next()) |dirContent| {
-        if (std.mem.startsWith(u8, dirContent.name, "AC")) {
-            return try std.fmt.allocPrint(allocator, "{s}/{s}/online", .{ PS_SEARCH_PATH, dirContent.name });
+    while (try dirIterator.next()) |dir_entry| {
+        if (std.mem.startsWith(u8, dir_entry.name, "AC")) {
+            return try std.fmt.allocPrint(allocator, "{s}/{s}/online", .{ PS_SEARCH_PATH, dir_entry.name });
         }
     }
     //------------------------------------------------------------
@@ -103,30 +103,30 @@ pub fn find_ps_filepath(allocator: std.mem.Allocator) ![]const u8 {
     //------------------------------------------------------------
 }
 
-pub fn power_check_upower(allocator: std.mem.Allocator) !PowerStatus {
+pub fn powerCheck_upower(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    const stdout = try child_process(
+    const stdout = try childProcess(
         allocator,
         &[_][]const u8{ "upower", "--dump" },
     );
     //------------------------------------------------------------
     defer allocator.free(stdout);
     //------------------------------------------------------------
-    var usingBattery = false;
-    var lineMatched = false;
+    var using_battery = false;
+    var line_matched = false;
     var lines = std.mem.splitScalar(u8, stdout, '\n');
 
     while (lines.next()) |line| {
         if (std.mem.indexOf(u8, line, "on-battery:")) |pos| {
-            usingBattery = std.mem.indexOfPos(u8, line, pos, "yes") != null;
-            lineMatched = true;
+            using_battery = std.mem.indexOfPos(u8, line, pos, "yes") != null;
+            line_matched = true;
             break;
         }
     }
 
-    if (!lineMatched) return error.PowerStatusUnknown;
+    if (!line_matched) return error.PowerStatusUnknown;
     //------------------------------------------------------------
-    return if (!usingBattery) .Mains else .Battery;
+    return if (!using_battery) .Mains else .Battery;
     //------------------------------------------------------------
 }
 
@@ -134,36 +134,36 @@ pub fn power_check_upower(allocator: std.mem.Allocator) !PowerStatus {
 // macos functions
 //------------------------------------------------------------
 
-pub fn power_check_macos(allocator: std.mem.Allocator) !PowerStatus {
+pub fn powerCheckMacos(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    return power_check_pmset(allocator);
+    return powerCheck_pmset(allocator);
     //------------------------------------------------------------
 }
 
-pub fn power_check_pmset(allocator: std.mem.Allocator) !PowerStatus {
+pub fn powerCheck_pmset(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    const stdout = try child_process(
+    const stdout = try childProcess(
         allocator,
         &[_][]const u8{ "pmset", "-g", "batt" },
     );
     //------------------------------------------------------------
     defer allocator.free(stdout);
     //------------------------------------------------------------
-    var usingBattery = false;
-    var lineMatched = false;
+    var using_battery = false;
+    var line_matched = false;
     var lines = std.mem.splitScalar(u8, stdout, '\n');
 
     while (lines.next()) |line| {
         if (std.mem.indexOf(u8, line, "Now drawing")) |pos| {
-            usingBattery = std.mem.indexOfPos(u8, line, pos, "Battery Power") != null;
-            lineMatched = true;
+            using_battery = std.mem.indexOfPos(u8, line, pos, "Battery Power") != null;
+            line_matched = true;
             break;
         }
     }
 
-    if (!lineMatched) return error.PowerStatusUnknown;
+    if (!line_matched) return error.PowerStatusUnknown;
     //------------------------------------------------------------
-    return if (!usingBattery) .Mains else .Battery;
+    return if (!using_battery) .Mains else .Battery;
     //------------------------------------------------------------
 }
 
@@ -171,7 +171,7 @@ pub fn power_check_pmset(allocator: std.mem.Allocator) !PowerStatus {
 // linux and macos supporting functions
 //------------------------------------------------------------
 
-pub fn child_process(
+pub fn childProcess(
     allocator: std.mem.Allocator,
     argv: []const []const u8,
 ) ![]const u8 {
@@ -197,12 +197,12 @@ pub fn child_process(
         else => err,
     };
 
-    const exitCode = switch (term) {
+    const exit_code = switch (term) {
         .Exited => term.Exited,
         else => 1,
     };
 
-    if (exitCode > 0) return error.InvalidExitCode;
+    if (exit_code > 0) return error.InvalidExitCode;
 
     return try stdout.toOwnedSlice(allocator);
     //------------------------------------------------------------
@@ -225,7 +225,7 @@ const SYSTEM_POWER_STATUS = extern struct {
 
 extern "kernel32" fn GetSystemPowerStatus(lpSystemPowerStatus: *SYSTEM_POWER_STATUS) callconv(.C) windows.BOOL;
 
-pub fn power_check_windows() !PowerStatus {
+pub fn powerCheckWindows() !PowerStatus {
     //------------------------------------------------------------
     if (OS != .windows) return error.IncompatibleOS;
     //------------------------------------------------------------

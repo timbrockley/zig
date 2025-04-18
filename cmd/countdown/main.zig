@@ -4,7 +4,7 @@
 //--------------------------------------------------------------------------------
 const std: type = @import("std");
 
-const duration: u64 = 1 * std.time.ns_per_s;
+const DURATION: u64 = 1 * std.time.ns_per_s;
 const CR_CLEARLINE = "\r\x1b[2K";
 
 pub fn main() !void {
@@ -21,7 +21,7 @@ pub fn main() !void {
         while (countdown > 0) {
             try std.io.getStdOut().writer().print("{s}{s}...{d}", .{ CR_CLEARLINE, message, countdown });
             countdown -= 1;
-            std.time.sleep(duration);
+            std.time.sleep(DURATION);
         }
 
         try std.io.getStdOut().writeAll(CR_CLEARLINE);

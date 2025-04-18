@@ -9,12 +9,12 @@ const MAX_OUTPUT_BYTES: usize = 50 * 1024;
 
 //--------------------------------------------------------------------------------
 
-pub fn child_process_pre_allocated(
+pub fn childProcessPreallocated(
     allocator: std.mem.Allocator,
     argv: []const []const u8,
     stdout: *std.ArrayListUnmanaged(u8),
     stderr: *std.ArrayListUnmanaged(u8),
-    maxOutputBytes: usize,
+    max_output_bytes: usize,
 ) !u8 {
     //------------------------------------------------------------
     var child = std.process.Child.init(
@@ -29,7 +29,7 @@ pub fn child_process_pre_allocated(
         allocator,
         stdout,
         stderr,
-        maxOutputBytes,
+        max_output_bytes,
     );
     //------------------------------------------------------------
     const term = try child.wait();
@@ -42,16 +42,16 @@ pub fn child_process_pre_allocated(
 
 //--------------------------------------------------------------------------------
 pub const ChildProcessReturnValues = struct {
-    exitCode: u8 = 0,
-    stdOutput: []const u8 = &[_]u8{},
-    stdError: []const u8 = &[_]u8{},
+    exit_code: u8 = 0,
+    stdout: []const u8 = &[_]u8{},
+    stderr: []const u8 = &[_]u8{},
     err: ?anyerror = null,
 };
 //--------------------------------------------------------------------------------
-pub fn child_process_owned_slice(
+pub fn childProcessOwnedSlice(
     allocator: std.mem.Allocator,
     argv: []const []const u8,
-    maxOutputBytes: usize,
+    max_output_bytes: usize,
 ) ChildProcessReturnValues {
     //------------------------------------------------------------
     var stdout = std.ArrayListUnmanaged(u8){};
@@ -66,31 +66,31 @@ pub fn child_process_owned_slice(
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
     //------------------------------------------------------------
-    child.spawn() catch |err| return ChildProcessReturnValues{ .exitCode = 1, .err = err };
+    child.spawn() catch |err| return ChildProcessReturnValues{ .exit_code = 1, .err = err };
 
     child.collectOutput(
         allocator,
         &stdout,
         &stderr,
-        maxOutputBytes,
-    ) catch |err| return ChildProcessReturnValues{ .exitCode = 1, .err = err };
+        max_output_bytes,
+    ) catch |err| return ChildProcessReturnValues{ .exit_code = 1, .err = err };
 
-    const term = child.wait() catch |err| return ChildProcessReturnValues{ .exitCode = 1, .err = err };
+    const term = child.wait() catch |err| return ChildProcessReturnValues{ .exit_code = 1, .err = err };
     //------------------------------------------------------------
-    const exitCode = switch (term) {
+    const exit_code = switch (term) {
         .Exited => term.Exited,
         else => 1,
     };
     //------------------------------------------------------------
-    const stdOutput = stdout.toOwnedSlice(allocator) catch |err| return ChildProcessReturnValues{ .exitCode = 1, .err = err };
-    errdefer allocator.free(stdOutput);
+    const stdout_slice = stdout.toOwnedSlice(allocator) catch |err| return ChildProcessReturnValues{ .exit_code = 1, .err = err };
+    errdefer allocator.free(stdout);
     //------------------------------------------------------------
-    const stdError = stderr.toOwnedSlice(allocator) catch |err| return ChildProcessReturnValues{ .exitCode = 1, .err = err };
+    const stderr_slice = stderr.toOwnedSlice(allocator) catch |err| return ChildProcessReturnValues{ .exit_code = 1, .err = err };
     //------------------------------------------------------------
     return ChildProcessReturnValues{
-        .exitCode = exitCode,
-        .stdOutput = stdOutput,
-        .stdError = stdError,
+        .exit_code = exit_code,
+        .stdout = stdout_slice,
+        .stderr = stderr_slice,
         .err = null,
     };
     //------------------------------------------------------------
@@ -115,7 +115,7 @@ pub fn main() !void {
         defer stdout.deinit(allocator);
         defer stderr.deinit(allocator);
         //------------------------------------------------------------
-        const exitCode = child_process_pre_allocated(
+        const exit_code = childProcessPreallocated(
             allocator,
             &[_][]const u8{
                 "ls",
@@ -129,7 +129,7 @@ pub fn main() !void {
             std.process.exit(1);
         };
         //------------------------------------------------------------
-        std.debug.print("exit code: {d}\n", .{exitCode});
+        std.debug.print("exit code: {d}\n", .{exit_code});
         std.debug.print("stdout: {s}\n", .{stdout.items});
         std.debug.print("stderr: {s}\n", .{stderr.items});
         //------------------------------------------------------------
@@ -137,7 +137,7 @@ pub fn main() !void {
     //------------------------------------------------------------
     {
         //------------------------------------------------------------
-        const process2 = child_process_owned_slice(
+        const process2 = childProcessOwnedSlice(
             allocator,
             &[_][]const u8{
                 "printf",
@@ -146,12 +146,12 @@ pub fn main() !void {
             MAX_OUTPUT_BYTES,
         );
         //------------------------------------------------------------
-        defer allocator.free(process2.stdOutput);
-        defer allocator.free(process2.stdError);
+        defer allocator.free(process2.stdout);
+        defer allocator.free(process2.stderr);
         //------------------------------------------------------------
-        std.debug.print("exit code: {d}\n", .{process2.exitCode});
-        std.debug.print("stdout: {s}\n", .{process2.stdOutput});
-        std.debug.print("stderr: {s}\n", .{process2.stdError});
+        std.debug.print("exit code: {d}\n", .{process2.exit_code});
+        std.debug.print("stdout: {s}\n", .{process2.stdout});
+        std.debug.print("stderr: {s}\n", .{process2.stderr});
         std.debug.print("err: {?}\n", .{process2.err});
         //------------------------------------------------------------
     }
