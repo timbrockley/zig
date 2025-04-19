@@ -7,12 +7,13 @@ const std = @import("std");
 const builtin = @import("builtin");
 const OS = builtin.os.tag;
 
+//--------------------------------------------------------------------------------
+
 pub const MAX_OUTPUT_BYTES: usize = 10 * 1024;
 pub const PS_SEARCH_PATH = "/sys/class/power_supply";
 
-//--------------------------------------------------------------------------------
-
 pub const PowerStatus = enum {
+    Unknown,
     Mains,
     Battery,
 };
@@ -27,7 +28,7 @@ pub fn main() !void {
     //------------------------------------------------------------
     const power_status = switch (OS) {
         .linux => try powerCheckLinux(allocator),
-        .macos => try powerCheckMacos(allocator),
+        .macos => try powerCheckMacOS(allocator),
         .windows => try powerCheckWindows(),
         else => {
             std.debug.print("Unsupported OS: {s}\n", .{@tagName(OS)});
@@ -52,8 +53,10 @@ pub fn main() !void {
     //------------------------------------------------------------
     if (power_status == .Mains) {
         try std.io.getStdOut().writer().writeAll("power supply: mains power\n");
-    } else {
+    } else if (power_status == .Battery) {
         try std.io.getStdOut().writer().writeAll("power supply: battery power\n");
+    } else {
+        try std.io.getStdOut().writer().writeAll("power supply: unknown source\n");
     }
     //------------------------------------------------------------
     std.process.exit(0);
@@ -114,6 +117,7 @@ pub fn powerCheck_upower(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
     var using_battery = false;
     var line_matched = false;
+    //------------------------------------------------------------
     var lines = std.mem.splitScalar(u8, stdout, '\n');
 
     while (lines.next()) |line| {
@@ -134,7 +138,7 @@ pub fn powerCheck_upower(allocator: std.mem.Allocator) !PowerStatus {
 // macos functions
 //------------------------------------------------------------
 
-pub fn powerCheckMacos(allocator: std.mem.Allocator) !PowerStatus {
+pub fn powerCheckMacOS(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
     return powerCheck_pmset(allocator);
     //------------------------------------------------------------

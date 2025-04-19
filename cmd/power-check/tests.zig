@@ -3,6 +3,10 @@ const builtin = @import("builtin");
 
 const pc = @import("main.zig");
 
+//------------------------------------------------------------
+// linux functions
+//------------------------------------------------------------
+
 test "powerCheckLinux" {
     const result = try pc.powerCheckLinux(std.testing.allocator);
     try std.testing.expect(result == .Mains or result == .Battery);
@@ -28,13 +32,29 @@ test "powerCheck_upower" {
     }
 }
 
-test "powerCheckMacos" {
-    if (pc.powerCheckMacos(std.testing.allocator)) |result| {
+//------------------------------------------------------------
+// macos functions
+//------------------------------------------------------------
+
+test "powerCheckMacOS" {
+    if (pc.powerCheckMacOS(std.testing.allocator)) |result| {
         try std.testing.expect(result == .Mains or result == .Battery);
     } else |err| {
         try std.testing.expect(err == error.ProcessNotFound);
     }
 }
+
+test "powerCheck_pmset" {
+    if (pc.powerCheck_pmset(std.testing.allocator)) |result| {
+        try std.testing.expect(result == .Mains or result == .Battery);
+    } else |err| {
+        try std.testing.expect(err == error.ProcessNotFound);
+    }
+}
+
+//------------------------------------------------------------
+// windows functions
+//------------------------------------------------------------
 
 test "powerCheckWindows" {
     if (pc.powerCheckWindows()) |result| {
