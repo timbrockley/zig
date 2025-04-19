@@ -5,6 +5,11 @@
 
 const std = @import("std");
 
+pub const TEST_DIR = "test";
+pub const TEST_DIR1 = "test/1";
+pub const TEST_DIR2 = "test/1/2";
+pub const TEST_DIR3 = "test/1/2/3";
+
 pub fn main() !void {
     //------------------------------------------------------------
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -16,13 +21,13 @@ pub fn main() !void {
     std.debug.print("cwd: {s}\n", .{cwdString});
     std.debug.print("\n", .{});
     //------------------------------------------------------------
-    if (std.fs.cwd().statFile("test")) |stat| {
+    if (std.fs.cwd().statFile(TEST_DIR)) |stat| {
         if (stat.kind == .file) {
-            try std.fs.cwd().deleteFile("test");
+            try std.fs.cwd().deleteFile(TEST_DIR);
         }
     } else |_| {}
     //------------------------------------------------------------
-    std.fs.cwd().makeDir("test") catch |err| {
+    std.fs.cwd().makeDir(TEST_DIR) catch |err| {
         if (err != error.PathAlreadyExists) {
             std.debug.print("makeDir: {s}\n", .{@errorName(err)});
             std.process.exit(1);
@@ -30,20 +35,20 @@ pub fn main() !void {
     };
     std.debug.print("makeDir: directory created\n", .{});
     //------------------------------------------------------------
-    std.fs.cwd().makePath("test/1/2") catch |err| {
+    std.fs.cwd().makePath(TEST_DIR2) catch |err| {
         std.debug.print("makePath: {s}\n", .{@errorName(err)});
         std.process.exit(1);
     };
     std.debug.print("makePath: directory created\n", .{});
     //------------------------------------------------------------
-    const statExisting = try std.fs.cwd().statFile("test/1/2");
+    const statExisting = try std.fs.cwd().statFile(TEST_DIR2);
     switch (statExisting.kind) {
         .directory => std.debug.print("statFile: directory exists\n", .{}),
         .file => std.debug.print("statFile: file exists\n", .{}),
         else => std.debug.print("statFile: exists, type: {s}\n", .{@tagName(statExisting.kind)}),
     }
     //------------------------------------------------------------
-    if (std.fs.cwd().statFile("test/1/2/3")) |statResult| {
+    if (std.fs.cwd().statFile(TEST_DIR3)) |statResult| {
         switch (statResult.kind) {
             .directory => std.debug.print("statFile: directory exists\n", .{}),
             .file => std.debug.print("statFile: file exists\n", .{}),
