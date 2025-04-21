@@ -18,7 +18,6 @@ tasks:
       - rm -rf libmath.so.o lib-shared.o
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - ./lib-shared {{.CLI_ARGS}}

@@ -16,7 +16,6 @@ tasks:
       - rm -rf ../{{.CACHE_PATH}} bin lib
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - ./lib-dynlib-build {{.CLI_ARGS}}
