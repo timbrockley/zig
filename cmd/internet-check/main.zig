@@ -4,8 +4,8 @@
 //--------------------------------------------------------------------------------
 const std = @import("std");
 
-const addr = "1.1.1.1";
-const port = 53;
+const ADDR = "1.1.1.1";
+const PORT = 53;
 
 pub fn main() void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -21,7 +21,7 @@ pub fn main() void {
 }
 
 pub fn connected(allocator: std.mem.Allocator) bool {
-    const s = std.net.tcpConnectToHost(allocator, addr, port) catch return false;
+    const s = std.net.tcpConnectToHost(allocator, ADDR, PORT) catch return false;
     defer s.close();
     return true;
 }
