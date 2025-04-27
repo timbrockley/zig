@@ -1,5 +1,8 @@
 #!/bin/bash
 #--------------------------------------------------------------------------------
+match_libc() { grep -qE '@?cImport|@c(Include|Define|Undef|Struct|Union)|\bstd\.c\b|@import\("std"\)\.c' "$1"; }
+LC=""
+#--------------------------------------------------------------------------------
 #################################################################################
 #--------------------------------------------------------------------------------
 source $(dirname ${BASH_SOURCE[0]})/zigbuild-env-vars
@@ -13,81 +16,131 @@ DIRECTORY=$(pwd); BASENAME=$(basename "$(pwd)")
 #--------------------------------------------------------------------------------
 ZIG_FILE_COUNT=$(find . -type f -name "*.zig" | wc -l)
 #--------------------------------------------------------------------------------
-OUTPUT=${BASENAME}; OUTPUT_PATH="zig-out"
-#--------------------------------------------------------------------------------
-SOURCE=""
+SOURCE=""; OUTPUT=${BASENAME}; OUTPUT_PATH="zig-out"
 #--------------------------------------------------------------------------------
 #################################################################################
 #--------------------------------------------------------------------------------
-if [ -f "Taskfile.yml" ] || [ -f "Taskfile.yaml" ] || [ -f "taskfile.yml" ] || [ -f "taskfile.yaml" ]
+if [ "${1}" == "." ] || [ "${1}" == "*" ] || [ "${1}" == "all" ]
 then
-	#----------------------------------------
-	task build
-	#----------------------------------------
-	exit $?
-	#----------------------------------------
-elif [ -f "Makefile" ] || [ -f "makefile" ]
+	#--------------------------------------------------------------------------------
+	shift
+	#--------------------------------------------------------------------------------
+	for FILENAME in *.zig
+	do
+		#----------------------------------------
+		if [ -f "${FILENAME}" ]
+		then
+			#----------------------------------------
+			echo "${FILENAME}:"
+			$(dirname ${BASH_SOURCE[0]})/zigbuild ${FILENAME} ${*}
+			echo
+			#----------------------------------------
+		fi
+		#----------------------------------------
+	done
+	#--------------------------------------------------------------------------------
+	exit 0
+	#--------------------------------------------------------------------------------
+elif [ "${1}" != "" ]
 then
-	#----------------------------------------
-	make build
-	#----------------------------------------
-	exit $?
-	#----------------------------------------
-elif [ -f "build.zig" ]
-then
-	#----------------------------------------
-	zig build -Doptimize=${ZIG_BUILD_MODE} -Dtarget=${ZIG_BUILD_TARGET} -Dcpu=${ZIG_BUILD_CPU}
-	#----------------------------------------
-	exit $?
-	#----------------------------------------
-elif [ "${ZIG_FILE_COUNT}" -eq 2 ] && [ -f "root.zig" ] && [ -f "main.zig" ]
-then
-	#----------------------------------------
-	mkdir -p ${OUTPUT_PATH}; cd ${OUTPUT_PATH}
-	#----------------------------------------
-	zig build-lib ../root.zig -femit-bin=lib${OUTPUT}.a ${FSTRIP} -static -O ${ZIG_BUILD_MODE}
-	[ $? -eq 0 ] && zig build-exe ../main.zig -femit-bin=${OUTPUT} -L. -l${OUTPUT} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
-	exit $?
-	#----------------------------------------
-elif [ "${ZIG_FILE_COUNT}" -eq 1 ] && [ -f "root.zig" ]
-then
-	#----------------------------------------
-	SOURCE="root.zig"
-	#----------------------------------------
-elif [ -f "main.zig" ]
-then
-	#----------------------------------------
-	SOURCE="main.zig"
-	#----------------------------------------
+	#--------------------------------------------------------------------------------
+	if [ -f "${1}" ]
+	then
+		SOURCE=${1}
+	elif [ -f "${1}.zig" ]
+	then
+		SOURCE=${1}.zig
+	else
+		echo "invalid source filename: ${FILENAME}"
+		exit 1
+	fi
+	#--------------------------------------------------------------------------------
+	shift
+	#--------------------------------------------------------------------------------
 else
-	#----------------------------------------
-	if [ -f "${BASENAME}.zig" ]
+	#--------------------------------------------------------------------------------
+	if [ -f "Taskfile.yml" ] || [ -f "Taskfile.yaml" ] || [ -f "taskfile.yml" ] || [ -f "taskfile.yaml" ]
 	then
 		#----------------------------------------
-		SOURCE="${BASENAME}.zig"
+		task build
+		#----------------------------------------
+		exit $?
+		#----------------------------------------
+	elif [ -f "Makefile" ] || [ -f "makefile" ]
+	then
+		#----------------------------------------
+		make build
+		#----------------------------------------
+		exit $?
+		#----------------------------------------
+	elif [ -f "build.zig" ]
+	then
+		#----------------------------------------
+		zig build -Doptimize=${ZIG_BUILD_MODE} -Dtarget=${ZIG_BUILD_TARGET} -Dcpu=${ZIG_BUILD_CPU}
+		#----------------------------------------
+		exit $?
+		#----------------------------------------
+	elif [ "${ZIG_FILE_COUNT}" -eq 2 ] && [ -f "root.zig" ] && [ -f "main.zig" ]
+	then
+		#----------------------------------------
+		LC_ROOT=""; LC_MAIN=""
+		match_libc root.zig && LC_ROOT="-lc"
+		match_libc main.zig && LC_MAIN="-lc"
+		#--------------------------------------------------------------------------------
+		mkdir -p ${OUTPUT_PATH}; cd ${OUTPUT_PATH}
+		#----------------------------------------
+		zig build-lib ../root.zig -femit-bin=lib${OUTPUT}.a ${LC} ${FSTRIP} -static -O ${ZIG_BUILD_MODE}
+		[ $? -eq 0 ] && zig build-exe ../main.zig -femit-bin=${OUTPUT} -L. -l${OUTPUT} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
+		exit $?
+		#----------------------------------------
+	elif [ "${ZIG_FILE_COUNT}" -eq 1 ] && [ -f "root.zig" ]
+	then
+		#----------------------------------------
+		SOURCE="root.zig"
+		#----------------------------------------
+	elif [ -f "main.zig" ]
+	then
+		#----------------------------------------
+		SOURCE="main.zig"
 		#----------------------------------------
 	else
 		#----------------------------------------
-		echo "unknown source filename"
-		exit 1
+		if [ -f "${BASENAME}.zig" ]
+		then
+			#----------------------------------------
+			SOURCE="${BASENAME}.zig"
+			#----------------------------------------
+		else
+			#----------------------------------------
+			echo "unknown source filename"
+			exit 1
+			#----------------------------------------
+		fi
 		#----------------------------------------
 	fi
-	#----------------------------------------
+	#--------------------------------------------------------------------------------
 fi
 #--------------------------------------------------------------------------------
 #################################################################################
+#--------------------------------------------------------------------------------
+match_libc ${SOURCE} && LC="-lc"
 #--------------------------------------------------------------------------------
 mkdir -p ${OUTPUT_PATH}; cd ${OUTPUT_PATH}
 #--------------------------------------------------------------------------------
 if [ "${SOURCE}" == "root.zig" ]
 then
 	#----------------------------------------
-	zig build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.so ${FSTRIP} -dynamic -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
-	zig build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.a ${FSTRIP} -static -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
+	zig build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.so ${LC} ${FSTRIP} -dynamic -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
+	zig build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.a ${LC} ${FSTRIP} -static -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
 	#----------------------------------------
 else
 	#----------------------------------------
-	zig build-exe ../${SOURCE} -femit-bin=${OUTPUT} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
+	if [ "${SOURCE}" == "main.zig" ]
+	then
+		zig build-exe ../${SOURCE} -femit-bin=${OUTPUT} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU} ${*}
+	else
+		zig build-exe ../${SOURCE} -femit-bin=${SOURCE%.zig} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU} ${*}
+	fi
 	#----------------------------------------
 fi
 #--------------------------------------------------------------------------------
