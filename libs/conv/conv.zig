@@ -866,7 +866,7 @@ pub const Base91 = struct {
     //------------------------------------------------------------
 };
 //------------------------------------------------------------
-pub fn main() !void {
+pub fn main() void {
     //------------------------------------------------------------
     var it = std.process.args();
     const name = if (it.next()) |arg0| std.fs.path.basename(arg0) else "";
