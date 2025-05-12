@@ -11,7 +11,7 @@ pub fn main() !void {
     // defer _ = gpa.deinit();
     // const allocator = gpa.allocator();
     var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer _ = arena_allocator.deinit();
+    defer arena_allocator.deinit();
     var allocator = arena_allocator.allocator();
     //----------------------------------------------------------------------------
     {

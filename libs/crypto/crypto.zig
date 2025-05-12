@@ -103,25 +103,25 @@ pub fn obfuscateV4Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     var output: []u8 = try allocator.alloc(u8, obf_data.len + escapeCount);
     errdefer allocator.free(output);
     //----------------------------------------
-    var outputIndex: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
     for (obf_data) |encoded| {
         //----------------------------------------
         var replaced = false;
         for (replacementsV4) |replacement| {
             if (encoded == replacement.encoded) {
-                output[outputIndex] = 0x5C;
-                outputIndex += 1;
-                output[outputIndex] = replacement.escaped;
+                output[output_index] = 0x5C;
+                output_index += 1;
+                output[output_index] = replacement.escaped;
                 replaced = true;
                 break;
             }
         }
         if (!replaced) {
-            output[outputIndex] = encoded;
+            output[output_index] = encoded;
         }
         //----------------------------------------
-        outputIndex += 1;
+        output_index += 1;
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -133,55 +133,55 @@ pub fn obfuscateV4Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     //----------------------------------------------------------------------------
     if (data.len == 0) return allocator.alloc(u8, 0);
     //----------------------------------------------------------------------------
-    var scanIndex: usize = 0;
+    var scan_index: usize = 0;
     var escapeCount: usize = 0;
-    while (scanIndex < data.len - 1) {
-        if (data[scanIndex] == 0x5C) {
+    while (scan_index < data.len - 1) {
+        if (data[scan_index] == 0x5C) {
             for (replacementsV4) |replacement| {
-                if (data[scanIndex + 1] == replacement.escaped) {
+                if (data[scan_index + 1] == replacement.escaped) {
                     escapeCount += 1;
-                    scanIndex += 1;
+                    scan_index += 1;
                     break;
                 }
             }
         }
-        scanIndex += 1;
+        scan_index += 1;
     }
     //----------------------------------------
     var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
     defer allocator.free(output);
     //----------------------------------------
-    var bufferIndex: usize = 0;
-    var outputIndex: usize = 0;
+    var buffer_index: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
-    while (bufferIndex < data.len) {
+    while (buffer_index < data.len) {
         //----------------------------------------
-        if (data[bufferIndex] == 0x5C and bufferIndex + 1 < data.len) {
+        if (data[buffer_index] == 0x5C and buffer_index + 1 < data.len) {
             //----------------------------------------
             var replaced = false;
             for (replacementsV4) |replacement| {
-                if (data[bufferIndex + 1] == replacement.escaped) {
-                    output[outputIndex] = replacement.encoded;
+                if (data[buffer_index + 1] == replacement.escaped) {
+                    output[output_index] = replacement.encoded;
                     replaced = true;
                     break;
                 }
             }
             if (!replaced) {
-                output[outputIndex] = 0x5C;
-                outputIndex += 1;
-                output[outputIndex] = data[bufferIndex + 1];
+                output[output_index] = 0x5C;
+                output_index += 1;
+                output[output_index] = data[buffer_index + 1];
             }
             //----------------------------------------
-            bufferIndex += 1; // skip an extra byte as already processed
+            buffer_index += 1; // skip an extra byte as already processed
             //----------------------------------------
         } else {
             //----------------------------------------
-            output[outputIndex] = data[bufferIndex];
+            output[output_index] = data[buffer_index];
             //----------------------------------------
         }
         //----------------------------------------
-        bufferIndex += 1;
-        outputIndex += 1;
+        buffer_index += 1;
+        output_index += 1;
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -351,25 +351,25 @@ pub fn obfuscateV5Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     var output: []u8 = try allocator.alloc(u8, obf_data.len + escapeCount);
     errdefer allocator.free(output);
     //----------------------------------------
-    var outputIndex: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
     for (obf_data) |encoded| {
         //----------------------------------------
         var replaced = false;
         for (replacementsV5) |replacement| {
             if (encoded == replacement.encoded) {
-                output[outputIndex] = '-';
-                outputIndex += 1;
-                output[outputIndex] = replacement.escaped;
+                output[output_index] = '-';
+                output_index += 1;
+                output[output_index] = replacement.escaped;
                 replaced = true;
                 break;
             }
         }
         if (!replaced) {
-            output[outputIndex] = encoded;
+            output[output_index] = encoded;
         }
         //----------------------------------------
-        outputIndex += 1;
+        output_index += 1;
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -381,55 +381,55 @@ pub fn obfuscateV5Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     //----------------------------------------------------------------------------
     if (data.len == 0) return allocator.alloc(u8, 0);
     //----------------------------------------------------------------------------
-    var scanIndex: usize = 0;
+    var scan_index: usize = 0;
     var escapeCount: usize = 0;
-    while (scanIndex < data.len - 1) {
-        if (data[scanIndex] == '-') {
+    while (scan_index < data.len - 1) {
+        if (data[scan_index] == '-') {
             for (replacementsV5) |replacement| {
-                if (data[scanIndex + 1] == replacement.escaped) {
+                if (data[scan_index + 1] == replacement.escaped) {
                     escapeCount += 1;
-                    scanIndex += 1;
+                    scan_index += 1;
                     break;
                 }
             }
         }
-        scanIndex += 1;
+        scan_index += 1;
     }
     //----------------------------------------
     var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
     defer allocator.free(output);
     //----------------------------------------
-    var bufferIndex: usize = 0;
-    var outputIndex: usize = 0;
+    var buffer_index: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
-    while (bufferIndex < data.len) {
+    while (buffer_index < data.len) {
         //----------------------------------------
-        if (data[bufferIndex] == '-' and bufferIndex + 1 < data.len) {
+        if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
             //----------------------------------------
             var replaced = false;
             for (replacementsV5) |replacement| {
-                if (data[bufferIndex + 1] == replacement.escaped) {
-                    output[outputIndex] = replacement.encoded;
+                if (data[buffer_index + 1] == replacement.escaped) {
+                    output[output_index] = replacement.encoded;
                     replaced = true;
                     break;
                 }
             }
             if (!replaced) {
-                output[outputIndex] = '-';
-                outputIndex += 1;
-                output[outputIndex] = data[bufferIndex + 1];
+                output[output_index] = '-';
+                output_index += 1;
+                output[output_index] = data[buffer_index + 1];
             }
             //----------------------------------------
-            bufferIndex += 1; // skip an extra byte as already processed
+            buffer_index += 1; // skip an extra byte as already processed
             //----------------------------------------
         } else {
             //----------------------------------------
-            output[outputIndex] = data[bufferIndex];
+            output[output_index] = data[buffer_index];
             //----------------------------------------
         }
         //----------------------------------------
-        bufferIndex += 1;
-        outputIndex += 1;
+        buffer_index += 1;
+        output_index += 1;
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -554,7 +554,7 @@ pub fn swapStringV0Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8
     var output: []u8 = try allocator.alloc(u8, data.len + escapeCount);
     errdefer allocator.free(output);
     //----------------------------------------
-    var outputIndex: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
     for (data) |byte| {
         //----------------------------------------
@@ -563,17 +563,17 @@ pub fn swapStringV0Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8
         var replaced = false;
         for (replacementsV5) |replacement| {
             if (encoded == replacement.encoded) {
-                output[outputIndex] = '-';
-                outputIndex += 1;
-                output[outputIndex] = replacement.escaped;
+                output[output_index] = '-';
+                output_index += 1;
+                output[output_index] = replacement.escaped;
                 replaced = true;
                 break;
             }
         }
         if (!replaced) {
-            output[outputIndex] = encoded;
+            output[output_index] = encoded;
         }
-        outputIndex += 1;
+        output_index += 1;
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -585,55 +585,55 @@ pub fn swapStringV0Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8
     //----------------------------------------------------------------------------
     if (data.len == 0) return allocator.alloc(u8, 0);
     //----------------------------------------------------------------------------
-    var scanIndex: usize = 0;
+    var scan_index: usize = 0;
     var escapeCount: usize = 0;
-    while (scanIndex < data.len - 1) {
-        if (data[scanIndex] == '-') {
+    while (scan_index < data.len - 1) {
+        if (data[scan_index] == '-') {
             for (replacementsV5) |replacement| {
-                if (data[scanIndex + 1] == replacement.escaped) {
+                if (data[scan_index + 1] == replacement.escaped) {
                     escapeCount += 1;
-                    scanIndex += 1;
+                    scan_index += 1;
                     break;
                 }
             }
         }
-        scanIndex += 1;
+        scan_index += 1;
     }
     //----------------------------------------
     var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
     errdefer allocator.free(output);
     //----------------------------------------
-    var bufferIndex: usize = 0;
-    var outputIndex: usize = 0;
+    var buffer_index: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
-    while (bufferIndex < data.len) {
+    while (buffer_index < data.len) {
         //----------------------------------------
-        if (data[bufferIndex] == '-' and bufferIndex + 1 < data.len) {
+        if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
             //----------------------------------------
             var replaced = false;
             for (replacementsV5) |replacement| {
-                if (data[bufferIndex + 1] == replacement.escaped) {
-                    output[outputIndex] = replacement.decoded;
+                if (data[buffer_index + 1] == replacement.escaped) {
+                    output[output_index] = replacement.decoded;
                     replaced = true;
                     break;
                 }
             }
             if (!replaced) {
-                output[outputIndex] = 'q';
-                outputIndex += 1;
-                output[outputIndex] = slideByteV5(data[bufferIndex + 1]);
+                output[output_index] = 'q';
+                output_index += 1;
+                output[output_index] = slideByteV5(data[buffer_index + 1]);
             }
             //----------------------------------------
-            bufferIndex += 1; // skip an extra byte as already processed
+            buffer_index += 1; // skip an extra byte as already processed
             //----------------------------------------
         } else {
             //----------------------------------------
-            output[outputIndex] = slideByteV5(data[bufferIndex]);
+            output[output_index] = slideByteV5(data[buffer_index]);
             //----------------------------------------
         }
         //----------------------------------------
-        bufferIndex += 1;
-        outputIndex += 1;
+        buffer_index += 1;
+        output_index += 1;
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
