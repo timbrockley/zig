@@ -19,23 +19,23 @@ pub fn escapeBytes(allocator: std.mem.Allocator, data: []const u8, replacements:
     var output: []u8 = try allocator.alloc(u8, data.len + escapeCount);
     errdefer allocator.free(output);
     //----------------------------------------------------------------------------
-    var outputIndex: usize = 0;
+    var output_index: usize = 0;
     //----------------------------------------
     for (data) |byte| {
         var replaced = false;
         for (replacements) |replacement| {
             if (byte == replacement.from) {
-                output[outputIndex] = '-';
-                outputIndex += 1;
-                output[outputIndex] = replacement.to;
+                output[output_index] = '-';
+                output_index += 1;
+                output[output_index] = replacement.to;
                 replaced = true;
                 break;
             }
         }
         if (!replaced) {
-            output[outputIndex] = byte;
+            output[output_index] = byte;
         }
-        outputIndex += 1;
+        output_index += 1;
     }
     //----------------------------------------------------------------------------
     return output;

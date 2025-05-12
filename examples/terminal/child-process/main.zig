@@ -105,7 +105,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     //------------------------------------------------------------
     // var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    // defer _ = arena_allocator.deinit();
+    // defer arena_allocator.deinit();
     // const allocator = arena_allocator.allocator();
     //------------------------------------------------------------
     {
