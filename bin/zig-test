@@ -1,5 +1,6 @@
 #!/bin/bash
 #--------------------------------------------------------------------------------
+match_test() { grep -qE '^\s*test\s+"[^"]*"\s*{\s*$' "$1"; }
 match_libc() { grep -qE '@?cImport|@c(Include|Define|Undef|Struct|Union)|\bstd\.c\b|@import\("std"\)\.c' "$1"; }
 LC=""
 #--------------------------------------------------------------------------------
@@ -101,7 +102,7 @@ else
 		for FILENAME in *.zig
 		do
 			#----------------------------------------
-			if [ -f "${FILENAME}" ]
+			if [ -f "${FILENAME}" ] && match_test "$FILENAME"
 			then
 				#----------------------------------------
 				echo "${FILENAME}"
