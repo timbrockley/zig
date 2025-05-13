@@ -1294,6 +1294,7 @@ pub fn format(datetime: DateTime, template: []const u8, output: []u8) !usize {
         //----------------------------------------
         if (output_index >= output.len) return error.OutputBufferTooSmall;
         //----------------------------------------
+        // replacements in a set order to avoid template clashes
         if (try processToken("utms", utms(datetime), "{d}", template, &template_index, output, &output_index)) continue;
         if (try processToken("ut", ut(datetime), "{d}", template, &template_index, output, &output_index)) continue;
         if (try processToken("ddd", ddd(toDate(datetime)), "{d:0>3}", template, &template_index, output, &output_index)) continue;
@@ -1316,7 +1317,7 @@ pub fn format(datetime: DateTime, template: []const u8, output: []u8) !usize {
         if (try processToken("D", dowD(toDate(datetime)), "{s}", template, &template_index, output, &output_index)) continue;
         if (try processToken("q", q(datetime.month), "{d}", template, &template_index, output, &output_index)) continue;
         //----------------------------------------
-        // check again just incase imssed by above code
+        // check again just incase missed by above code
         if (output_index >= output.len) return error.OutputBufferTooSmall;
         //----------------------------------------
         // if no token match just use char from template
