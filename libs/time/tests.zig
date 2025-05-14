@@ -1179,6 +1179,7 @@ test "format" {
 
     try std.testing.expectEqual(0, tbt.format(datetime1, "", &output1));
 
+    @memset(&output13, 0);
     try std.testing.expectEqual(13, tbt.format(datetime1, "utms", &output13));
     try std.testing.expectEqualStrings("1704074584005", output13[0..]);
 
@@ -1215,52 +1216,52 @@ test "format" {
     try std.testing.expectEqualStrings("DST", output13[0..3]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(6, tbt.format(datetime1, "cywk", &output13));
-    try std.testing.expectEqualStrings("202401", output13[0..6]);
+    try std.testing.expectEqual(6, tbt.format(datetime2, "cywk", &output13));
+    try std.testing.expectEqualStrings("202427", output13[0..6]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(2, tbt.format(datetime1, "wk", &output13));
-    try std.testing.expectEqualStrings("01", output13[0..2]);
+    try std.testing.expectEqual(2, tbt.format(datetime2, "wk", &output13));
+    try std.testing.expectEqualStrings("27", output13[0..2]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(4, tbt.format(datetime1, "CY", &output13));
+    try std.testing.expectEqual(4, tbt.format(datetime2, "CY", &output13));
     try std.testing.expectEqualStrings("2024", output13[0..4]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(4, tbt.format(datetime1, "cy", &output13));
+    try std.testing.expectEqual(4, tbt.format(datetime2, "cy", &output13));
     try std.testing.expectEqualStrings("2024", output13[0..4]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(2, tbt.format(datetime1, "y", &output13));
+    try std.testing.expectEqual(2, tbt.format(datetime2, "y", &output13));
     try std.testing.expectEqualStrings("24", output13[0..2]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(2, tbt.format(datetime1, "m", &output13));
+    try std.testing.expectEqual(2, tbt.format(datetime2, "m", &output13));
+    try std.testing.expectEqualStrings("07", output13[0..2]);
+
+    @memset(&output13, 0);
+    try std.testing.expectEqual(2, tbt.format(datetime2, "d", &output13));
     try std.testing.expectEqualStrings("01", output13[0..2]);
 
     @memset(&output13, 0);
-    try std.testing.expectEqual(2, tbt.format(datetime1, "d", &output13));
-    try std.testing.expectEqualStrings("01", output13[0..2]);
+    try std.testing.expectEqual(1, tbt.format(datetime2, "q", &output13));
+    try std.testing.expectEqualStrings("3", output13[0..1]);
 
     @memset(&output13, 0x20);
-    try std.testing.expectEqual(7, tbt.format(datetime1, "MM", &output13));
-    try std.testing.expectEqualStrings("January", output13[0..7]);
+    try std.testing.expectEqual(4, tbt.format(datetime2, "MM", &output13));
+    try std.testing.expectEqualStrings("July", output13[0..4]);
 
     @memset(&output13, 0x20);
-    try std.testing.expectEqual(3, tbt.format(datetime1, "M", &output13));
-    try std.testing.expectEqualStrings("Jan", output13[0..3]);
+    try std.testing.expectEqual(3, tbt.format(datetime2, "M", &output13));
+    try std.testing.expectEqualStrings("Jul", output13[0..3]);
 
     @memset(&output13, 0x20);
-    try std.testing.expectEqual(6, tbt.format(datetime1, "DD", &output13));
+    try std.testing.expectEqual(6, tbt.format(datetime2, "DD", &output13));
     try std.testing.expectEqualStrings("Monday", output13[0..6]);
 
     @memset(&output13, 0x20);
-    try std.testing.expectEqual(3, tbt.format(datetime1, "D", &output13));
+    try std.testing.expectEqual(3, tbt.format(datetime2, "D", &output13));
     try std.testing.expectEqualStrings("Mon", output13[0..3]);
-
-    @memset(&output13, 0);
-    try std.testing.expectEqual(1, tbt.format(datetime1, "q", &output13));
-    try std.testing.expectEqualStrings("1", output13[0..1]);
 
     //------------------------------------------------------------
 }
