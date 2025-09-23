@@ -15,6 +15,193 @@ pub fn main() !void {
     var allocator = arena_allocator.allocator();
     //----------------------------------------------------------------------------
     {
+        const name = "obfuscateV0";
+        const data = "Hello";
+        const expected = "V922/";
+
+        if (obf.obfuscateV0(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareByteSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Encode";
+        const data = "Aq\x16\x15\x12~|zwB>qF";
+        const expected = "]---t-n-r-s-q-d-a-b-g--X";
+
+        if (obf.obfuscateV0Encode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareByteSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Decode";
+        const data = "]---t-n-r-s-q-d-a-b-g-X";
+        const expected = "Aq\x16\x15\x12~|zwB>qF";
+
+        if (obf.obfuscateV0Decode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareByteSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0BaseEncode";
+        const data = "A>|\u{1f427}";
+        const expected = "B!sp>n=%=";
+
+        if (obf.obfuscateV0BaseEncode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0BaseDecode";
+        const data = "B!sp>n=%=";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV0BaseDecode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Base64Encode";
+        const data = "A>|\u{1f427}";
+        const expected = "XWAij+Dv2A==";
+
+        if (obf.obfuscateV0Base64Encode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Base64Decode";
+        const data = "XWAij+Dv2A==";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV0Base64Decode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Base64UrlEncode";
+        const data = "A>|\u{1f427}";
+        const expected = "XWAij-Dv2A";
+
+        if (obf.obfuscateV0Base64UrlEncode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Base64UrlDecode";
+        const data = "XWAij-Dv2A";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV0Base64UrlDecode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Base91Encode";
+        const data = "A>|\u{1f427}";
+        const expected = "CBx+](ZyN";
+
+        if (obf.obfuscateV0Base91Encode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0Base91Decode";
+        const data = "CBx+](ZyN";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV0Base91Decode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
         const name = "obfuscateV4";
         const data = "ABC";
         const expected = "]\x5C[";
@@ -452,193 +639,6 @@ pub fn main() !void {
         const expected = "ABC \u{00a9} \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
 
         if (obf.obfuscateV5Base91Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0";
-        const data = "Hello";
-        const expected = "V922/";
-
-        if (obf.swapStringV0(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Encode";
-        const data = "Aq\x16\x15\x12~|zwB>qF";
-        const expected = "]---t-n-r-s-q-d-a-b-g--X";
-
-        if (obf.swapStringV0Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Decode";
-        const data = "]---t-n-r-s-q-d-a-b-g-X";
-        const expected = "Aq\x16\x15\x12~|zwB>qF";
-
-        if (obf.swapStringV0Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0BaseEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "B!sp>n=%=";
-
-        if (obf.swapStringV0BaseEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0BaseDecode";
-        const data = "B!sp>n=%=";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.swapStringV0BaseDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Base64Encode";
-        const data = "A>|\u{1f427}";
-        const expected = "XWAij+Dv2A==";
-
-        if (obf.swapStringV0Base64Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Base64Decode";
-        const data = "XWAij+Dv2A==";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.swapStringV0Base64Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Base64UrlEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "XWAij-Dv2A";
-
-        if (obf.swapStringV0Base64UrlEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Base64UrlDecode";
-        const data = "XWAij-Dv2A";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.swapStringV0Base64UrlDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Base91Encode";
-        const data = "A>|\u{1f427}";
-        const expected = "CBx+](ZyN";
-
-        if (obf.swapStringV0Base91Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "swapStringV0Base91Decode";
-        const data = "CBx+](ZyN";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.swapStringV0Base91Decode(&allocator, data)) |result| {
             //----------------------------------------
             ut.compareStringSlice(name, expected, result);
             allocator.free(result);

@@ -33,6 +33,210 @@ const replacementsV5 = &[_]Replacementv5{
     .{ .decoded = '>', .encoded = 0x60, .escaped = 'g' }, // grave accent
 };
 //--------------------------------------------------------------------------------
+pub fn obfuscateV0(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    var output: []u8 = try allocator.alloc(u8, data.len);
+    errdefer allocator.free(output);
+    //----------------------------------------
+    for (data, 0..) |byte, index| {
+        output[index] = slideByteV5(byte);
+    }
+    //----------------------------------------------------------------------------
+    return output;
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    var escapeCount: usize = 0;
+    for (data) |byte| {
+        for (replacementsV5) |replacement| {
+            if (byte == replacement.decoded) escapeCount += 1;
+        }
+    }
+    //----------------------------------------
+    var output: []u8 = try allocator.alloc(u8, data.len + escapeCount);
+    errdefer allocator.free(output);
+    //----------------------------------------
+    var output_index: usize = 0;
+    //----------------------------------------
+    for (data) |byte| {
+        //----------------------------------------
+        const encoded = slideByteV5(byte);
+        //----------------------------------------
+        var replaced = false;
+        for (replacementsV5) |replacement| {
+            if (encoded == replacement.encoded) {
+                output[output_index] = '-';
+                output_index += 1;
+                output[output_index] = replacement.escaped;
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced) {
+            output[output_index] = encoded;
+        }
+        output_index += 1;
+        //----------------------------------------
+    }
+    //----------------------------------------------------------------------------
+    return output;
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    var scan_index: usize = 0;
+    var escapeCount: usize = 0;
+    while (scan_index < data.len - 1) {
+        if (data[scan_index] == '-') {
+            for (replacementsV5) |replacement| {
+                if (data[scan_index + 1] == replacement.escaped) {
+                    escapeCount += 1;
+                    scan_index += 1;
+                    break;
+                }
+            }
+        }
+        scan_index += 1;
+    }
+    //----------------------------------------
+    var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
+    errdefer allocator.free(output);
+    //----------------------------------------
+    var buffer_index: usize = 0;
+    var output_index: usize = 0;
+    //----------------------------------------
+    while (buffer_index < data.len) {
+        //----------------------------------------
+        if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
+            //----------------------------------------
+            var replaced = false;
+            for (replacementsV5) |replacement| {
+                if (data[buffer_index + 1] == replacement.escaped) {
+                    output[output_index] = replacement.decoded;
+                    replaced = true;
+                    break;
+                }
+            }
+            if (!replaced) {
+                output[output_index] = 'q';
+                output_index += 1;
+                output[output_index] = slideByteV5(data[buffer_index + 1]);
+            }
+            //----------------------------------------
+            buffer_index += 1; // skip an extra byte as already processed
+            //----------------------------------------
+        } else {
+            //----------------------------------------
+            output[output_index] = slideByteV5(data[buffer_index]);
+            //----------------------------------------
+        }
+        //----------------------------------------
+        buffer_index += 1;
+        output_index += 1;
+        //----------------------------------------
+    }
+    //----------------------------------------------------------------------------
+    return output;
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0BaseEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV0(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Base.encode(allocator, swapped_data, .{});
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0BaseDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Base.decode(allocator, data, .{});
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV0(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Base64Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV0(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Base64.encode(allocator, swapped_data, .{});
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Base64Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Base64.decode(allocator, data, .{});
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV0(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Base64UrlEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV0(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Base64.urlEncode(allocator, swapped_data, .{});
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Base64UrlDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Base64.urlDecode(allocator, data, .{});
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV0(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Base91Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV0(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Base91.encode(allocator, swapped_data, .{ .escape = true });
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0Base91Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Base91.decode(allocator, data, .{ .escape = true });
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV0(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
 pub fn obfuscateV4(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
     //----------------------------------------------------------------------------
     if (data.len == 0) return allocator.alloc(u8, 0);
@@ -522,210 +726,6 @@ pub fn obfuscateV5Base91Decode(allocator: *std.mem.Allocator, data: []const u8) 
     defer allocator.free(decoded_data);
     //----------------------------------------------------------------------------
     return obfuscateV5(allocator, decoded_data);
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    var output: []u8 = try allocator.alloc(u8, data.len);
-    errdefer allocator.free(output);
-    //----------------------------------------
-    for (data, 0..) |byte, index| {
-        output[index] = slideByteV5(byte);
-    }
-    //----------------------------------------------------------------------------
-    return output;
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    var escapeCount: usize = 0;
-    for (data) |byte| {
-        for (replacementsV5) |replacement| {
-            if (byte == replacement.decoded) escapeCount += 1;
-        }
-    }
-    //----------------------------------------
-    var output: []u8 = try allocator.alloc(u8, data.len + escapeCount);
-    errdefer allocator.free(output);
-    //----------------------------------------
-    var output_index: usize = 0;
-    //----------------------------------------
-    for (data) |byte| {
-        //----------------------------------------
-        const encoded = slideByteV5(byte);
-        //----------------------------------------
-        var replaced = false;
-        for (replacementsV5) |replacement| {
-            if (encoded == replacement.encoded) {
-                output[output_index] = '-';
-                output_index += 1;
-                output[output_index] = replacement.escaped;
-                replaced = true;
-                break;
-            }
-        }
-        if (!replaced) {
-            output[output_index] = encoded;
-        }
-        output_index += 1;
-        //----------------------------------------
-    }
-    //----------------------------------------------------------------------------
-    return output;
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    var scan_index: usize = 0;
-    var escapeCount: usize = 0;
-    while (scan_index < data.len - 1) {
-        if (data[scan_index] == '-') {
-            for (replacementsV5) |replacement| {
-                if (data[scan_index + 1] == replacement.escaped) {
-                    escapeCount += 1;
-                    scan_index += 1;
-                    break;
-                }
-            }
-        }
-        scan_index += 1;
-    }
-    //----------------------------------------
-    var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
-    errdefer allocator.free(output);
-    //----------------------------------------
-    var buffer_index: usize = 0;
-    var output_index: usize = 0;
-    //----------------------------------------
-    while (buffer_index < data.len) {
-        //----------------------------------------
-        if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
-            //----------------------------------------
-            var replaced = false;
-            for (replacementsV5) |replacement| {
-                if (data[buffer_index + 1] == replacement.escaped) {
-                    output[output_index] = replacement.decoded;
-                    replaced = true;
-                    break;
-                }
-            }
-            if (!replaced) {
-                output[output_index] = 'q';
-                output_index += 1;
-                output[output_index] = slideByteV5(data[buffer_index + 1]);
-            }
-            //----------------------------------------
-            buffer_index += 1; // skip an extra byte as already processed
-            //----------------------------------------
-        } else {
-            //----------------------------------------
-            output[output_index] = slideByteV5(data[buffer_index]);
-            //----------------------------------------
-        }
-        //----------------------------------------
-        buffer_index += 1;
-        output_index += 1;
-        //----------------------------------------
-    }
-    //----------------------------------------------------------------------------
-    return output;
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0BaseEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const swapped_data = try swapStringV0(allocator, data);
-    defer allocator.free(swapped_data);
-    //----------------------------------------------------------------------------
-    return conv.Base.encode(allocator, swapped_data, .{});
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0BaseDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const decoded_data = try conv.Base.decode(allocator, data, .{});
-    defer allocator.free(decoded_data);
-    //----------------------------------------------------------------------------
-    return swapStringV0(allocator, decoded_data);
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Base64Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const swapped_data = try swapStringV0(allocator, data);
-    defer allocator.free(swapped_data);
-    //----------------------------------------------------------------------------
-    return conv.Base64.encode(allocator, swapped_data, .{});
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Base64Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const decoded_data = try conv.Base64.decode(allocator, data, .{});
-    defer allocator.free(decoded_data);
-    //----------------------------------------------------------------------------
-    return swapStringV0(allocator, decoded_data);
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Base64UrlEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const swapped_data = try swapStringV0(allocator, data);
-    defer allocator.free(swapped_data);
-    //----------------------------------------------------------------------------
-    return conv.Base64.urlEncode(allocator, swapped_data, .{});
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Base64UrlDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const decoded_data = try conv.Base64.urlDecode(allocator, data, .{});
-    defer allocator.free(decoded_data);
-    //----------------------------------------------------------------------------
-    return swapStringV0(allocator, decoded_data);
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Base91Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const swapped_data = try swapStringV0(allocator, data);
-    defer allocator.free(swapped_data);
-    //----------------------------------------------------------------------------
-    return conv.Base91.encode(allocator, swapped_data, .{ .escape = true });
-    //----------------------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-pub fn swapStringV0Base91Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
-    //----------------------------------------------------------------------------
-    if (data.len == 0) return allocator.alloc(u8, 0);
-    //----------------------------------------------------------------------------
-    const decoded_data = try conv.Base91.decode(allocator, data, .{ .escape = true });
-    defer allocator.free(decoded_data);
-    //----------------------------------------------------------------------------
-    return swapStringV0(allocator, decoded_data);
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
