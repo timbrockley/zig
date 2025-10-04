@@ -725,8 +725,8 @@ pub const Base91 = struct {
                 }
                 //-----------------------------------------------------------
                 if (config.escape) {
-                    base91escapedOutput(buffer, &buffer_index, base91_charset[value % 91]);
-                    base91escapedOutput(buffer, &buffer_index, base91_charset[value / 91]);
+                    base91EscapedOutput(buffer, &buffer_index, base91_charset[value % 91]);
+                    base91EscapedOutput(buffer, &buffer_index, base91_charset[value / 91]);
                 } else {
                     buffer[buffer_index] = base91_charset[value % 91];
                     buffer[buffer_index + 1] = base91_charset[value / 91];
@@ -821,7 +821,7 @@ pub const Base91 = struct {
         //-----------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn base91escapedOutput(output: []u8, output_index: *usize, char: u8) void {
+    pub fn base91EscapedOutput(output: []u8, output_index: *usize, char: u8) void {
         switch (char) {
             0x22 => {
                 output[output_index.*] = '-';
