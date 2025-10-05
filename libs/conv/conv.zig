@@ -1,6 +1,6 @@
 //------------------------------------------------------------
 // Conversion Library
-// Copyright 2024, Tim Brockley. All rights reserved.
+// Copyright 2025, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //------------------------------------------------------------
 const std = @import("std");
@@ -852,6 +852,56 @@ pub const Base91 = struct {
             'g' => 0x60,
             else => Error.InvalidInput,
         };
+    }
+    //------------------------------------------------------------
+    fn setOptions(T: type, options: anytype) T {
+        var target = T{};
+        inline for (std.meta.fields(@TypeOf(target))) |field| {
+            if (@hasField(@TypeOf(options), field.name)) {
+                @field(target, field.name) = @field(options, field.name);
+            }
+        }
+        return target;
+    }
+    //------------------------------------------------------------
+};
+//------------------------------------------------------------
+pub const Hex = struct {
+    //------------------------------------------------------------
+    pub const Error = error{InvalidInputLength};
+    //------------------------------------------------------------
+    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+        //-----------------------------------------------------------
+        _ = options;
+        //------------------------------------------------------------
+        if (data.len == 0) return allocator.alloc(u8, 0);
+        //------------------------------------------------------------
+        return try std.fmt.allocPrint(allocator.*, "{X}", .{std.fmt.fmtSliceHexUpper(data)});
+        //-----------------------------------------------------------
+    }
+    //------------------------------------------------------------
+    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+        //-----------------------------------------------------------
+        _ = options;
+        //------------------------------------------------------------
+        if (data.len == 0) return allocator.alloc(u8, 0);
+        //------------------------------------------------------------
+        if (data.len % 2 != 0) return Error.InvalidInputLength;
+        //------------------------------------------------------------
+        const output: []u8 = try allocator.alloc(u8, data.len / 2);
+        errdefer allocator.free(output);
+        //------------------------------------------------------------
+        var index: usize = 0;
+        while (index < data.len) : (index += 2) {
+            //---------------------------------------------------
+            const slice = data[index .. index + 2];
+            const value = try std.fmt.parseInt(u8, slice, 16);
+            output[index / 2] = value;
+            //---------------------------------------------------
+        }
+        //-----------------------------------------------------------
+        return output;
+        //-----------------------------------------------------------
     }
     //------------------------------------------------------------
     fn setOptions(T: type, options: anytype) T {

@@ -202,6 +202,40 @@ pub fn main() !void {
     }
     //----------------------------------------------------------------------------
     {
+        const name = "obfuscateV0HexEncode";
+        const data = "A>|\u{1f427}";
+        const expected = "5D60228FE0EFD8";
+
+        if (obf.obfuscateV0HexEncode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV0HexDecode";
+        const data = "5D60228FE0EFD8";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV0HexDecode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
         const name = "obfuscateV4";
         const data = "ABC";
         const expected = "]\x5C[";
@@ -406,6 +440,40 @@ pub fn main() !void {
         const expected = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
 
         if (obf.obfuscateV4Base91Decode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV4HexEncode";
+        const data = "A>|\u{1f427}";
+        const expected = "5DF022609F90A7";
+
+        if (obf.obfuscateV4HexEncode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV4HexDecode";
+        const data = "5DF022609F90A7";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV4HexDecode(&allocator, data)) |result| {
             //----------------------------------------
             ut.compareStringSlice(name, expected, result);
             allocator.free(result);
@@ -639,6 +707,40 @@ pub fn main() !void {
         const expected = "ABC \u{00a9} \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
 
         if (obf.obfuscateV5Base91Decode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV5HexEncode";
+        const data = "A>|\u{1f427}";
+        const expected = "5D8F2260E0EFD8";
+
+        if (obf.obfuscateV5HexEncode(&allocator, data)) |result| {
+            //----------------------------------------
+            ut.compareStringSlice(name, expected, result);
+            allocator.free(result);
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            ut.errorFail(name, err);
+            //----------------------------------------
+        }
+    }
+    //----------------------------------------------------------------------------
+    {
+        const name = "obfuscateV5HexDecode";
+        const data = "5D8F2260E0EFD8";
+        const expected = "A>|\u{1f427}";
+
+        if (obf.obfuscateV5HexDecode(&allocator, data)) |result| {
             //----------------------------------------
             ut.compareStringSlice(name, expected, result);
             allocator.free(result);

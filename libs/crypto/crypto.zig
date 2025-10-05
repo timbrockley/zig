@@ -6,6 +6,21 @@
 const std = @import("std");
 const conv = @import("libs/conv.zig");
 //--------------------------------------------------------------------------------
+const ReplacementV0 = struct { decoded: u8, encoded: u8, escaped: u8 };
+//----------------------------------------
+const replacementsV0 = &[_]ReplacementV0{
+    .{ .decoded = 'q', .encoded = '-', .escaped = '-' }, // minus sign
+    .{ .decoded = 0x16, .encoded = 0x09, .escaped = 't' }, // tab
+    .{ .decoded = 0x15, .encoded = 0x0A, .escaped = 'n' }, // new line
+    .{ .decoded = 0x12, .encoded = 0x0D, .escaped = 'r' }, // carriage return
+    .{ .decoded = '~', .encoded = 0x20, .escaped = 's' }, // space
+    .{ .decoded = '|', .encoded = 0x22, .escaped = 'q' }, // double quote
+    .{ .decoded = 'z', .encoded = 0x24, .escaped = 'd' }, // dollar sign
+    .{ .decoded = 'w', .encoded = 0x27, .escaped = 'a' }, // apostrophy
+    .{ .decoded = 'B', .encoded = 0x5C, .escaped = 'b' }, // backslash
+    .{ .decoded = '>', .encoded = 0x60, .escaped = 'g' }, // grave accent
+};
+//--------------------------------------------------------------------------------
 const ReplacementV4 = struct { decoded: u8, encoded: u8, escaped: u8 };
 //----------------------------------------
 const replacementsV4 = &[_]ReplacementV4{
@@ -18,9 +33,9 @@ const replacementsV4 = &[_]ReplacementV4{
     .{ .decoded = '>', .encoded = 0x60, .escaped = 'g' }, // grave accent
 };
 //--------------------------------------------------------------------------------
-const Replacementv5 = struct { decoded: u8, encoded: u8, escaped: u8 };
+const ReplacementV5 = struct { decoded: u8, encoded: u8, escaped: u8 };
 //----------------------------------------
-const replacementsV5 = &[_]Replacementv5{
+const replacementsV5 = &[_]ReplacementV5{
     .{ .decoded = 'q', .encoded = '-', .escaped = '-' }, // minus sign
     .{ .decoded = 0x16, .encoded = 0x09, .escaped = 't' }, // tab
     .{ .decoded = 0x15, .encoded = 0x0A, .escaped = 'n' }, // new line
@@ -41,10 +56,23 @@ pub fn obfuscateV0(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
     errdefer allocator.free(output);
     //----------------------------------------
     for (data, 0..) |byte, index| {
-        output[index] = slideByteV5(byte);
+        output[index] = slideByteV0(byte);
     }
     //----------------------------------------------------------------------------
     return output;
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn slideByteV0(byte: u8) u8 {
+    //----------------------------------------------------------------------------
+    if (byte <= 0x1F) {
+        return 0x1F - byte;
+    } else if (byte <= 0x7E) {
+        return 0x7E - (byte - 0x20);
+    } else if (byte >= 0x80) {
+        return 0xFF - (byte - 0x80);
+    }
+    return byte;
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -54,7 +82,7 @@ pub fn obfuscateV0Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     //----------------------------------------------------------------------------
     var escapeCount: usize = 0;
     for (data) |byte| {
-        for (replacementsV5) |replacement| {
+        for (replacementsV0) |replacement| {
             if (byte == replacement.decoded) escapeCount += 1;
         }
     }
@@ -66,10 +94,10 @@ pub fn obfuscateV0Encode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     //----------------------------------------
     for (data) |byte| {
         //----------------------------------------
-        const encoded = slideByteV5(byte);
+        const encoded = slideByteV0(byte);
         //----------------------------------------
         var replaced = false;
-        for (replacementsV5) |replacement| {
+        for (replacementsV0) |replacement| {
             if (encoded == replacement.encoded) {
                 output[output_index] = '-';
                 output_index += 1;
@@ -97,7 +125,7 @@ pub fn obfuscateV0Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
     var escapeCount: usize = 0;
     while (scan_index < data.len - 1) {
         if (data[scan_index] == '-') {
-            for (replacementsV5) |replacement| {
+            for (replacementsV0) |replacement| {
                 if (data[scan_index + 1] == replacement.escaped) {
                     escapeCount += 1;
                     scan_index += 1;
@@ -119,7 +147,7 @@ pub fn obfuscateV0Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
         if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
             //----------------------------------------
             var replaced = false;
-            for (replacementsV5) |replacement| {
+            for (replacementsV0) |replacement| {
                 if (data[buffer_index + 1] == replacement.escaped) {
                     output[output_index] = replacement.decoded;
                     replaced = true;
@@ -129,14 +157,14 @@ pub fn obfuscateV0Decode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 
             if (!replaced) {
                 output[output_index] = 'q';
                 output_index += 1;
-                output[output_index] = slideByteV5(data[buffer_index + 1]);
+                output[output_index] = slideByteV0(data[buffer_index + 1]);
             }
             //----------------------------------------
             buffer_index += 1; // skip an extra byte as already processed
             //----------------------------------------
         } else {
             //----------------------------------------
-            output[output_index] = slideByteV5(data[buffer_index]);
+            output[output_index] = slideByteV0(data[buffer_index]);
             //----------------------------------------
         }
         //----------------------------------------
@@ -231,6 +259,28 @@ pub fn obfuscateV0Base91Decode(allocator: *std.mem.Allocator, data: []const u8) 
     if (data.len == 0) return allocator.alloc(u8, 0);
     //----------------------------------------------------------------------------
     const decoded_data = try conv.Base91.decode(allocator, data, .{ .escape = true });
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV0(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0HexEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV0(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Hex.encode(allocator, swapped_data, .{});
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV0HexDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Hex.decode(allocator, data, .{});
     defer allocator.free(decoded_data);
     //----------------------------------------------------------------------------
     return obfuscateV0(allocator, decoded_data);
@@ -481,6 +531,28 @@ pub fn obfuscateV4Base91Decode(allocator: *std.mem.Allocator, data: []const u8) 
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
+pub fn obfuscateV4HexEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV4(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Hex.encode(allocator, swapped_data, .{});
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV4HexDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Hex.decode(allocator, data, .{});
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV4(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
 pub fn obfuscateV5(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
     //----------------------------------------------------------------------------
     if (data.len == 0) return allocator.alloc(u8, 0);
@@ -723,6 +795,28 @@ pub fn obfuscateV5Base91Decode(allocator: *std.mem.Allocator, data: []const u8) 
     if (data.len == 0) return allocator.alloc(u8, 0);
     //----------------------------------------------------------------------------
     const decoded_data = try conv.Base91.decode(allocator, data, .{ .escape = true });
+    defer allocator.free(decoded_data);
+    //----------------------------------------------------------------------------
+    return obfuscateV5(allocator, decoded_data);
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV5HexEncode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const swapped_data = try obfuscateV5(allocator, data);
+    defer allocator.free(swapped_data);
+    //----------------------------------------------------------------------------
+    return conv.Hex.encode(allocator, swapped_data, .{});
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn obfuscateV5HexDecode(allocator: *std.mem.Allocator, data: []const u8) ![]u8 {
+    //----------------------------------------------------------------------------
+    if (data.len == 0) return allocator.alloc(u8, 0);
+    //----------------------------------------------------------------------------
+    const decoded_data = try conv.Hex.decode(allocator, data, .{});
     defer allocator.free(decoded_data);
     //----------------------------------------------------------------------------
     return obfuscateV5(allocator, decoded_data);
