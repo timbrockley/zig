@@ -34,7 +34,7 @@ unzip downloaded file
 
 (copy contents of directory containing zig executable to /usr/local/zls directory)
 
-ln -s /usr/local/zig/zig /usr/local/bin/zig
+ln -s /usr/local/zls/zls /usr/local/bin/zls
 
 #--------------------------------------------------------------------------------
 
