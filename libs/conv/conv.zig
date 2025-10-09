@@ -739,12 +739,22 @@ pub const Base91 = struct {
         //-----------------------------------------------------------
         if (num_bits > 0) {
             //-----------------------------------------------------------
-            buffer[buffer_index] = base91_charset[queue % 91];
-            buffer_index += 1;
+            if (config.escape) {
+                base91EscapedOutput(buffer, &buffer_index, base91_charset[queue % 91]);
+            } else {
+                buffer[buffer_index] = base91_charset[queue % 91];
+                buffer_index += 1;
+            }
             //-----------------------------------------------------------
             if (num_bits > 7 or queue > 90) {
-                buffer[buffer_index] = base91_charset[queue / 91];
-                buffer_index += 1;
+                //-----------------------------------------------------------
+                if (config.escape) {
+                    base91EscapedOutput(buffer, &buffer_index, base91_charset[queue / 91]);
+                } else {
+                    buffer[buffer_index] = base91_charset[queue / 91];
+                    buffer_index += 1;
+                }
+                //-----------------------------------------------------------
             }
             //-----------------------------------------------------------
         }
@@ -876,7 +886,7 @@ pub const Hex = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        return try std.fmt.allocPrint(allocator.*, "{X}", .{std.fmt.fmtSliceHexUpper(data)});
+        return try std.fmt.allocPrint(allocator.*, "{X}", .{data});
         //-----------------------------------------------------------
     }
     //------------------------------------------------------------
