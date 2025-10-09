@@ -4,8 +4,12 @@
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const stdout = std.io.getStdOut().writer();
-const stderr = std.io.getStdErr().writer();
+//--------------------------------------------------------------------------------
+var stdout_writer = std.fs.File.stdout().writer(&.{});
+const stdout = &stdout_writer.interface;
+//--------------------------------------------------------------------------------
+var stderr_writer = std.fs.File.stderr().writer(&.{});
+const stderr = &stderr_writer.interface;
 //--------------------------------------------------------------------------------
 var start_time_ns: i128 = 0;
 //--------------------------------------------------------------------------------
@@ -27,6 +31,32 @@ pub fn init() void {
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
+pub fn compareStringSlice(name: []const u8, expected: []const u8, actual: []const u8) void {
+    //----------------------------------------------------------------------------
+    if (std.mem.eql(u8, expected, actual)) {
+        //----------------------------------------
+        printPass();
+        stdout.print(": {s}\n", .{name}) catch {};
+        //----------------------------------------
+        count_passed += 1;
+        //----------------------------------------
+    } else {
+        //----------------------------------------
+        printFail();
+        stdout.print(":     {s}\n", .{name}) catch {};
+        printExpected();
+        stdout.print(": {s}\n", .{expected}) catch {};
+        printActual();
+        stdout.print(":   {s}\n", .{actual}) catch {};
+        //----------------------------------------
+        count_failed += 1;
+        //----------------------------------------
+    }
+    //----------------------------------------------------------------------------
+    printLine();
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
 pub fn compareByteSlice(name: []const u8, expected: []const u8, actual: []const u8) void {
     //----------------------------------------------------------------------------
     if (std.mem.eql(u8, expected, actual)) {
@@ -39,7 +69,7 @@ pub fn compareByteSlice(name: []const u8, expected: []const u8, actual: []const 
     } else {
         //----------------------------------------
         printFail();
-        stdout.print(":   {s}\n", .{name}) catch {};
+        stdout.print(":     {s}\n", .{name}) catch {};
         printExpected();
         stdout.print(": {any}\n", .{expected}) catch {};
         printActual();
@@ -53,9 +83,9 @@ pub fn compareByteSlice(name: []const u8, expected: []const u8, actual: []const 
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-pub fn compareStringSlice(name: []const u8, expected: []const u8, actual: []const u8) void {
+pub fn compareByte(name: []const u8, expected: u8, actual: u8) void {
     //----------------------------------------------------------------------------
-    if (std.mem.eql(u8, expected, actual)) {
+    if (expected == actual) {
         //----------------------------------------
         printPass();
         stdout.print(": {s}\n", .{name}) catch {};
@@ -65,11 +95,11 @@ pub fn compareStringSlice(name: []const u8, expected: []const u8, actual: []cons
     } else {
         //----------------------------------------
         printFail();
-        stdout.print(":   {s}\n", .{name}) catch {};
+        stdout.print(":     {s}\n", .{name}) catch {};
         printExpected();
-        stdout.print(": {s}\n", .{expected}) catch {};
+        stdout.print(": {d}\n", .{expected}) catch {};
         printActual();
-        stdout.print(":   {s}\n", .{actual}) catch {};
+        stdout.print(":   {d}\n", .{actual}) catch {};
         //----------------------------------------
         count_failed += 1;
         //----------------------------------------
@@ -91,7 +121,7 @@ pub fn compareInt(name: []const u8, expected: u64, actual: u64) void {
     } else {
         //----------------------------------------
         printFail();
-        stdout.print(":   {s}\n", .{name}) catch {};
+        stdout.print(":     {s}\n", .{name}) catch {};
         printExpected();
         stdout.print(": {d}\n", .{expected}) catch {};
         printActual();
@@ -107,10 +137,15 @@ pub fn compareInt(name: []const u8, expected: u64, actual: u64) void {
 //--------------------------------------------------------------------------------
 pub fn pass(name: []const u8, message: []const u8) void {
     //----------------------------------------------------------------------------
-    stderr.write(GREEN) catch {};
-    stdout.write("PASS") catch {};
-    stderr.write(RESET) catch {};
-    stdout.print(": {s}: {s}\n", .{ name, message }) catch {};
+    _ = stderr.write(GREEN) catch {};
+    _ = stdout.write("PASS") catch {};
+    _ = stderr.write(RESET) catch {};
+    //----------------------------------------
+    if (message.len == 0) {
+        stdout.print(": {s}\n", .{name}) catch {};
+    } else {
+        stdout.print(": {s}: {s}\n", .{ name, message }) catch {};
+    }
     //----------------------------------------
     count_passed += 1;
     //----------------------------------------------------------------------------
@@ -123,7 +158,12 @@ pub fn fail(name: []const u8, message: []const u8) void {
     _ = stderr.write(RED) catch {};
     _ = stdout.write("FAIL") catch {};
     _ = stderr.write(RESET) catch {};
-    stdout.print(": {s}: {s}\n", .{ name, message }) catch {};
+    //----------------------------------------
+    if (message.len == 0) {
+        stdout.print(": {s}\n", .{name}) catch {};
+    } else {
+        stdout.print(": {s}: {s}\n", .{ name, message }) catch {};
+    }
     //----------------------------------------
     count_failed += 1;
     //----------------------------------------------------------------------------
@@ -136,6 +176,7 @@ pub fn errorPass(name: []const u8, err: anyerror) void {
     _ = stderr.write(GREEN) catch {};
     _ = stdout.write("PASS") catch {};
     _ = stderr.write(RESET) catch {};
+    //----------------------------------------
     stdout.print(": {s} (correctly returned {})\n", .{ name, err }) catch {};
     //----------------------------------------
     count_passed += 1;
@@ -149,6 +190,7 @@ pub fn errorFail(name: []const u8, err: anyerror) void {
     _ = stderr.write(RED) catch {};
     _ = stdout.write("FAIL") catch {};
     _ = stderr.write(RESET) catch {};
+    //----------------------------------------
     stdout.print(": {s}: ERROR: {}\n", .{ name, err }) catch {};
     //----------------------------------------
     count_failed += 1;
@@ -206,25 +248,57 @@ pub fn main() void {
     //----------------------------------------------------------------------------
     printLine();
     //----------------------------------------------------------------------------
-    // test case 1: compareByteSlice - should pass
-    const expected_bytes = "hello";
+    // test case 1: compareStringSlice - should pass
     //----------------------------------------
-    const actual_bytes_pass = "hello";
-    compareByteSlice("test case 1 should pass", expected_bytes, actual_bytes_pass);
-    //----------------------------------------
-    // test case 2: compareByteSlice - should fail
-    const actual_bytes_fail = "world";
-    compareByteSlice("test case 2 should fail", expected_bytes, actual_bytes_fail);
-    //----------------------------------------------------------------------------
-    // test case 3: compareStringSlice - should pass
     const expected_string = "foo";
-    //----------------------------------------
     const actual_string_pass = "foo";
-    compareStringSlice("test case 3 should pass", expected_string, actual_string_pass);
     //----------------------------------------
-    // test case 4: compareStringSlice - should fail
+    compareStringSlice("test case 1 should pass", expected_string, actual_string_pass);
+    //----------------------------------------------------------------------------
+    // test case 2: compareStringSlice - should fail
+    //----------------------------------------
     const actual_string_fail = "bar";
-    compareStringSlice("test case 4 should fail", expected_string, actual_string_fail);
+    //----------------------------------------
+    compareStringSlice("test case 2 should fail", expected_string, actual_string_fail);
+    //----------------------------------------------------------------------------
+    // test case 3: compareByteSlice - should pass
+    //----------------------------------------
+    const expected_bytes = "hello";
+    const actual_bytes_pass = "hello";
+    //----------------------------------------
+    compareByteSlice("test case 3 should pass", expected_bytes, actual_bytes_pass);
+    //----------------------------------------------------------------------------
+    // test case 4: compareByteSlice - should fail
+    //----------------------------------------
+    const actual_bytes_fail = "world";
+    //----------------------------------------
+    compareByteSlice("test case 4 should fail", expected_bytes, actual_bytes_fail);
+    //----------------------------------------------------------------------------
+    // test case 5: compareByte - should pass
+    //----------------------------------------
+    const expected_byte = 0;
+    const actual_byte_pass = 0;
+    //----------------------------------------
+    compareByte("test case 5 should pass", expected_byte, actual_byte_pass);
+    //----------------------------------------------------------------------------
+    // test case 6: compareByte - should fail
+    //----------------------------------------
+    const actual_byte_fail = 1;
+    //----------------------------------------
+    compareByte("test case 6 should fail", expected_byte, actual_byte_fail);
+    //----------------------------------------------------------------------------
+    // test case 7: compareInt - should pass
+    //----------------------------------------
+    const expected_int = 0;
+    const actual_int_pass = 0;
+    //----------------------------------------
+    compareInt("test case 7 should pass", expected_int, actual_int_pass);
+    //----------------------------------------------------------------------------
+    // test case 8: compareInt - should fail
+    //----------------------------------------
+    const actual_int_fail = 1;
+    //----------------------------------------
+    compareInt("test case 8 should fail", expected_int, actual_int_fail);
     //----------------------------------------------------------------------------
     printSummary();
     //----------------------------------------------------------------------------

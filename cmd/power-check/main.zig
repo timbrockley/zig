@@ -6,6 +6,9 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
+var stdout_writer = std.fs.File.stdout().writer(&.{});
+const stdout_interface = &stdout_writer.interface;
+
 //--------------------------------------------------------------------------------
 
 pub const MAX_OUTPUT_BYTES: usize = 10 * 1024;
@@ -51,11 +54,11 @@ pub fn main() !void {
     }
     //------------------------------------------------------------
     if (power_status == .Mains) {
-        try std.io.getStdOut().writer().writeAll("power supply: mains power\n");
+        try stdout_interface.writeAll("power supply: mains power\n");
     } else if (power_status == .Battery) {
-        try std.io.getStdOut().writer().writeAll("power supply: battery power\n");
+        try stdout_interface.writeAll("power supply: battery power\n");
     } else {
-        try std.io.getStdOut().writer().writeAll("power supply: unknown source\n");
+        try stdout_interface.writeAll("power supply: unknown source\n");
     }
     //------------------------------------------------------------
     std.process.exit(0);

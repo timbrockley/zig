@@ -1,36 +1,57 @@
 const std = @import("std");
 
 pub fn main() !void {
-    //--------------------------------------------------------------------------------
-    // debug only
+    //------------------------------------------------------------
+    // debug
+    //------------------------------------------------------------
+
     std.debug.print("stderr: Hello World (debug)\n", .{});
-    //--------------------------------------------------------------------------------
+
+    //------------------------------------------------------------
     // stderr
-    const stderr = std.io.getStdErr().writer();
-    try stderr.print("stderr: Hello World\n", .{});
-    //--------------------------------------------------------------------------------
-    // stderr buffered
-    const stderr_file = std.io.getStdErr().writer();
-    //----------------------------------------
-    var stderr_bw = std.io.bufferedWriter(stderr_file);
-    const stderr_buffered = stderr_bw.writer();
-    //----------------------------------------
-    try stderr_buffered.print("stderr: Hello World (buffered)\n", .{});
-    //----------------------------------------
-    try stderr_bw.flush();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
+    {
+        // buffered
+
+        var stderr_buffer: [1024]u8 = undefined;
+        var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+        const stderr = &stderr_writer.interface;
+
+        try stderr.print("stderr: Hello World (buffered)\n", .{});
+        try stderr.flush();
+    }
+    //------------------------------------------------------------
+    {
+        // unbuffered
+
+        var stderr_writer = std.fs.File.stderr().writer(&.{});
+        const stderr = &stderr_writer.interface;
+
+        try stderr.print("stderr: Hello World (unbuffered)\n", .{});
+        try stderr.flush();
+    }
+    //------------------------------------------------------------
     // stdout
-    const stdout = std.io.getStdOut().writer();
-    try stdout.print("stdout: Hello World\n", .{});
-    //--------------------------------------------------------------------------------
-    // stdout buffered
-    const stdout_file = std.io.getStdOut().writer();
-    //----------------------------------------
-    var stdout_bw = std.io.bufferedWriter(stdout_file);
-    const stdout_buffered = stdout_bw.writer();
-    //----------------------------------------
-    try stdout_buffered.print("stdout: Hello World (buffered)\n", .{});
-    //----------------------------------------
-    try stdout_bw.flush();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
+    {
+        // buffered
+
+        var stdout_buffer: [1024]u8 = undefined;
+        var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+        const stdout = &stdout_writer.interface;
+
+        try stdout.print("stdout: Hello World (buffered)\n", .{});
+        try stdout.flush();
+    }
+    //------------------------------------------------------------
+    {
+        // unbuffered
+
+        var stdout_writer = std.fs.File.stdout().writer(&.{});
+        const stdout = &stdout_writer.interface;
+
+        try stdout.print("stdout: Hello World (unbuffered)\n", .{});
+        try stdout.flush();
+    }
+    //------------------------------------------------------------
 }

@@ -1,7 +1,7 @@
 const std = @import("std");
 
 fn work(id: usize) void {
-    std.time.sleep(1 * std.time.ns_per_s);
+    std.Thread.sleep(1 * std.time.ns_per_s);
     std.debug.print("{} finished\n", .{id});
 }
 

@@ -1,11 +1,17 @@
 //--------------------------------------------------------------------------------
-// Copyright 2024, Tim Brockley. All rights reserved.
+// Copyright 2025, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
 const std: type = @import("std");
+//--------------------------------------------------------------------------------
+var stdout_writer = std.fs.File.stdout().writer(&.{});
+const stdout = &stdout_writer.interface;
+//--------------------------------------------------------------------------------
 
 const DURATION: u64 = 1 * std.time.ns_per_s;
 const CR_CLEARLINE = "\r\x1b[2K";
+
+//--------------------------------------------------------------------------------
 
 pub fn main() !void {
     var it = std.process.args();
@@ -19,12 +25,13 @@ pub fn main() !void {
         const message = if (arg2.len > 0) arg2 else "Countdown";
 
         while (countdown > 0) {
-            try std.io.getStdOut().writer().print("{s}{s}...{d}", .{ CR_CLEARLINE, message, countdown });
+            try stdout.print("{s}{s}...{d}", .{ CR_CLEARLINE, message, countdown });
             countdown -= 1;
-            std.time.sleep(DURATION);
+            std.Thread.sleep(DURATION);
         }
 
-        try std.io.getStdOut().writeAll(CR_CLEARLINE);
+        try stdout.writeAll(CR_CLEARLINE);
     }
 }
+
 //--------------------------------------------------------------------------------

@@ -15,741 +15,666 @@ pub fn main() !void {
     var allocator = arena_allocator.allocator();
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0";
-        const data = "Hello";
-        const expected = "V922/";
-
-        if (obf.obfuscateV0(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateXOR.obfuscate";
+        const value = 0b10101010;
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+        }{
+            .{ .data = "", .expected = "" },
+            .{ .data = "hello", .expected = &[_]u8{ 194, 207, 198, 198, 197 } },
+            .{ .data = &[_]u8{ 194, 207, 198, 198, 197 }, .expected = "hello" },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV0Encode";
-        const data = "Aq\x16\x15\x12~|zwB>qF";
-        const expected = "]---t-n-r-s-q-d-a-b-g--X";
-
-        if (obf.obfuscateV0Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV0Decode";
-        const data = "]---t-n-r-s-q-d-a-b-g-X";
-        const expected = "Aq\x16\x15\x12~|zwB>qF";
-
-        if (obf.obfuscateV0Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateXOR.obfuscate(&allocator, case.data, value, .{})) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    ut.compareByteSlice(name, case.expected, result);
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0BaseEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "B!sp>n=%=";
-
-        if (obf.obfuscateV0BaseEncode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateXOR.encode";
+        const value = 0b10101010;
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateXOR.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = &[_]u8{ 247, 135, 163, 160, 167, 138, 136, 142, 141, 246, 202, 135, 242 }, .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
+            .{ .data = "hello", .expected = &[_]u8{ 194, 207, 198, 198, 197 }, .encoding = .default },
+            .{ .data = "hello", .expected = "dX&9De>", .encoding = .base },
+            .{ .data = "hello", .expected = "ws/GxsU=", .encoding = .base64 },
+            .{ .data = "hello", .expected = "ws_GxsU", .encoding = .base64url },
+            .{ .data = "hello", .expected = "ess!GxB", .encoding = .base91 },
+            .{ .data = "hello", .expected = "C2CFC6C6C5", .encoding = .hex },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateXOR.encode(&allocator, case.data, value, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0BaseDecode";
-        const data = "B!sp>n=%=";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV0BaseDecode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateXOR.decode";
+        const value = 0b10101010;
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateXOR.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = &[_]u8{ 247, 135, 163, 160, 167, 138, 136, 142, 141, 246, 202, 135, 242 }, .encoding = .default },
+            .{ .data = "dX&9De>", .expected = "hello", .encoding = .base },
+            .{ .data = "ws/GxsU=", .expected = "hello", .encoding = .base64 },
+            .{ .data = "ws_GxsU", .expected = "hello", .encoding = .base64url },
+            .{ .data = "ess!GxB", .expected = "hello", .encoding = .base91 },
+            .{ .data = "C2CFC6C6C5", .expected = "hello", .encoding = .hex },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateXOR.decode(&allocator, case.data, value, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0Base64Encode";
-        const data = "A>|\u{1f427}";
-        const expected = "XWAij+Dv2A==";
-
-        if (obf.obfuscateV0Base64Encode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV0.obfuscate";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+        }{
+            .{ .data = "", .expected = "" },
+            .{ .data = "hello", .expected = "6922/" },
+            .{ .data = "6922/", .expected = "hello" },
+            .{
+                .data = "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
+                .expected = &[_]u8{ 42, 57, 43, 42, 126, 92, 92, 92, 96, 96, 96, 39, 39, 39, 34, 34, 34, 45, 45, 45, 36, 36, 36, 126, 109, 108, 107, 126, 31, 22, 21, 126, 32, 32, 32 },
+            },
+            .{
+                .data = &[_]u8{ 42, 57, 43, 42, 126, 92, 92, 92, 96, 96, 96, 39, 39, 39, 34, 34, 34, 45, 45, 45, 36, 36, 36, 126, 109, 108, 107, 126, 31, 22, 21, 126, 32, 32, 32 },
+                .expected = "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
+            },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV0.obfuscate(&allocator, case.data, .{})) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    ut.compareByteSlice(name, case.expected, result);
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0Base64Decode";
-        const data = "XWAij+Dv2A==";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV0Base64Decode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV0.slideByte";
+        const test_cases = [_]struct {
+            data: u8,
+            expected: u8,
+        }{
+            .{ .data = 0, .expected = 31 },
+            .{ .data = 31, .expected = 0 },
+            .{ .data = 32, .expected = 126 },
+            .{ .data = 126, .expected = 32 },
+            .{ .data = 127, .expected = 127 },
+            .{ .data = 128, .expected = 255 },
+            .{ .data = 255, .expected = 128 },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
+            const result = obf.ObfuscateV0.slideByte(case.data);
             //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (result != case.expected) {
+                fail_count += 1;
+                ut.compareByte(name, case.expected, result);
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0Base64UrlEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "XWAij-Dv2A";
-
-        if (obf.obfuscateV0Base64UrlEncode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV0.encode";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateV0.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "Aq\x16\x15\x12~|zwB>qF", .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
+            .{ .data = "ABC\u{1f427}", .expected = "B!OWun=%=", .encoding = .base },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV0.encode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0Base64UrlDecode";
-        const data = "XWAij-Dv2A";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV0Base64UrlDecode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV0.decode";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateV0.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = "Aq\x16\x15\x12~|zwB>qF", .encoding = .default },
+            .{ .data = "B!OWun=%=", .expected = "ABC\u{1f427}", .encoding = .base },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV0.decode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0Base91Encode";
-        const data = "A>|\u{1f427}";
-        const expected = "CBx+](ZyN";
-
-        if (obf.obfuscateV0Base91Encode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV4.obfuscate";
+        const expected_strings = [_][2][]const u8{
+            .{ "", "" },
+            .{ "hello", "6229/" },
+            .{ "6229/", "hello" },
+            .{ "test BBB>>>www|||qqq 123XXX", "*\x27+\x22~-\x5C-\x60m\x60k\x279\x22*\x22\x5C-\x5C~\x60l\x27FFF" },
+            .{
+                "*\x27+\x22~-\x5C-\x60m\x60k\x279\x22*\x22\x5C-\x5C~\x60l\x27FFF", "test BBB>>>www|||qqq 123XXX",
+            },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (expected_strings) |expected| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV4.obfuscate(&allocator, expected[0], .{})) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, expected[1])) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    ut.compareByteSlice(name, expected[1], result);
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0Base91Decode";
-        const data = "CBx+](ZyN";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV0Base91Decode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV4.slideByte";
+        const expected_bytes = [_][2]u8{
+            .{ 0, 0 },
+            .{ 31, 31 },
+            .{ 32, 126 },
+            .{ 126, 32 },
+            .{ 127, 127 },
+            .{ 128, 128 },
+            .{ 255, 255 },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (expected_bytes) |expected| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
+            const result = obf.ObfuscateV4.slideByte(expected[0]);
             //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (result != expected[1]) {
+                fail_count += 1;
+                ut.compareByte(name, expected[1], result);
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0HexEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "5D60228FE0EFD8";
-
-        if (obf.obfuscateV0HexEncode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV4.encode";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateV4.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}", .expected = "\x00\x7E\x5D\x7E\x5B\x7E\x5C\x6E\x97\x5C\x72\xE6\x7C\xAC\x5C\x71\xAA\x77\xF0\x5C\x61\x7E\x3E\x5C\x5C\x5C\x67\x7E\xE6\x7E\xA5\x7E\x9C\x7E\xE8\x7E\x9E\x7E\x9F\x90\xA7", .encoding = .default },
+            .{ .data = "test BBB>>>www|||qqq 123", .expected = "1RTdoLS#jYBz<=j0WQD%/&^c,LXKyA", .encoding = .base },
+            .{ .data = "test BBB>>>www|||qqq 123", .expected = "KicrIn4tXC1gbWBrJzkiKiJcLVx+YGwn", .encoding = .base64 },
+            .{ .data = "test BBB>>>www|||qqq 123", .expected = "KicrIn4tXC1gbWBrJzkiKiJcLVx-YGwn", .encoding = .base64url },
+            .{ .data = "test BBB>>>www|||qqq 123", .expected = "OU/w-d}u)}H;#-ql>NXG%w.-du)TWm!&B", .encoding = .base91 },
+            .{ .data = "test BBB>>>www|||qqq 123", .expected = "2A272B227E2D5C2D606D606B2739222A225C2D5C7E606C27", .encoding = .hex },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV4.encode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV0HexDecode";
-        const data = "5D60228FE0EFD8";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV0HexDecode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV4.decode";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateV4.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "\x00\x7E\x5D\x7E\x5B\x7E\x5C\x6E\x97\x5C\x72\xE6\x7C\xAC\x5C\x71\xAA\x77\xF0\x5C\x61\x7E\x3E\x5C\x5C\x5C\x67\x7E\xE6\x7E\xA5\x7E\x9C\x7E\xE8\x7E\x9E\x7E\x9F\x90\xA7", .expected = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}", .encoding = .default },
+            .{ .data = "1RTdoLS#jYBz<=j0WQD%/&^c,LXKyA", .expected = "test BBB>>>www|||qqq 123", .encoding = .base },
+            .{ .data = "KicrIn4tXC1gbWBrJzkiKiJcLVx+YGwn", .expected = "test BBB>>>www|||qqq 123", .encoding = .base64 },
+            .{ .data = "KicrIn4tXC1gbWBrJzkiKiJcLVx-YGwn", .expected = "test BBB>>>www|||qqq 123", .encoding = .base64url },
+            .{ .data = "OU/w-d}u)}H;#-ql>NXG%w.-du)TWm!&B", .expected = "test BBB>>>www|||qqq 123", .encoding = .base91 },
+            .{ .data = "2A272B227E2D5C2D606D606B2739222A225C2D5C7E606C27", .expected = "test BBB>>>www|||qqq 123", .encoding = .hex },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV4.decode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV4";
-        const data = "ABC";
-        const expected = "]\x5C[";
-
-        if (obf.obfuscateV4(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV5.obfuscate";
+        const expected_strings = [_][2][]const u8{
+            .{ "", "" },
+            .{ "hello", "6922/" },
+            .{ "6922/", "hello" },
+            .{
+                "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
+                &[_]u8{ 42, 57, 43, 42, 126, 92, 92, 92, 96, 96, 96, 39, 39, 39, 34, 34, 34, 45, 45, 45, 36, 36, 36, 126, 109, 108, 107, 126, 31, 22, 21, 126, 32, 32, 32 },
+            },
+            .{
+                &[_]u8{ 42, 57, 43, 42, 126, 92, 92, 92, 96, 96, 96, 39, 39, 39, 34, 34, 34, 45, 45, 45, 36, 36, 36, 126, 109, 108, 107, 126, 31, 22, 21, 126, 32, 32, 32 },
+                "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
+            },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (expected_strings) |expected| {
             //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV5.obfuscate(&allocator, expected[0], .{})) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, expected[1])) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    ut.compareByteSlice(name, expected[1], result);
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV4";
-        const data = "test BBB>>>www|||qqq 123XXX";
-        const expected = "*\x27+\x22~-\x5C-\x60m\x60k\x279\x22*\x22\x5C-\x5C~\x60l\x27FFF";
-
-        if (obf.obfuscateV4(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV5.slideByte";
+        const expected_bytes = [_][2]u8{
+            .{ 0, 31 },
+            .{ 31, 0 },
+            .{ 32, 126 },
+            .{ 126, 32 },
+            .{ 127, 127 },
+            .{ 128, 255 },
+            .{ 255, 128 },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (expected_bytes) |expected| {
             //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
+            const result = obf.ObfuscateV5.slideByte(expected[0]);
             //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (result != expected[1]) {
+                fail_count += 1;
+                ut.compareByte(name, expected[1], result);
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "slideByteV4";
-
-        const data = "\x00\x1F\x20\x7E\x7F\x80\xFF";
-        const expected = "\x00\x1F\x7E\x20\x7F\x80\xFF";
-
-        var result: [data.len]u8 = undefined;
-        for (data, 0..) |byte, index| result[index] = obf.slideByteV4(byte);
-
-        ut.compareByteSlice(name, expected, result[0..]);
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Encode";
-        const data = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
-        const expected = "\x00\x7E\x5D\x7E\x5B\x7E\x5C\x6E\x97\x5C\x72\xE6\x7C\xAC\x5C\x71\xAA\x77\xF0\x5C\x61\x7E\x3E\x5C\x5C\x5C\x67\x7E\xE6\x7E\xA5\x7E\x9C\x7E\xE8\x7E\x9E\x7E\x9F\x90\xA7";
-
-        if (obf.obfuscateV4Encode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV5.encode";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateV5.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "Aq\x16\x15\x12~|zwB>qF", .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
+            .{ .data = "ABC\u{1f427}", .expected = "B!OWun=%=", .encoding = .base },
+            .{ .data = "ABC\u{1f427}", .expected = "XVxbj+Dv2A==", .encoding = .base64 },
+            .{ .data = "ABC\u{1f427}", .expected = "XVxbj-Dv2A", .encoding = .base64url },
+            .{ .data = "ABC\u{1f427}", .expected = ".?x;](ZyN", .encoding = .base91 },
+            .{ .data = "ABC\u{1f427}", .expected = "5D5C5B8FE0EFD8", .encoding = .hex },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV5.encode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     {
-        const name = "obfuscateV4Decode";
-        const data = "\x00\x7E\x5D\x7E\x5B\x7E\x5C\x6E\x97\x5C\x72\xE6\x7C\xAC\x5C\x71\xAA\x77\xF0\x5C\x61\x7E\x3E\x5C\x5C\x5C\x67\x7E\xE6\x7E\xA5\x7E\x9C\x7E\xE8\x7E\x9E\x7E\x9F\x90\xA7";
-        const expected = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
-
-        if (obf.obfuscateV4Decode(&allocator, data)) |result| {
+        //----------------------------------------
+        const name = "ObfuscateV5.decode";
+        const test_cases = [_]struct {
+            data: []const u8,
+            expected: []const u8,
+            encoding: obf.ObfuscateV5.Encoding,
+        }{
+            .{ .data = "", .expected = "", .encoding = .default },
+            .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = "Aq\x16\x15\x12~|zwB>qF", .encoding = .default },
+            .{ .data = "B!OWun=%=", .expected = "ABC\u{1f427}", .encoding = .base },
+            .{ .data = "XVxbj+Dv2A==", .expected = "ABC\u{1f427}", .encoding = .base64 },
+            .{ .data = "XVxbj-Dv2A", .expected = "ABC\u{1f427}", .encoding = .base64url },
+            .{ .data = ".?x;](ZyN", .expected = "ABC\u{1f427}", .encoding = .base91 },
+            .{ .data = "5D5C5B8FE0EFD8", .expected = "ABC\u{1f427}", .encoding = .hex },
+        };
+        //----------------------------------------
+        var fail_count: usize = 0;
+        //----------------------------------------
+        inline for (test_cases) |case| {
             //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
+            if (obf.ObfuscateV5.decode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+                //----------------------------------------
+                if (!std.mem.eql(u8, result, case.expected)) {
+                    //----------------------------------------
+                    fail_count += 1;
+                    //----------------------------------------
+                    if (case.encoding == .default) {
+                        ut.compareByteSlice(name, case.expected, result);
+                    } else {
+                        ut.compareStringSlice(name, case.expected, result);
+                    }
+                    //----------------------------------------
+                    allocator.free(result);
+                    //----------------------------------------
+                }
+                //----------------------------------------
+            } else |err| {
+                //----------------------------------------
+                fail_count += 1;
+                ut.errorFail(name, err);
+                //----------------------------------------
+            }
             //----------------------------------------
         }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4BaseEncode";
-        const data = "test BBB>>>www|||qqq 123";
-        const expected = "1RTdoLS#jYBz<=j0WQD%/&^c,LXKyA";
-
-        if (obf.obfuscateV4BaseEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4BaseDecode";
-        const data = "1RTdoLS#jYBz<=j0WQD%/&^c,LXKyA";
-        const expected = "test BBB>>>www|||qqq 123";
-
-        if (obf.obfuscateV4BaseDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Base64Encode";
-        const data = "test BBB>>>www|||qqq 123";
-        const expected = "KicrIn4tXC1gbWBrJzkiKiJcLVx+YGwn";
-
-        if (obf.obfuscateV4Base64Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Base64Decode";
-        const data = "KicrIn4tXC1gbWBrJzkiKiJcLVx+YGwn";
-        const expected = "test BBB>>>www|||qqq 123";
-
-        if (obf.obfuscateV4Base64Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Base64UrlEncode";
-        const data = "test BBB>>>www|||qqq 123";
-        const expected = "KicrIn4tXC1gbWBrJzkiKiJcLVx-YGwn";
-
-        if (obf.obfuscateV4Base64UrlEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Base64UrlDecode";
-        const data = "KicrIn4tXC1gbWBrJzkiKiJcLVx-YGwn";
-        const expected = "test BBB>>>www|||qqq 123";
-
-        if (obf.obfuscateV4Base64UrlDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Base91Encode";
-        const data = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
-        const expected = "k_U1f-dD7z,v1tyRM0&7}%}@)-gQN2<9wsK{o%oVQ|n+^";
-
-        if (obf.obfuscateV4Base91Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4Base91Decode";
-        const data = "k_U1f-dD7z,v1tyRM0&7}%}@)-gQN2<9wsK{o%oVQ|n+^";
-        const expected = "\x00 ABC \n \r \x22 \x7C \x27 \x77 \x60 \x3E \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
-
-        if (obf.obfuscateV4Base91Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4HexEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "5DF022609F90A7";
-
-        if (obf.obfuscateV4HexEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV4HexDecode";
-        const data = "5DF022609F90A7";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV4HexDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5";
-        const data = "\x00\x20\x80";
-        const expected = "\x1F\x7E\xFF";
-
-        if (obf.obfuscateV5(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5";
-        const data = "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~";
-        const expected = "\x2A\x2D\x2B\x2D\x7E\x24\x5C\x7E\x60\x6C\x60\x7E\x27\x16\x22\x7E\x22\x39\x2D\x2A\x24\x5C\x24\x5C\x6D\x60\x6B\x27\x1F\x27\x15\x22\x20\x20\x20";
-
-        if (obf.obfuscateV5(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5";
-        const data = "\x2A\x2D\x2B\x2D\x7E\x24\x5C\x7E\x60\x6C\x60\x7E\x27\x16\x22\x7E\x22\x39\x2D\x2A\x24\x5C\x24\x5C\x6D\x60\x6B\x27\x1F\x27\x15\x22\x20\x20\x20";
-        const expected = "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~";
-
-        if (obf.obfuscateV5(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "slideByteV5";
-
-        const data = "\x00\x1F\x20\x7E\x7F\x80\xFF";
-        const expected = "\x1F\x00\x7E\x20\x7F\xFF\x80";
-
-        var result: [data.len]u8 = undefined;
-        for (data, 0..) |byte, index| result[index] = obf.slideByteV5(byte);
-
-        ut.compareByteSlice(name, expected, result[0..]);
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Encode";
-        const data = "test BBB>>>www|||qqqzzz 123 ~~~";
-        const expected = "*-q+--~---b-d-g~-gl-a~-q9-q*---b-d-b-d-gm-ak-a-s-s-s";
-
-        if (obf.obfuscateV5Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Decode";
-        const data = "*-q+--~---b-d-g~-gl-a~-q9-q*---b-d-b-d-gm-ak-a-s-s-s";
-        const expected = "test BBB>>>www|||qqqzzz 123 ~~~";
-
-        if (obf.obfuscateV5Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareByteSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5BaseEncode";
-        const data = "test BBB>>>www|||qqq 123 ABC @ XYZ";
-        const expected = "1S62)LYnA-BxU2H0[Lzi.zv8,LX&atLXKG1LREUl:::";
-
-        if (obf.obfuscateV5BaseEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5BaseDecode";
-        const data = "1S62)LYnA-BxU2H0[Lzi.zv8,LX&atLXKG1LREUl:::";
-        const expected = "test BBB>>>www|||qqq 123 ABC @ XYZ";
-
-        if (obf.obfuscateV5BaseDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Base64Encode";
-        const data = "test BBB>>>www|||qqq 123 ABC @ XYZ";
-        const expected = "Ki0rLX5tXGtgXWBbJ14iRiI5LSp+XGxcfmBcJ34nfiJFRA==";
-
-        if (obf.obfuscateV5Base64Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Base64Decode";
-        const data = "Ki0rLX5tXGtgXWBbJ14iRiI5LSp+XGxcfmBcJ34nfiJFRA==";
-        const expected = "test BBB>>>www|||qqq 123 ABC @ XYZ";
-
-        if (obf.obfuscateV5Base64Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Base64UrlEncode";
-        const data = "test BBB>>>www|||qqq 123 ABC @ XYZ";
-        const expected = "Ki0rLX5tXGtgXWBbJ14iRiI5LSp-XGxcfmBcJ34nfiJFRA";
-
-        if (obf.obfuscateV5Base64UrlEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Base64UrlDecode";
-        const data = "Ki0rLX5tXGtgXWBbJ14iRiI5LSp-XGxcfmBcJ34nfiJFRA";
-        const expected = "test BBB>>>www|||qqq 123 ABC @ XYZ";
-
-        if (obf.obfuscateV5Base64UrlDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Base91Encode";
-        const data = "ABC \u{00a9} \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
-        const expected = "qJ2;cr&^qnDj+zd:q8k{}Rw9N";
-
-        if (obf.obfuscateV5Base91Encode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5Base91Decode";
-        const data = "qJ2;cr&^qnDj+zd:q8k{}Rw9N";
-        const expected = "ABC \u{00a9} \u{65e5}\u{672c}\u{8a9e}\u{1f427}";
-
-        if (obf.obfuscateV5Base91Decode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5HexEncode";
-        const data = "A>|\u{1f427}";
-        const expected = "5D8F2260E0EFD8";
-
-        if (obf.obfuscateV5HexEncode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
-    }
-    //----------------------------------------------------------------------------
-    {
-        const name = "obfuscateV5HexDecode";
-        const data = "5D8F2260E0EFD8";
-        const expected = "A>|\u{1f427}";
-
-        if (obf.obfuscateV5HexDecode(&allocator, data)) |result| {
-            //----------------------------------------
-            ut.compareStringSlice(name, expected, result);
-            allocator.free(result);
-            //----------------------------------------
-        } else |err| {
-            //----------------------------------------
-            ut.errorFail(name, err);
-            //----------------------------------------
-        }
+        //----------------------------------------
+        if (fail_count == 0) ut.pass(name, "");
+        //----------------------------------------
     }
     //----------------------------------------------------------------------------
     ut.printSummary();

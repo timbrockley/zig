@@ -20,7 +20,7 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -target x86_64-apple-darwin -mcpu=baseline
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O ReleaseSmall -mcpu=baseline
 
   build-darwin:
     dir: "{{.OUTPUT_PATH}}"

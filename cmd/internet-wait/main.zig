@@ -1,14 +1,20 @@
 //--------------------------------------------------------------------------------
-// Copyright 2024, Tim Brockley. All rights reserved.
+// Copyright 2025, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
 const std: type = @import("std");
+//--------------------------------------------------------------------------------
+var stdout_writer = std.fs.File.stdout().writer(&.{});
+const stdout = &stdout_writer.interface;
+//--------------------------------------------------------------------------------
 
 const ADDR: []const u8 = "1.1.1.1";
 const PORT: u16 = 53;
 
 const MAX_LEN: u8 = 10;
 const DURATION: u64 = 100 * std.time.ns_per_ms;
+
+//--------------------------------------------------------------------------------
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -22,14 +28,14 @@ pub fn main() !void {
     while (!connected(allocator)) {
         fillBar(&bar, bar_index);
 
-        try std.io.getStdOut().writer().print("\rWaiting for internet connection [{s}]", .{bar});
+        try stdout.print("\rWaiting for internet connection [{s}]", .{bar});
 
         bar_index = if (bar_index < MAX_LEN) bar_index + 1 else 1;
 
-        std.time.sleep(DURATION);
+        std.Thread.sleep(DURATION);
     }
 
-    try std.io.getStdOut().writeAll("\r\x1b[2K"); // carriage return + clear line
+    try stdout.writeAll("\r\x1b[2K"); // carriage return + clear line
 }
 
 fn fillBar(bar: *[MAX_LEN]u8, bar_index: u8) void {
@@ -42,9 +48,12 @@ fn fillBar(bar: *[MAX_LEN]u8, bar_index: u8) void {
     }
 }
 
+//--------------------------------------------------------------------------------
+
 pub fn connected(allocator: std.mem.Allocator) bool {
     const s = std.net.tcpConnectToHost(allocator, ADDR, PORT) catch return false;
     defer s.close();
     return true;
 }
+
 //--------------------------------------------------------------------------------
