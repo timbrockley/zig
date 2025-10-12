@@ -653,14 +653,49 @@ pub const ObfuscateV5 = struct {
         _ = options;
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
-        //------------------------------------------------------------
+        //----------------------------------------------------------------------------
         var output: []u8 = try allocator.alloc(u8, data.len);
         errdefer allocator.free(output);
         //----------------------------------------
-        for (data, 0..) |byte, index| {
-            output[index] = ObfuscateV5.slideByte(byte);
+        if (data.len < 4) {
+            for (data, 0..) |byte, index| {
+                output[index] = ObfuscateV5.slideByte(byte);
+            }
+            return output;
         }
-        //------------------------------------------------------------
+        //----------------------------------------
+        var mixed_length = data.len;
+        var mixed_half = mixed_length / 2;
+        var strx_data: []const u8 = &[_]u8{};
+        //----------------------------------------
+        if (mixed_half % 2 != 0) {
+            mixed_half -= 1;
+            mixed_length = mixed_half * 2;
+            strx_data = data[mixed_length..];
+        }
+        //----------------------------------------
+        const main_data = data[0..mixed_length];
+        //----------------------------------------
+        for (main_data, 0..) |_, index| {
+            var src_byte: u8 = undefined;
+            if (index % 2 != 0) {
+                if (index < mixed_half) {
+                    src_byte = main_data[index + mixed_half];
+                } else {
+                    src_byte = main_data[index - mixed_half];
+                }
+            } else {
+                src_byte = main_data[index];
+            }
+            output[index] = ObfuscateV5.slideByte(src_byte);
+        }
+        //----------------------------------------
+        if (strx_data.len > 0) {
+            for (strx_data, mixed_length..) |byte, idx| {
+                output[idx] = ObfuscateV5.slideByte(byte);
+            }
+        }
+        //----------------------------------------
         return output;
         //------------------------------------------------------------
     }

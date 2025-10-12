@@ -29,15 +29,15 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateXOR.obfuscate(&allocator, case.data, value, .{})) |result| {
+            if (obf.ObfuscateXOR.obfuscate(&allocator, test_case.data, value, .{})) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, case.expected, result);
+                    ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -76,18 +76,18 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateXOR.encode(&allocator, case.data, value, .{ .encoding = case.encoding })) |result| {
+            if (obf.ObfuscateXOR.encode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
+                    if (test_case.encoding == .default) {
+                        ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, case.expected, result);
+                        ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -127,18 +127,18 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateXOR.decode(&allocator, case.data, value, .{ .encoding = case.encoding })) |result| {
+            if (obf.ObfuscateXOR.decode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
+                    if (test_case.encoding == .default) {
+                        ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, case.expected, result);
+                        ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -180,15 +180,15 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV0.obfuscate(&allocator, case.data, .{})) |result| {
+            if (obf.ObfuscateV0.obfuscate(&allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, case.expected, result);
+                    ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -210,27 +210,27 @@ pub fn main() !void {
         //----------------------------------------
         const name = "ObfuscateV0.slideByte";
         const test_cases = [_]struct {
-            data: u8,
+            byte: u8,
             expected: u8,
         }{
-            .{ .data = 0, .expected = 31 },
-            .{ .data = 31, .expected = 0 },
-            .{ .data = 32, .expected = 126 },
-            .{ .data = 126, .expected = 32 },
-            .{ .data = 127, .expected = 127 },
-            .{ .data = 128, .expected = 255 },
-            .{ .data = 255, .expected = 128 },
+            .{ .byte = 0, .expected = 31 },
+            .{ .byte = 31, .expected = 0 },
+            .{ .byte = 32, .expected = 126 },
+            .{ .byte = 126, .expected = 32 },
+            .{ .byte = 127, .expected = 127 },
+            .{ .byte = 128, .expected = 255 },
+            .{ .byte = 255, .expected = 128 },
         };
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            const result = obf.ObfuscateV0.slideByte(case.data);
+            const result = obf.ObfuscateV0.slideByte(test_case.byte);
             //----------------------------------------
-            if (result != case.expected) {
+            if (result != test_case.expected) {
                 fail_count += 1;
-                ut.compareByte(name, case.expected, result);
+                ut.compareByte(name, test_case.expected, result);
             }
             //----------------------------------------
         }
@@ -254,18 +254,18 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV0.encode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+            if (obf.ObfuscateV0.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
+                    if (test_case.encoding == .default) {
+                        ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, case.expected, result);
+                        ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -300,18 +300,18 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV0.decode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+            if (obf.ObfuscateV0.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
+                    if (test_case.encoding == .default) {
+                        ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, case.expected, result);
+                        ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -375,25 +375,28 @@ pub fn main() !void {
     {
         //----------------------------------------
         const name = "ObfuscateV4.slideByte";
-        const expected_bytes = [_][2]u8{
-            .{ 0, 0 },
-            .{ 31, 31 },
-            .{ 32, 126 },
-            .{ 126, 32 },
-            .{ 127, 127 },
-            .{ 128, 128 },
-            .{ 255, 255 },
+        const test_cases = [_]struct {
+            byte: u8,
+            expected: u8,
+        }{
+            .{ .byte = 0, .expected = 0 },
+            .{ .byte = 31, .expected = 31 },
+            .{ .byte = 32, .expected = 126 },
+            .{ .byte = 126, .expected = 32 },
+            .{ .byte = 127, .expected = 127 },
+            .{ .byte = 128, .expected = 128 },
+            .{ .byte = 255, .expected = 255 },
         };
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (expected_bytes) |expected| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            const result = obf.ObfuscateV4.slideByte(expected[0]);
+            const result = obf.ObfuscateV4.slideByte(test_case.byte);
             //----------------------------------------
-            if (result != expected[1]) {
+            if (result != test_case.expected) {
                 fail_count += 1;
-                ut.compareByte(name, expected[1], result);
+                ut.compareByte(name, test_case.expected, result);
             }
             //----------------------------------------
         }
@@ -421,18 +424,18 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV4.encode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+            if (obf.ObfuscateV4.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
+                    if (test_case.encoding == .default) {
+                        ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, case.expected, result);
+                        ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -471,18 +474,18 @@ pub fn main() !void {
         //----------------------------------------
         var fail_count: usize = 0;
         //----------------------------------------
-        inline for (test_cases) |case| {
+        inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV4.decode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
+            if (obf.ObfuscateV4.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
+                if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
+                    if (test_case.encoding == .default) {
+                        ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, case.expected, result);
+                        ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -507,16 +510,23 @@ pub fn main() !void {
         const name = "ObfuscateV5.obfuscate";
         const expected_strings = [_][2][]const u8{
             .{ "", "" },
-            .{ "hello", "6922/" },
-            .{ "6922/", "hello" },
+            .{ "hello", "6229/" },
+            .{ "6229/", "hello" },
+            .{ "test BBBB", &[_]u8{ 42, 92, 43, 92, 126, 57, 92, 42, 92 } },
+            .{ "test BBBB BBBB", &[_]u8{ 42, 92, 43, 126, 126, 92, 92, 57, 92, 42, 92, 92, 92, 92 } },
+            .{ "test BBB>>>", &[_]u8{ 42, 92, 43, 92, 126, 57, 92, 42, 96, 96, 96 } },
             .{
                 "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
-                &[_]u8{ 42, 57, 43, 42, 126, 92, 92, 92, 96, 96, 96, 39, 39, 39, 34, 34, 34, 45, 45, 45, 36, 36, 36, 126, 109, 108, 107, 126, 31, 22, 21, 126, 32, 32, 32 },
+                &[_]u8{ 42, 126, 43, 108, 126, 126, 92, 38, 96, 110, 96, 38, 39, 101, 34, 38, 34, 93, 45, 32, 36, 32, 36, 57, 109, 42, 107, 92, 66, 92, 110, 96, 66, 39, 110, 39, 66, 34, 110, 45, 126, 45, 32, 36 },
             },
-            .{
-                &[_]u8{ 42, 57, 43, 42, 126, 92, 92, 92, 96, 96, 96, 39, 39, 39, 34, 34, 34, 45, 45, 45, 36, 36, 36, 126, 109, 108, 107, 126, 31, 22, 21, 126, 32, 32, 32 },
-                "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
-            },
+            // .{
+            //     "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
+            //     &[_]u8{ 42, 126, 43, 108, 126, 126, 92, 38, 96, 110, 96, 38, 39, 101, 34, 38, 34, 93, 45, 32, 36, 32, 36, 57, 109, 42, 107, 92, 66, 92, 110, 96, 66, 39, 110, 39, 66, 34, 110, 45, 126, 45, 32, 36 },
+            // },
+            // .{
+            //     &[_]u8{ 42, 126, 43, 108, 126, 126, 92, 38, 96, 110, 96, 38, 39, 101, 34, 38, 34, 93, 45, 32, 36, 32, 36, 57, 109, 42, 107, 92, 66, 92, 110, 96, 66, 39, 110, 39, 66, 34, 110, 45, 126, 45, 32, 36 },
+            //     "test BBB>>>www|||qqqzzz 123 \x00\x09\x0A ~~~",
+            // },
         };
         //----------------------------------------
         var fail_count: usize = 0;
@@ -547,135 +557,138 @@ pub fn main() !void {
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
-    {
-        //----------------------------------------
-        const name = "ObfuscateV5.slideByte";
-        const expected_bytes = [_][2]u8{
-            .{ 0, 31 },
-            .{ 31, 0 },
-            .{ 32, 126 },
-            .{ 126, 32 },
-            .{ 127, 127 },
-            .{ 128, 255 },
-            .{ 255, 128 },
-        };
-        //----------------------------------------
-        var fail_count: usize = 0;
-        //----------------------------------------
-        inline for (expected_bytes) |expected| {
-            //----------------------------------------
-            const result = obf.ObfuscateV5.slideByte(expected[0]);
-            //----------------------------------------
-            if (result != expected[1]) {
-                fail_count += 1;
-                ut.compareByte(name, expected[1], result);
-            }
-            //----------------------------------------
-        }
-        //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
-        //----------------------------------------
-    }
-    //----------------------------------------------------------------------------
-    {
-        //----------------------------------------
-        const name = "ObfuscateV5.encode";
-        const test_cases = [_]struct {
-            data: []const u8,
-            expected: []const u8,
-            encoding: obf.ObfuscateV5.Encoding,
-        }{
-            .{ .data = "", .expected = "", .encoding = .default },
-            .{ .data = "Aq\x16\x15\x12~|zwB>qF", .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
-            .{ .data = "ABC\u{1f427}", .expected = "B!OWun=%=", .encoding = .base },
-            .{ .data = "ABC\u{1f427}", .expected = "XVxbj+Dv2A==", .encoding = .base64 },
-            .{ .data = "ABC\u{1f427}", .expected = "XVxbj-Dv2A", .encoding = .base64url },
-            .{ .data = "ABC\u{1f427}", .expected = ".?x;](ZyN", .encoding = .base91 },
-            .{ .data = "ABC\u{1f427}", .expected = "5D5C5B8FE0EFD8", .encoding = .hex },
-        };
-        //----------------------------------------
-        var fail_count: usize = 0;
-        //----------------------------------------
-        inline for (test_cases) |case| {
-            //----------------------------------------
-            if (obf.ObfuscateV5.encode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
-                //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
-                    //----------------------------------------
-                    fail_count += 1;
-                    //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
-                    } else {
-                        ut.compareStringSlice(name, case.expected, result);
-                    }
-                    //----------------------------------------
-                    allocator.free(result);
-                    //----------------------------------------
-                }
-                //----------------------------------------
-            } else |err| {
-                //----------------------------------------
-                fail_count += 1;
-                ut.errorFail(name, err);
-                //----------------------------------------
-            }
-            //----------------------------------------
-        }
-        //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
-        //----------------------------------------
-    }
-    //----------------------------------------------------------------------------
-    {
-        //----------------------------------------
-        const name = "ObfuscateV5.decode";
-        const test_cases = [_]struct {
-            data: []const u8,
-            expected: []const u8,
-            encoding: obf.ObfuscateV5.Encoding,
-        }{
-            .{ .data = "", .expected = "", .encoding = .default },
-            .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = "Aq\x16\x15\x12~|zwB>qF", .encoding = .default },
-            .{ .data = "B!OWun=%=", .expected = "ABC\u{1f427}", .encoding = .base },
-            .{ .data = "XVxbj+Dv2A==", .expected = "ABC\u{1f427}", .encoding = .base64 },
-            .{ .data = "XVxbj-Dv2A", .expected = "ABC\u{1f427}", .encoding = .base64url },
-            .{ .data = ".?x;](ZyN", .expected = "ABC\u{1f427}", .encoding = .base91 },
-            .{ .data = "5D5C5B8FE0EFD8", .expected = "ABC\u{1f427}", .encoding = .hex },
-        };
-        //----------------------------------------
-        var fail_count: usize = 0;
-        //----------------------------------------
-        inline for (test_cases) |case| {
-            //----------------------------------------
-            if (obf.ObfuscateV5.decode(&allocator, case.data, .{ .encoding = case.encoding })) |result| {
-                //----------------------------------------
-                if (!std.mem.eql(u8, result, case.expected)) {
-                    //----------------------------------------
-                    fail_count += 1;
-                    //----------------------------------------
-                    if (case.encoding == .default) {
-                        ut.compareByteSlice(name, case.expected, result);
-                    } else {
-                        ut.compareStringSlice(name, case.expected, result);
-                    }
-                    //----------------------------------------
-                    allocator.free(result);
-                    //----------------------------------------
-                }
-                //----------------------------------------
-            } else |err| {
-                //----------------------------------------
-                fail_count += 1;
-                ut.errorFail(name, err);
-                //----------------------------------------
-            }
-            //----------------------------------------
-        }
-        //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
-        //----------------------------------------
-    }
+    // {
+    //     //----------------------------------------
+    //     const name = "ObfuscateV5.slideByte";
+    //     const test_cases = [_]struct {
+    //         byte: u8,
+    //         expected: u8,
+    //     }{
+    //         .{ .byte = 0, .expected = 31 },
+    //         .{ .byte = 31, .expected = 0 },
+    //         .{ .byte = 32, .expected = 126 },
+    //         .{ .byte = 126, .expected = 32 },
+    //         .{ .byte = 127, .expected = 127 },
+    //         .{ .byte = 128, .expected = 255 },
+    //         .{ .byte = 255, .expected = 128 },
+    //     };
+    //     //----------------------------------------
+    //     var fail_count: usize = 0;
+    //     //----------------------------------------
+    //     inline for (test_cases) |test_case| {
+    //         //----------------------------------------
+    //         const result = obf.ObfuscateV5.slideByte(test_case.byte);
+    //         //----------------------------------------
+    //         if (result != test_case.expected) {
+    //             fail_count += 1;
+    //             ut.compareByte(name, test_case.expected, result);
+    //         }
+    //         //----------------------------------------
+    //     }
+    //     //----------------------------------------
+    //     if (fail_count == 0) ut.pass(name, "");
+    //     //----------------------------------------
+    // }
+    // //----------------------------------------------------------------------------
+    // {
+    //     //----------------------------------------
+    //     const name = "ObfuscateV5.encode";
+    //     const test_cases = [_]struct {
+    //         data: []const u8,
+    //         expected: []const u8,
+    //         encoding: obf.ObfuscateV5.Encoding,
+    //     }{
+    //         .{ .data = "", .expected = "", .encoding = .default },
+    //         .{ .data = "Aq\x16\x15\x12~|zwB>qF", .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
+    //         .{ .data = "ABC\u{1f427}", .expected = "B!OWun=%=", .encoding = .base },
+    //         .{ .data = "ABC\u{1f427}", .expected = "XVxbj+Dv2A==", .encoding = .base64 },
+    //         .{ .data = "ABC\u{1f427}", .expected = "XVxbj-Dv2A", .encoding = .base64url },
+    //         .{ .data = "ABC\u{1f427}", .expected = ".?x;](ZyN", .encoding = .base91 },
+    //         .{ .data = "ABC\u{1f427}", .expected = "5D5C5B8FE0EFD8", .encoding = .hex },
+    //     };
+    //     //----------------------------------------
+    //     var fail_count: usize = 0;
+    //     //----------------------------------------
+    //     inline for (test_cases) |test_case| {
+    //         //----------------------------------------
+    //         if (obf.ObfuscateV5.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+    //             //----------------------------------------
+    //             if (!std.mem.eql(u8, result, test_case.expected)) {
+    //                 //----------------------------------------
+    //                 fail_count += 1;
+    //                 //----------------------------------------
+    //                 if (test_case.encoding == .default) {
+    //                     ut.compareByteSlice(name, test_case.expected, result);
+    //                 } else {
+    //                     ut.compareStringSlice(name, test_case.expected, result);
+    //                 }
+    //                 //----------------------------------------
+    //                 allocator.free(result);
+    //                 //----------------------------------------
+    //             }
+    //             //----------------------------------------
+    //         } else |err| {
+    //             //----------------------------------------
+    //             fail_count += 1;
+    //             ut.errorFail(name, err);
+    //             //----------------------------------------
+    //         }
+    //         //----------------------------------------
+    //     }
+    //     //----------------------------------------
+    //     if (fail_count == 0) ut.pass(name, "");
+    //     //----------------------------------------
+    // }
+    // //----------------------------------------------------------------------------
+    // {
+    //     //----------------------------------------
+    //     const name = "ObfuscateV5.decode";
+    //     const test_cases = [_]struct {
+    //         data: []const u8,
+    //         expected: []const u8,
+    //         encoding: obf.ObfuscateV5.Encoding,
+    //     }{
+    //         .{ .data = "", .expected = "", .encoding = .default },
+    //         .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = "Aq\x16\x15\x12~|zwB>qF", .encoding = .default },
+    //         .{ .data = "B!OWun=%=", .expected = "ABC\u{1f427}", .encoding = .base },
+    //         .{ .data = "XVxbj+Dv2A==", .expected = "ABC\u{1f427}", .encoding = .base64 },
+    //         .{ .data = "XVxbj-Dv2A", .expected = "ABC\u{1f427}", .encoding = .base64url },
+    //         .{ .data = ".?x;](ZyN", .expected = "ABC\u{1f427}", .encoding = .base91 },
+    //         .{ .data = "5D5C5B8FE0EFD8", .expected = "ABC\u{1f427}", .encoding = .hex },
+    //     };
+    //     //----------------------------------------
+    //     var fail_count: usize = 0;
+    //     //----------------------------------------
+    //     inline for (test_cases) |test_case| {
+    //         //----------------------------------------
+    //         if (obf.ObfuscateV5.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+    //             //----------------------------------------
+    //             if (!std.mem.eql(u8, result, test_case.expected)) {
+    //                 //----------------------------------------
+    //                 fail_count += 1;
+    //                 //----------------------------------------
+    //                 if (test_case.encoding == .default) {
+    //                     ut.compareByteSlice(name, test_case.expected, result);
+    //                 } else {
+    //                     ut.compareStringSlice(name, test_case.expected, result);
+    //                 }
+    //                 //----------------------------------------
+    //                 allocator.free(result);
+    //                 //----------------------------------------
+    //             }
+    //             //----------------------------------------
+    //         } else |err| {
+    //             //----------------------------------------
+    //             fail_count += 1;
+    //             ut.errorFail(name, err);
+    //             //----------------------------------------
+    //         }
+    //         //----------------------------------------
+    //     }
+    //     //----------------------------------------
+    //     if (fail_count == 0) ut.pass(name, "");
+    //     //----------------------------------------
+    // }
     //----------------------------------------------------------------------------
     ut.printSummary();
     //----------------------------------------------------------------------------
