@@ -164,12 +164,12 @@ pub const Base64 = struct {
     //------------------------------------------------------------
     pub const Error = error{InvalidInput};
     //------------------------------------------------------------
-    pub const Config = struct {
+    pub const Defaults = struct {
         charset: []const u8 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
         pad_char: ?u8 = '=',
     };
     //------------------------------------------------------------
-    pub const ConfigUrl = struct {
+    pub const DefaultsUrl = struct {
         charset: []const u8 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
         pad_char: ?u8 = null,
     };
@@ -178,9 +178,9 @@ pub const Base64 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        const encoding_len = switch (config.pad_char != null) {
+        const encoding_len = switch (opts.pad_char != null) {
             true => plaintextToBase64Length(data),
             else => plaintextToBase64UrlLength(data),
         };
@@ -193,37 +193,37 @@ pub const Base64 = struct {
         while (index + 15 < data.len) : (index += 12) {
             const bits = std.mem.readInt(u128, data[index..][0..16], .big);
             inline for (0..16) |i| {
-                output[output_index + i] = config.charset[@truncate((bits >> (122 - i * 6)) & 0x3f)];
+                output[output_index + i] = opts.charset[@truncate((bits >> (122 - i * 6)) & 0x3f)];
             }
             output_index += 16;
         }
         //------------------------------------------------------------
         while (index + 3 < data.len) : (index += 3) {
             const bits = std.mem.readInt(u32, data[index..][0..4], .big);
-            output[output_index] = config.charset[(bits >> 26) & 0x3f];
-            output[output_index + 1] = config.charset[(bits >> 20) & 0x3f];
-            output[output_index + 2] = config.charset[(bits >> 14) & 0x3f];
-            output[output_index + 3] = config.charset[(bits >> 8) & 0x3f];
+            output[output_index] = opts.charset[(bits >> 26) & 0x3f];
+            output[output_index + 1] = opts.charset[(bits >> 20) & 0x3f];
+            output[output_index + 2] = opts.charset[(bits >> 14) & 0x3f];
+            output[output_index + 3] = opts.charset[(bits >> 8) & 0x3f];
             output_index += 4;
         }
         if (index + 2 < data.len) {
-            output[output_index] = config.charset[data[index] >> 2];
-            output[output_index + 1] = config.charset[((data[index] & 0x3) << 4) | (data[index + 1] >> 4)];
-            output[output_index + 2] = config.charset[(data[index + 1] & 0xf) << 2 | (data[index + 2] >> 6)];
-            output[output_index + 3] = config.charset[data[index + 2] & 0x3f];
+            output[output_index] = opts.charset[data[index] >> 2];
+            output[output_index + 1] = opts.charset[((data[index] & 0x3) << 4) | (data[index + 1] >> 4)];
+            output[output_index + 2] = opts.charset[(data[index + 1] & 0xf) << 2 | (data[index + 2] >> 6)];
+            output[output_index + 3] = opts.charset[data[index + 2] & 0x3f];
             output_index += 4;
         } else if (index + 1 < data.len) {
-            output[output_index] = config.charset[data[index] >> 2];
-            output[output_index + 1] = config.charset[((data[index] & 0x3) << 4) | (data[index + 1] >> 4)];
-            output[output_index + 2] = config.charset[(data[index + 1] & 0xf) << 2];
+            output[output_index] = opts.charset[data[index] >> 2];
+            output[output_index + 1] = opts.charset[((data[index] & 0x3) << 4) | (data[index + 1] >> 4)];
+            output[output_index + 2] = opts.charset[(data[index + 1] & 0xf) << 2];
             output_index += 3;
         } else if (index < data.len) {
-            output[output_index] = config.charset[data[index] >> 2];
-            output[output_index + 1] = config.charset[(data[index] & 0x3) << 4];
+            output[output_index] = opts.charset[data[index] >> 2];
+            output[output_index + 1] = opts.charset[(data[index] & 0x3) << 4];
             output_index += 2;
         }
         //------------------------------------------------------------
-        if (config.pad_char) |pad_char| {
+        if (opts.pad_char) |pad_char| {
             for (output[output_index..encoding_len]) |*pad| pad.* = pad_char;
         }
         //------------------------------------------------------------
@@ -235,11 +235,11 @@ pub const Base64 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.pad_char != null and data.len % 4 != 0) return Error.InvalidInput;
+        if (opts.pad_char != null and data.len % 4 != 0) return Error.InvalidInput;
         //------------------------------------------------------------
-        const encoding_len = switch (config.pad_char != null) {
+        const encoding_len = switch (opts.pad_char != null) {
             true => try base64ToPlaintextLength(data),
             else => base64UrlToPlaintextLength(data),
         };
@@ -269,11 +269,11 @@ pub const Base64 = struct {
     }
     //------------------------------------------------------------
     pub fn urlEncode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
-        return encode(allocator, data, setOptions(ConfigUrl, options));
+        return encode(allocator, data, setOptions(DefaultsUrl, options));
     }
     //------------------------------------------------------------
     pub fn urlDecode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
-        return decode(allocator, data, setOptions(ConfigUrl, options));
+        return decode(allocator, data, setOptions(DefaultsUrl, options));
     }
     //------------------------------------------------------------
     pub fn base64Value(char: u8) !u8 {
@@ -388,14 +388,14 @@ pub const Base85 = struct {
     //------------------------------------------------------------
     pub const Error = error{InvalidInput};
     //------------------------------------------------------------
-    pub const ConfigEncode = struct {
+    pub const DefaultsEncode = struct {
         escape: bool = false,
         replace_zero: bool = true,
         trim: bool = false,
         wrap: bool = false,
     };
     //------------------------------------------------------------
-    pub const ConfigDecode = struct {
+    pub const DefaultsDecode = struct {
         escape: bool = false,
         replace_zero: bool = true,
         trim: bool = true,
@@ -406,14 +406,14 @@ pub const Base85 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(ConfigEncode, options);
+        const opts = setOptions(DefaultsEncode, options);
         //------------------------------------------------------------
         var data_ptr = data.ptr;
         var data_len = data.len;
         //------------------------------------------------------------
         var _data: []const u8 = undefined;
         //-----------------------------------
-        if (config.trim) {
+        if (opts.trim) {
             //-----------------------------------
             _data = std.mem.trim(u8, data, &std.ascii.whitespace);
             //-----------------------------------
@@ -425,7 +425,7 @@ pub const Base85 = struct {
         // scan for zero replacements here as need to know before output buffer created
         var zero_replacements: usize = 0;
         //-----------------------------------
-        if (config.replace_zero and data_len >= 4) {
+        if (opts.replace_zero and data_len >= 4) {
             //-----------------------------------
             var zero_index: usize = 0;
             //-----------------------------------
@@ -449,7 +449,7 @@ pub const Base85 = struct {
         //------------------------------------------------------------
         var output_len = ((data_len + paddingLength) / 4 * 5) - paddingLength - zero_replacements;
         var encoding_len = output_len;
-        if (config.wrap) {
+        if (opts.wrap) {
             output_len += 4;
             encoding_len += 2;
         }
@@ -458,7 +458,7 @@ pub const Base85 = struct {
         errdefer allocator.free(output);
         //------------------------------------------------------------
         var output_index: usize = 0;
-        if (config.wrap) {
+        if (opts.wrap) {
             output[0] = '<';
             output[1] = '~';
             output_index += 2;
@@ -478,7 +478,7 @@ pub const Base85 = struct {
                 //---------------------------------------------------
                 const remaining: usize = data_len - data_index;
                 //---------------------------------------------------
-                if (config.replace_zero and output_index < encoding_len and remaining >= 4) {
+                if (opts.replace_zero and output_index < encoding_len and remaining >= 4) {
                     //--------------------
                     output[output_index] = 'z';
                     //--------------------
@@ -505,7 +505,7 @@ pub const Base85 = struct {
                     //----------------------------------------
                     const reversed_block_index = 5 - block_index - 1;
                     if (output_index + reversed_block_index < encoding_len) {
-                        if (config.escape) {
+                        if (opts.escape) {
                             output[output_index + reversed_block_index] = try escapeChar(@intCast((encodedChar32 + 33) & 0xFF));
                         } else {
                             output[output_index + reversed_block_index] = @intCast((encodedChar32 + 33) & 0xFF);
@@ -520,7 +520,7 @@ pub const Base85 = struct {
             //---------------------------------------------------
         }
         //------------------------------------------------------------
-        if (config.wrap) {
+        if (opts.wrap) {
             output[output_len - 2] = '~';
             output[output_len - 1] = '>';
         }
@@ -533,14 +533,14 @@ pub const Base85 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(ConfigDecode, options);
+        const opts = setOptions(DefaultsDecode, options);
         //------------------------------------------------------------
         var data_ptr = data.ptr;
         var data_len = data.len;
         //------------------------------------------------------------
         var _data: []const u8 = undefined;
         //-----------------------------------
-        if (config.trim) {
+        if (opts.trim) {
             //-----------------------------------
             _data = try trim(data);
             //-----------------------------------
@@ -549,7 +549,7 @@ pub const Base85 = struct {
             //-----------------------------------
         }
         //------------------------------------------------------------
-        if (config.replace_zero) {
+        if (opts.replace_zero) {
             //-----------------------------------
             _data = try std.mem.replaceOwned(u8, allocator.*, _data, "z", "!!!!!");
             //-----------------------------------
@@ -578,7 +578,7 @@ pub const Base85 = struct {
             var b3: u64 = undefined;
             var b4: u64 = undefined;
             //---------------------------------------------------
-            if (config.escape) {
+            if (opts.escape) {
                 b0 = if (data_index < data_len) try unescapeChar(data_ptr[data_index]) else 'u';
                 b1 = if (data_index + 1 < data_len) try unescapeChar(data_ptr[data_index + 1]) else 'u';
                 b2 = if (data_index + 2 < data_len) try unescapeChar(data_ptr[data_index + 2]) else 'u';
@@ -690,13 +690,13 @@ pub const Base91 = struct {
     //------------------------------------------------------------
     pub const base91_encoded_chars = [256]u8{ 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 62, 90, 63, 64, 65, 66, 91, 67, 68, 69, 70, 71, 91, 72, 73, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 74, 75, 76, 77, 78, 79, 80, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 81, 91, 82, 83, 84, 85, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 86, 87, 88, 89, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91 };
     //------------------------------------------------------------
-    pub const Config = struct { escape: bool = false };
+    pub const Defaults = struct { escape: bool = false };
     //------------------------------------------------------------
     pub fn encode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //-----------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //-----------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
         const buffer: []u8 = try allocator.alloc(u8, data.len * 2);
         defer allocator.free(buffer);
@@ -724,7 +724,7 @@ pub const Base91 = struct {
                     num_bits -= 14;
                 }
                 //-----------------------------------------------------------
-                if (config.escape) {
+                if (opts.escape) {
                     base91EscapedOutput(buffer, &buffer_index, base91_charset[value % 91]);
                     base91EscapedOutput(buffer, &buffer_index, base91_charset[value / 91]);
                 } else {
@@ -739,7 +739,7 @@ pub const Base91 = struct {
         //-----------------------------------------------------------
         if (num_bits > 0) {
             //-----------------------------------------------------------
-            if (config.escape) {
+            if (opts.escape) {
                 base91EscapedOutput(buffer, &buffer_index, base91_charset[queue % 91]);
             } else {
                 buffer[buffer_index] = base91_charset[queue % 91];
@@ -748,7 +748,7 @@ pub const Base91 = struct {
             //-----------------------------------------------------------
             if (num_bits > 7 or queue > 90) {
                 //-----------------------------------------------------------
-                if (config.escape) {
+                if (opts.escape) {
                     base91EscapedOutput(buffer, &buffer_index, base91_charset[queue / 91]);
                 } else {
                     buffer[buffer_index] = base91_charset[queue / 91];
@@ -772,7 +772,7 @@ pub const Base91 = struct {
         //-----------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //-----------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
         const buffer: []u8 = try allocator.alloc(u8, data.len);
         defer allocator.free(buffer);
@@ -790,7 +790,7 @@ pub const Base91 = struct {
             //-----------------------------------------------------------
             var char: u8 = data[data_index];
             //----------------------------------------
-            if (config.escape and data_index < data.len - 1 and char == '-') {
+            if (opts.escape and data_index < data.len - 1 and char == '-') {
                 data_index += 1;
                 char = try base91UnescapeChar(data[data_index]);
             }

@@ -8,196 +8,6 @@ const conv = @import("libs/conv.zig");
 //------------------------------------------------------------
 //############################################################
 //------------------------------------------------------------
-pub const ObfuscateXOR = struct {
-    //------------------------------------------------------------
-    pub const Error = error{EncodingError};
-    //------------------------------------------------------------
-    pub const Replacement = struct { encoded: u8, escaped: u8 };
-    //------------------------------------------------------------
-    pub const replacements = &[_]ObfuscateXOR.Replacement{
-        .{ .encoded = '-', .escaped = '-' }, // minus sign
-        .{ .encoded = 0x09, .escaped = 't' }, // tab
-        .{ .encoded = 0x0A, .escaped = 'n' }, // new line
-        .{ .encoded = 0x0D, .escaped = 'r' }, // carriage return
-        .{ .encoded = 0x20, .escaped = 's' }, // space
-        .{ .encoded = 0x22, .escaped = 'q' }, // double quote
-        .{ .encoded = 0x24, .escaped = 'd' }, // dollar sign
-        .{ .encoded = 0x27, .escaped = 'a' }, // apostrophy
-        .{ .encoded = 0x5C, .escaped = 'b' }, // backslash
-        .{ .encoded = 0x60, .escaped = 'g' }, // grave accent
-    };
-    //------------------------------------------------------------
-    pub const Encoding = enum { base, base64, base64url, base91, hex, default };
-    pub const Config = struct { encoding: Encoding = .default };
-    //------------------------------------------------------------
-    pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
-        //------------------------------------------------------------
-        _ = options;
-        //------------------------------------------------------------
-        if (data.len == 0) return allocator.alloc(u8, 0);
-        //------------------------------------------------------------
-        var output: []u8 = try allocator.alloc(u8, data.len);
-        errdefer allocator.free(output);
-        //----------------------------------------
-        for (data, 0..) |byte, index| {
-            output[index] = byte ^ value;
-        }
-        //------------------------------------------------------------
-        return output;
-        //------------------------------------------------------------
-    }
-    //------------------------------------------------------------
-    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
-        //------------------------------------------------------------
-        if (data.len == 0) return allocator.alloc(u8, 0);
-        //------------------------------------------------------------
-        const config = setOptions(Config, options);
-        //------------------------------------------------------------
-        if (config.encoding != .default) {
-            //----------------------------------------
-            const swapped_data = try ObfuscateXOR.obfuscate(allocator, data, value, .{});
-            defer allocator.free(swapped_data);
-            //----------------------------------------
-            switch (config.encoding) {
-                .base => return conv.Base.encode(allocator, swapped_data, .{}),
-                .base64 => return conv.Base64.encode(allocator, swapped_data, .{}),
-                .base64url => return conv.Base64.urlEncode(allocator, swapped_data, .{}),
-                .base91 => return conv.Base91.encode(allocator, swapped_data, .{ .escape = true }),
-                .hex => return conv.Hex.encode(allocator, swapped_data, .{}),
-                .default => return Error.EncodingError, // default encoding should be processed below
-            }
-            //----------------------------------------
-        }
-        //------------------------------------------------------------
-        var escapeCount: usize = 0;
-        for (data) |byte| {
-            for (ObfuscateXOR.replacements) |replacement| {
-                if ((byte ^ value) == replacement.encoded) escapeCount += 1;
-            }
-        }
-        //----------------------------------------
-        var output: []u8 = try allocator.alloc(u8, data.len + escapeCount);
-        errdefer allocator.free(output);
-        //----------------------------------------
-        var output_index: usize = 0;
-        //----------------------------------------
-        for (data) |byte| {
-            //----------------------------------------
-            const encoded = byte ^ value;
-            //----------------------------------------
-            var replaced = false;
-            for (ObfuscateXOR.replacements) |replacement| {
-                if (encoded == replacement.encoded) {
-                    output[output_index] = '-';
-                    output_index += 1;
-                    output[output_index] = replacement.escaped;
-                    replaced = true;
-                    break;
-                }
-            }
-            if (!replaced) {
-                output[output_index] = encoded;
-            }
-            output_index += 1;
-            //----------------------------------------
-        }
-        //------------------------------------------------------------
-        return output;
-        //------------------------------------------------------------
-    }
-    //------------------------------------------------------------
-    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
-        //------------------------------------------------------------
-        if (data.len == 0) return allocator.alloc(u8, 0);
-        //------------------------------------------------------------
-        const config = setOptions(Config, options);
-        //------------------------------------------------------------
-        if (config.encoding != .default) {
-            //----------------------------------------
-            const decoded_data = switch (config.encoding) {
-                .base => try conv.Base.decode(allocator, data, .{}),
-                .base64 => try conv.Base64.decode(allocator, data, .{}),
-                .base64url => try conv.Base64.urlDecode(allocator, data, .{}),
-                .base91 => try conv.Base91.decode(allocator, data, .{ .escape = true }),
-                .hex => try conv.Hex.decode(allocator, data, .{}),
-                .default => return Error.EncodingError, // default encoding should be processed below
-            };
-            defer allocator.free(decoded_data);
-            //----------------------------------------
-            return ObfuscateXOR.obfuscate(allocator, decoded_data, value, .{});
-            //----------------------------------------
-        }
-        //------------------------------------------------------------
-        var scan_index: usize = 0;
-        var escapeCount: usize = 0;
-        while (scan_index < data.len - 1) {
-            if (data[scan_index] == '-') {
-                for (ObfuscateXOR.replacements) |replacement| {
-                    if (data[scan_index + 1] == replacement.escaped) {
-                        escapeCount += 1;
-                        scan_index += 1;
-                        break;
-                    }
-                }
-            }
-            scan_index += 1;
-        }
-        //----------------------------------------
-        var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
-        errdefer allocator.free(output);
-        //----------------------------------------
-        var buffer_index: usize = 0;
-        var output_index: usize = 0;
-        //----------------------------------------
-        while (buffer_index < data.len) {
-            //----------------------------------------
-            if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
-                //----------------------------------------
-                var replaced = false;
-                for (ObfuscateXOR.replacements) |replacement| {
-                    if (data[buffer_index + 1] == replacement.escaped) {
-                        output[output_index] = replacement.encoded ^ value;
-                        replaced = true;
-                        break;
-                    }
-                }
-                if (!replaced) {
-                    output[output_index] = '-' ^ value;
-                    output_index += 1;
-                    output[output_index] = data[buffer_index + 1] ^ value;
-                }
-                //----------------------------------------
-                buffer_index += 1; // skip an extra byte as already processed
-                //----------------------------------------
-            } else {
-                //----------------------------------------
-                output[output_index] = data[buffer_index] ^ value;
-                //----------------------------------------
-            }
-            //----------------------------------------
-            buffer_index += 1;
-            output_index += 1;
-            //----------------------------------------
-        }
-        //------------------------------------------------------------
-        return output;
-        //------------------------------------------------------------
-    }
-    //------------------------------------------------------------
-    pub fn setOptions(T: type, options: anytype) T {
-        var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
-            }
-        }
-        return target;
-    }
-    //------------------------------------------------------------
-};
-//------------------------------------------------------------
-//############################################################
-//------------------------------------------------------------
 pub const ObfuscateV0 = struct {
     //------------------------------------------------------------
     pub const Error = error{EncodingError};
@@ -218,7 +28,7 @@ pub const ObfuscateV0 = struct {
     };
     //------------------------------------------------------------
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
-    pub const Config = struct { encoding: Encoding = .default };
+    pub const Defaults = struct { encoding: Encoding = .default };
     //------------------------------------------------------------
     pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
@@ -252,19 +62,19 @@ pub const ObfuscateV0 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.encoding != .default) {
+        if (opts.encoding != .default) {
             //----------------------------------------
-            const swapped_data = try ObfuscateV0.obfuscate(allocator, data, .{});
-            defer allocator.free(swapped_data);
+            const obfuscated_data = try ObfuscateV0.obfuscate(allocator, data, options);
+            defer allocator.free(obfuscated_data);
             //----------------------------------------
-            switch (config.encoding) {
-                .base => return conv.Base.encode(allocator, swapped_data, .{}),
-                .base64 => return conv.Base64.encode(allocator, swapped_data, .{}),
-                .base64url => return conv.Base64.urlEncode(allocator, swapped_data, .{}),
-                .base91 => return conv.Base91.encode(allocator, swapped_data, .{ .escape = true }),
-                .hex => return conv.Hex.encode(allocator, swapped_data, .{}),
+            switch (opts.encoding) {
+                .base => return conv.Base.encode(allocator, obfuscated_data, .{}),
+                .base64 => return conv.Base64.encode(allocator, obfuscated_data, .{}),
+                .base64url => return conv.Base64.urlEncode(allocator, obfuscated_data, .{}),
+                .base91 => return conv.Base91.encode(allocator, obfuscated_data, .{ .escape = true }),
+                .hex => return conv.Hex.encode(allocator, obfuscated_data, .{}),
                 .default => return Error.EncodingError, // default encoding should be processed below
             }
             //----------------------------------------
@@ -311,11 +121,11 @@ pub const ObfuscateV0 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.encoding != .default) {
+        if (opts.encoding != .default) {
             //----------------------------------------
-            const decoded_data = switch (config.encoding) {
+            const decoded_data = switch (opts.encoding) {
                 .base => try conv.Base.decode(allocator, data, .{}),
                 .base64 => try conv.Base64.decode(allocator, data, .{}),
                 .base64url => try conv.Base64.urlDecode(allocator, data, .{}),
@@ -325,7 +135,7 @@ pub const ObfuscateV0 = struct {
             };
             defer allocator.free(decoded_data);
             //----------------------------------------
-            return ObfuscateV0.obfuscate(allocator, decoded_data, .{});
+            return ObfuscateV0.obfuscate(allocator, decoded_data, options);
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -416,18 +226,18 @@ pub const ObfuscateV4 = struct {
     };
     //------------------------------------------------------------
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
-    pub const Config = struct { encoding: Encoding = .default };
+    pub const Defaults = struct { encoding: Encoding = .default, mix_chars: bool = true };
     //------------------------------------------------------------
     pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
-        _ = options;
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
-        //----------------------------------------------------------------------------
+        //------------------------------------------------------------
         var output: []u8 = try allocator.alloc(u8, data.len);
         errdefer allocator.free(output);
         //----------------------------------------
-        if (data.len < 4) {
+        if (!opts.mix_chars or data.len < 4) {
             for (data, 0..) |byte, index| {
                 output[index] = ObfuscateV4.slideByte(byte);
             }
@@ -442,20 +252,14 @@ pub const ObfuscateV4 = struct {
             mixed_length = mixed_half * 2;
         }
         //----------------------------------------
-        for (data[0..mixed_length], 0..mixed_length) |byte, index| {
-            if (index % 2 != 0) {
+        for (data[0..data.len], 0..data.len) |byte, index| {
+            if (index < mixed_length and index % 2 != 0) {
                 if (index < mixed_half) {
                     output[index + mixed_half] = ObfuscateV4.slideByte(byte);
                 } else {
                     output[index - mixed_half] = ObfuscateV4.slideByte(byte);
                 }
             } else {
-                output[index] = ObfuscateV4.slideByte(byte);
-            }
-        }
-        //----------------------------------------
-        if (mixed_length < data.len) {
-            for (data[mixed_length..], mixed_length..) |byte, index| {
                 output[index] = ObfuscateV4.slideByte(byte);
             }
         }
@@ -477,40 +281,37 @@ pub const ObfuscateV4 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.encoding != .default) {
+        const obfuscated_data = try ObfuscateV4.obfuscate(allocator, data, options);
+        defer allocator.free(obfuscated_data);
+        //------------------------------------------------------------
+        if (opts.encoding != .default) {
             //----------------------------------------
-            const swapped_data = try ObfuscateV4.obfuscate(allocator, data, .{});
-            defer allocator.free(swapped_data);
-            //----------------------------------------
-            switch (config.encoding) {
-                .base => return conv.Base.encode(allocator, swapped_data, .{}),
-                .base64 => return conv.Base64.encode(allocator, swapped_data, .{}),
-                .base64url => return conv.Base64.urlEncode(allocator, swapped_data, .{}),
-                .base91 => return conv.Base91.encode(allocator, swapped_data, .{ .escape = true }),
-                .hex => return conv.Hex.encode(allocator, swapped_data, .{}),
+            switch (opts.encoding) {
+                .base => return conv.Base.encode(allocator, obfuscated_data, .{}),
+                .base64 => return conv.Base64.encode(allocator, obfuscated_data, .{}),
+                .base64url => return conv.Base64.urlEncode(allocator, obfuscated_data, .{}),
+                .base91 => return conv.Base91.encode(allocator, obfuscated_data, .{ .escape = true }),
+                .hex => return conv.Hex.encode(allocator, obfuscated_data, .{}),
                 .default => return Error.EncodingError, // default encoding should be processed below
             }
             //----------------------------------------
         }
         //------------------------------------------------------------
-        const obf_data = try ObfuscateV4.obfuscate(allocator, data, .{});
-        defer allocator.free(obf_data);
-        //----------------------------------------------------------------------------
         var escapeCount: usize = 0;
-        for (obf_data) |encoded| {
+        for (obfuscated_data) |encoded| {
             for (ObfuscateV4.replacements) |replacement| {
                 if (encoded == replacement.encoded) escapeCount += 1;
             }
         }
         //----------------------------------------
-        var output: []u8 = try allocator.alloc(u8, obf_data.len + escapeCount);
+        var output: []u8 = try allocator.alloc(u8, obfuscated_data.len + escapeCount);
         errdefer allocator.free(output);
         //----------------------------------------
         var output_index: usize = 0;
         //----------------------------------------
-        for (obf_data) |encoded| {
+        for (obfuscated_data) |encoded| {
             //----------------------------------------
             var replaced = false;
             for (ObfuscateV4.replacements) |replacement| {
@@ -529,7 +330,7 @@ pub const ObfuscateV4 = struct {
             output_index += 1;
             //----------------------------------------
         }
-        //----------------------------------------------------------------------------
+        //------------------------------------------------------------
         return output;
         //------------------------------------------------------------
     }
@@ -538,11 +339,11 @@ pub const ObfuscateV4 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.encoding != .default) {
+        if (opts.encoding != .default) {
             //----------------------------------------
-            const decoded_data = switch (config.encoding) {
+            const decoded_data = switch (opts.encoding) {
                 .base => try conv.Base.decode(allocator, data, .{}),
                 .base64 => try conv.Base64.decode(allocator, data, .{}),
                 .base64url => try conv.Base64.urlDecode(allocator, data, .{}),
@@ -552,7 +353,7 @@ pub const ObfuscateV4 = struct {
             };
             defer allocator.free(decoded_data);
             //----------------------------------------
-            return ObfuscateV4.obfuscate(allocator, decoded_data, .{});
+            return ObfuscateV4.obfuscate(allocator, decoded_data, options);
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -608,7 +409,7 @@ pub const ObfuscateV4 = struct {
             //----------------------------------------
         }
         //------------------------------------------------------------
-        return ObfuscateV4.obfuscate(allocator, output, .{});
+        return ObfuscateV4.obfuscate(allocator, output, options);
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
@@ -646,14 +447,14 @@ pub const ObfuscateV5 = struct {
     };
     //------------------------------------------------------------
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
-    pub const Config = struct { encoding: Encoding = .default };
+    pub const Defaults = struct { encoding: Encoding = .default };
     //------------------------------------------------------------
     pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         _ = options;
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
-        //----------------------------------------------------------------------------
+        //------------------------------------------------------------
         var output: []u8 = try allocator.alloc(u8, data.len);
         errdefer allocator.free(output);
         //----------------------------------------
@@ -666,33 +467,21 @@ pub const ObfuscateV5 = struct {
         //----------------------------------------
         var mixed_length = data.len;
         var mixed_half = mixed_length / 2;
-        var strx_data: []const u8 = &[_]u8{};
         //----------------------------------------
         if (mixed_half % 2 != 0) {
             mixed_half -= 1;
             mixed_length = mixed_half * 2;
-            strx_data = data[mixed_length..];
         }
         //----------------------------------------
-        const main_data = data[0..mixed_length];
-        //----------------------------------------
-        for (main_data, 0..) |_, index| {
-            var src_byte: u8 = undefined;
-            if (index % 2 != 0) {
+        for (data[0..data.len], 0..data.len) |byte, index| {
+            if (index < mixed_length and index % 2 != 0) {
                 if (index < mixed_half) {
-                    src_byte = main_data[index + mixed_half];
+                    output[index + mixed_half] = ObfuscateV5.slideByte(byte);
                 } else {
-                    src_byte = main_data[index - mixed_half];
+                    output[index - mixed_half] = ObfuscateV5.slideByte(byte);
                 }
             } else {
-                src_byte = main_data[index];
-            }
-            output[index] = ObfuscateV5.slideByte(src_byte);
-        }
-        //----------------------------------------
-        if (strx_data.len > 0) {
-            for (strx_data, mixed_length..) |byte, idx| {
-                output[idx] = ObfuscateV5.slideByte(byte);
+                output[index] = ObfuscateV5.slideByte(byte);
             }
         }
         //----------------------------------------
@@ -715,19 +504,208 @@ pub const ObfuscateV5 = struct {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.encoding != .default) {
+        const obfuscated_data = try ObfuscateV5.obfuscate(allocator, data, options);
+        defer allocator.free(obfuscated_data);
+        //------------------------------------------------------------
+        if (opts.encoding != .default) {
             //----------------------------------------
-            const swapped_data = try ObfuscateV5.obfuscate(allocator, data, .{});
-            defer allocator.free(swapped_data);
+            switch (opts.encoding) {
+                .base => return conv.Base.encode(allocator, obfuscated_data, .{}),
+                .base64 => return conv.Base64.encode(allocator, obfuscated_data, .{}),
+                .base64url => return conv.Base64.urlEncode(allocator, obfuscated_data, .{}),
+                .base91 => return conv.Base91.encode(allocator, obfuscated_data, .{ .escape = true }),
+                .hex => return conv.Hex.encode(allocator, obfuscated_data, .{}),
+                .default => return Error.EncodingError, // default encoding should be processed below
+            }
             //----------------------------------------
-            switch (config.encoding) {
-                .base => return conv.Base.encode(allocator, swapped_data, .{}),
-                .base64 => return conv.Base64.encode(allocator, swapped_data, .{}),
-                .base64url => return conv.Base64.urlEncode(allocator, swapped_data, .{}),
-                .base91 => return conv.Base91.encode(allocator, swapped_data, .{ .escape = true }),
-                .hex => return conv.Hex.encode(allocator, swapped_data, .{}),
+        }
+        //------------------------------------------------------------
+        var escapeCount: usize = 0;
+        for (obfuscated_data) |encoded| {
+            for (ObfuscateV5.replacements) |replacement| {
+                if (encoded == replacement.encoded) escapeCount += 1;
+            }
+        }
+        //----------------------------------------
+        var output: []u8 = try allocator.alloc(u8, obfuscated_data.len + escapeCount);
+        errdefer allocator.free(output);
+        //----------------------------------------
+        var output_index: usize = 0;
+        //----------------------------------------
+        for (obfuscated_data) |encoded| {
+            //----------------------------------------
+            var replaced = false;
+            for (ObfuscateV5.replacements) |replacement| {
+                if (encoded == replacement.encoded) {
+                    output[output_index] = '-';
+                    output_index += 1;
+                    output[output_index] = replacement.escaped;
+                    replaced = true;
+                    break;
+                }
+            }
+            if (!replaced) {
+                output[output_index] = encoded;
+            }
+            //----------------------------------------
+            output_index += 1;
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+        return output;
+        //------------------------------------------------------------
+    }
+    //------------------------------------------------------------
+    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+        //------------------------------------------------------------
+        if (data.len == 0) return allocator.alloc(u8, 0);
+        //------------------------------------------------------------
+        const opts = setOptions(Defaults, options);
+        //------------------------------------------------------------
+        if (opts.encoding != .default) {
+            //----------------------------------------
+            const decoded_data = switch (opts.encoding) {
+                .base => try conv.Base.decode(allocator, data, .{}),
+                .base64 => try conv.Base64.decode(allocator, data, .{}),
+                .base64url => try conv.Base64.urlDecode(allocator, data, .{}),
+                .base91 => try conv.Base91.decode(allocator, data, .{ .escape = true }),
+                .hex => try conv.Hex.decode(allocator, data, .{}),
+                .default => return Error.EncodingError, // default encoding should be processed below
+            };
+            defer allocator.free(decoded_data);
+            //----------------------------------------
+            return ObfuscateV5.obfuscate(allocator, decoded_data, options);
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+        var scan_index: usize = 0;
+        var escapeCount: usize = 0;
+        while (scan_index < data.len - 1) {
+            if (data[scan_index] == '-') {
+                for (ObfuscateV5.replacements) |replacement| {
+                    if (data[scan_index + 1] == replacement.escaped) {
+                        escapeCount += 1;
+                        scan_index += 1;
+                        break;
+                    }
+                }
+            }
+            scan_index += 1;
+        }
+        //----------------------------------------
+        var output: []u8 = try allocator.alloc(u8, data.len - escapeCount);
+        defer allocator.free(output);
+        //----------------------------------------
+        var buffer_index: usize = 0;
+        var output_index: usize = 0;
+        //----------------------------------------
+        while (buffer_index < data.len) {
+            //----------------------------------------
+            if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
+                //----------------------------------------
+                var replaced = false;
+                for (ObfuscateV5.replacements) |replacement| {
+                    if (data[buffer_index + 1] == replacement.escaped) {
+                        output[output_index] = replacement.encoded;
+                        replaced = true;
+                        break;
+                    }
+                }
+                if (!replaced) {
+                    output[output_index] = '-';
+                    output_index += 1;
+                    output[output_index] = data[buffer_index + 1];
+                }
+                //----------------------------------------
+                buffer_index += 1; // skip an extra byte as already processed
+                //----------------------------------------
+            } else {
+                //----------------------------------------
+                output[output_index] = data[buffer_index];
+                //----------------------------------------
+            }
+            //----------------------------------------
+            buffer_index += 1;
+            output_index += 1;
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+        return ObfuscateV5.obfuscate(allocator, output, options);
+        //------------------------------------------------------------
+    }
+    //------------------------------------------------------------
+    pub fn setOptions(T: type, options: anytype) T {
+        var target = T{};
+        inline for (std.meta.fields(@TypeOf(target))) |field| {
+            if (@hasField(@TypeOf(options), field.name)) {
+                @field(target, field.name) = @field(options, field.name);
+            }
+        }
+        return target;
+    }
+    //------------------------------------------------------------
+};
+//------------------------------------------------------------
+//############################################################
+//------------------------------------------------------------
+pub const ObfuscateXOR = struct {
+    //------------------------------------------------------------
+    pub const Error = error{EncodingError};
+    //------------------------------------------------------------
+    pub const Replacement = struct { encoded: u8, escaped: u8 };
+    //------------------------------------------------------------
+    pub const replacements = &[_]ObfuscateXOR.Replacement{
+        .{ .encoded = '-', .escaped = '-' }, // minus sign
+        .{ .encoded = 0x09, .escaped = 't' }, // tab
+        .{ .encoded = 0x0A, .escaped = 'n' }, // new line
+        .{ .encoded = 0x0D, .escaped = 'r' }, // carriage return
+        .{ .encoded = 0x20, .escaped = 's' }, // space
+        .{ .encoded = 0x22, .escaped = 'q' }, // double quote
+        .{ .encoded = 0x24, .escaped = 'd' }, // dollar sign
+        .{ .encoded = 0x27, .escaped = 'a' }, // apostrophy
+        .{ .encoded = 0x5C, .escaped = 'b' }, // backslash
+        .{ .encoded = 0x60, .escaped = 'g' }, // grave accent
+    };
+    //------------------------------------------------------------
+    pub const Encoding = enum { base, base64, base64url, base91, hex, default };
+    pub const Defaults = struct { encoding: Encoding = .default };
+    //------------------------------------------------------------
+    pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
+        //------------------------------------------------------------
+        _ = options;
+        //------------------------------------------------------------
+        if (data.len == 0) return allocator.alloc(u8, 0);
+        //------------------------------------------------------------
+        var output: []u8 = try allocator.alloc(u8, data.len);
+        errdefer allocator.free(output);
+        //----------------------------------------
+        for (data, 0..) |byte, index| {
+            output[index] = byte ^ value;
+        }
+        //------------------------------------------------------------
+        return output;
+        //------------------------------------------------------------
+    }
+    //------------------------------------------------------------
+    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
+        //------------------------------------------------------------
+        if (data.len == 0) return allocator.alloc(u8, 0);
+        //------------------------------------------------------------
+        const opts = setOptions(Defaults, options);
+        //------------------------------------------------------------
+        if (opts.encoding != .default) {
+            //----------------------------------------
+            const obfuscated_data = try ObfuscateXOR.obfuscate(allocator, data, value, .{});
+            defer allocator.free(obfuscated_data);
+            //----------------------------------------
+            switch (opts.encoding) {
+                .base => return conv.Base.encode(allocator, obfuscated_data, .{}),
+                .base64 => return conv.Base64.encode(allocator, obfuscated_data, .{}),
+                .base64url => return conv.Base64.urlEncode(allocator, obfuscated_data, .{}),
+                .base91 => return conv.Base91.encode(allocator, obfuscated_data, .{ .escape = true }),
+                .hex => return conv.Hex.encode(allocator, obfuscated_data, .{}),
                 .default => return Error.EncodingError, // default encoding should be processed below
             }
             //----------------------------------------
@@ -735,8 +713,8 @@ pub const ObfuscateV5 = struct {
         //------------------------------------------------------------
         var escapeCount: usize = 0;
         for (data) |byte| {
-            for (ObfuscateV5.replacements) |replacement| {
-                if (byte == replacement.decoded) escapeCount += 1;
+            for (ObfuscateXOR.replacements) |replacement| {
+                if ((byte ^ value) == replacement.encoded) escapeCount += 1;
             }
         }
         //----------------------------------------
@@ -747,10 +725,10 @@ pub const ObfuscateV5 = struct {
         //----------------------------------------
         for (data) |byte| {
             //----------------------------------------
-            const encoded = ObfuscateV5.slideByte(byte);
+            const encoded = byte ^ value;
             //----------------------------------------
             var replaced = false;
-            for (ObfuscateV5.replacements) |replacement| {
+            for (ObfuscateXOR.replacements) |replacement| {
                 if (encoded == replacement.encoded) {
                     output[output_index] = '-';
                     output_index += 1;
@@ -770,15 +748,15 @@ pub const ObfuscateV5 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
-        const config = setOptions(Config, options);
+        const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
-        if (config.encoding != .default) {
+        if (opts.encoding != .default) {
             //----------------------------------------
-            const decoded_data = switch (config.encoding) {
+            const decoded_data = switch (opts.encoding) {
                 .base => try conv.Base.decode(allocator, data, .{}),
                 .base64 => try conv.Base64.decode(allocator, data, .{}),
                 .base64url => try conv.Base64.urlDecode(allocator, data, .{}),
@@ -788,7 +766,7 @@ pub const ObfuscateV5 = struct {
             };
             defer allocator.free(decoded_data);
             //----------------------------------------
-            return ObfuscateV5.obfuscate(allocator, decoded_data, .{});
+            return ObfuscateXOR.obfuscate(allocator, decoded_data, value, .{});
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -796,7 +774,7 @@ pub const ObfuscateV5 = struct {
         var escapeCount: usize = 0;
         while (scan_index < data.len - 1) {
             if (data[scan_index] == '-') {
-                for (ObfuscateV5.replacements) |replacement| {
+                for (ObfuscateXOR.replacements) |replacement| {
                     if (data[scan_index + 1] == replacement.escaped) {
                         escapeCount += 1;
                         scan_index += 1;
@@ -818,24 +796,24 @@ pub const ObfuscateV5 = struct {
             if (data[buffer_index] == '-' and buffer_index + 1 < data.len) {
                 //----------------------------------------
                 var replaced = false;
-                for (ObfuscateV5.replacements) |replacement| {
+                for (ObfuscateXOR.replacements) |replacement| {
                     if (data[buffer_index + 1] == replacement.escaped) {
-                        output[output_index] = replacement.decoded;
+                        output[output_index] = replacement.encoded ^ value;
                         replaced = true;
                         break;
                     }
                 }
                 if (!replaced) {
-                    output[output_index] = 'q';
+                    output[output_index] = '-' ^ value;
                     output_index += 1;
-                    output[output_index] = ObfuscateV5.slideByte(data[buffer_index + 1]);
+                    output[output_index] = data[buffer_index + 1] ^ value;
                 }
                 //----------------------------------------
                 buffer_index += 1; // skip an extra byte as already processed
                 //----------------------------------------
             } else {
                 //----------------------------------------
-                output[output_index] = ObfuscateV5.slideByte(data[buffer_index]);
+                output[output_index] = data[buffer_index] ^ value;
                 //----------------------------------------
             }
             //----------------------------------------
@@ -863,10 +841,10 @@ pub const ObfuscateV5 = struct {
 //############################################################
 //------------------------------------------------------------
 pub fn main() void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     var it = std.process.args();
     const name = if (it.next()) |arg0| std.fs.path.basename(arg0) else "";
     std.debug.print("{s}: main function\n", .{name});
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //------------------------------------------------------------
