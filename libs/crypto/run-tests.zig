@@ -106,6 +106,10 @@ pub fn main() !void {
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "Aq\x16\x15\x12~|zwB>qF", .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
             .{ .data = "ABC\u{1f427}", .expected = "B!OWun=%=", .encoding = .base },
+            .{ .data = "ABC\u{1f427}", .expected = "XVxbj+Dv2A==", .encoding = .base64 },
+            .{ .data = "ABC\u{1f427}", .expected = "XVxbj-Dv2A", .encoding = .base64url },
+            .{ .data = "ABC\u{1f427}", .expected = ".?x;](ZyN", .encoding = .base91 },
+            .{ .data = "ABC\u{1f427}", .expected = "5D5C5B8FE0EFD8", .encoding = .hex },
         };
         //----------------------------------------
         var fail_count: usize = 0;
@@ -152,6 +156,10 @@ pub fn main() !void {
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = "Aq\x16\x15\x12~|zwB>qF", .encoding = .default },
             .{ .data = "B!OWun=%=", .expected = "ABC\u{1f427}", .encoding = .base },
+            .{ .data = "XVxbj+Dv2A==", .expected = "ABC\u{1f427}", .encoding = .base64 },
+            .{ .data = "XVxbj-Dv2A", .expected = "ABC\u{1f427}", .encoding = .base64url },
+            .{ .data = ".?x;](ZyN", .expected = "ABC\u{1f427}", .encoding = .base91 },
+            .{ .data = "5D5C5B8FE0EFD8", .expected = "ABC\u{1f427}", .encoding = .hex },
         };
         //----------------------------------------
         var fail_count: usize = 0;
