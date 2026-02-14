@@ -1,6 +1,6 @@
 //------------------------------------------------------------
 // Cryptographic Functions Library
-// Copyright 2025, Tim Brockley. All rights reserved.
+// Copyright 2026, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //------------------------------------------------------------
 const std = @import("std");
@@ -840,9 +840,9 @@ pub const ObfuscateXOR = struct {
 //------------------------------------------------------------
 //############################################################
 //------------------------------------------------------------
-pub fn main() void {
+pub fn main(minimal: std.process.Init.Minimal) !void {
     //------------------------------------------------------------
-    var it = std.process.args();
+    var it = minimal.args.iterate();
     const name = if (it.next()) |arg0| std.fs.path.basename(arg0) else "";
     std.debug.print("{s}: main function\n", .{name});
     //------------------------------------------------------------

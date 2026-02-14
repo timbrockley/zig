@@ -61,9 +61,9 @@ test "safeArrayValue3" {
     try std.testing.expectError(error.OutOfBounds, safeArrayValue3([]const u8, &DAYS, 9999));
 }
 
-pub fn main() !void {
+pub fn main(minimal: std.process.Init.Minimal) !void {
     //------------------------------------------------------------
-    var it = std.process.args();
+    var it = minimal.args.iterate();
     const name = if (it.next()) |arg0| std.fs.path.basename(arg0) else "";
     std.debug.print("{s}: main function\n", .{name});
     //------------------------------------------------------------

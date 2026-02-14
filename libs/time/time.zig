@@ -1,6 +1,6 @@
 //------------------------------------------------------------
 // Time and calendar library
-// Copyright 2025, Tim Brockley. All rights reserved.
+// Copyright 2026, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //------------------------------------------------------------
 const std = @import("std");
@@ -63,6 +63,41 @@ pub const Time = struct {
 };
 
 //------------------------------------------------------------
+// now
+//------------------------------------------------------------
+
+/// Converts current unix timestamp to DateTime.
+pub fn now(io: std.Io) !DateTime {
+    return unixtime_to_datetime(std.Io.Timestamp.now(io, .real).toSeconds()) catch DateTime{};
+}
+
+//------------------------------------------------------------
+// unixTimestamp
+//------------------------------------------------------------
+
+/// Returns current unix timestamp (seconds).
+pub fn unixTimestamp(io: std.Io) i64 {
+    return std.Io.Timestamp.now(io, .real).toSeconds();
+}
+
+//------------------------------------------------------------
+// unixMilliseconds
+//------------------------------------------------------------
+
+/// Returns current unix timestamp (milliseconds).
+pub fn unixMilliseconds(io: std.Io) i64 {
+    return std.Io.Timestamp.now(io, .real).toMilliseconds();
+}
+//------------------------------------------------------------
+// unixNanoseconds
+//------------------------------------------------------------
+
+/// Returns current unix timestamp (nanoseconds).
+pub fn unixNanoseconds(io: std.Io) i96 {
+    return std.Io.Timestamp.now(io, .real).toNanoseconds();
+}
+
+//------------------------------------------------------------
 // toDateTime
 //------------------------------------------------------------
 
@@ -96,50 +131,6 @@ pub fn toDate(datetime: DateTime) Date {
 pub fn toTime(datetime: DateTime) Time {
     //------------------------------------------------------------
     return Time{ .hour = datetime.hour, .minute = datetime.minute, .second = datetime.second, .millisecond = datetime.millisecond };
-    //------------------------------------------------------------
-}
-
-//------------------------------------------------------------
-// now
-//------------------------------------------------------------
-
-/// Converts current unix timestamp to DateTime.
-pub fn now() DateTime {
-    //------------------------------------------------------------
-    return unixtime_to_datetime(std.time.timestamp()) catch DateTime{};
-    //------------------------------------------------------------
-}
-
-//------------------------------------------------------------
-// unixTimestamp
-//------------------------------------------------------------
-
-/// Returns current unix timestamp (seconds).
-pub fn unixTimestamp() i64 {
-    //------------------------------------------------------------
-    return std.time.timestamp();
-    //------------------------------------------------------------
-}
-
-//------------------------------------------------------------
-// unixMilliseconds
-//------------------------------------------------------------
-
-/// Returns current unix timestamp (milliseconds).
-pub fn unixMilliseconds() i64 {
-    //------------------------------------------------------------
-    return std.time.milliTimestamp();
-    //------------------------------------------------------------
-}
-
-//------------------------------------------------------------
-// unixNanoseconds
-//------------------------------------------------------------
-
-/// Returns current unix timestamp (nanoseconds).
-pub fn unixNanoseconds() i128 {
-    //------------------------------------------------------------
-    return std.time.nanoTimestamp();
     //------------------------------------------------------------
 }
 
@@ -1336,9 +1327,9 @@ pub fn format(datetime: DateTime, template: []const u8, output: []u8) !usize {
 // main
 //------------------------------------------------------------
 
-pub fn main() !void {
+pub fn main(minimal: std.process.Init.Minimal) !void {
     //------------------------------------------------------------
-    var it = std.process.args();
+    var it = minimal.args.iterate();
     const name = if (it.next()) |arg0| std.fs.path.basename(arg0) else "";
     std.debug.print("{s}: main function\n", .{name});
     //------------------------------------------------------------

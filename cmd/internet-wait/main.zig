@@ -1,22 +1,25 @@
 //--------------------------------------------------------------------------------
-// Copyright 2025, Tim Brockley. All rights reserved.
+// Copyright 2026, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
+
+// todo => re-write for v0.16
+
 const std: type = @import("std");
 //--------------------------------------------------------------------------------
-var stdout_writer = std.fs.File.stdout().writer(&.{});
-const stdout = &stdout_writer.interface;
-//--------------------------------------------------------------------------------
-
 const ADDR: []const u8 = "1.1.1.1";
 const PORT: u16 = 53;
 
 const MAX_BAR_LEN: u8 = 10;
 const DURATION: u64 = 100 * std.time.ns_per_ms;
-
 //--------------------------------------------------------------------------------
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
+    //------------------------------------------------------------
+    var stdout_writer = std.Io.File.Writer.init(.stdout(), init.io, &.{});
+    const stdout = &stdout_writer.interface;
+    //------------------------------------------------------------
+    // todo => use init.gpa instead ?
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
@@ -32,14 +35,13 @@ pub fn main() !void {
 
         bar_index = if (bar_index < MAX_BAR_LEN) bar_index + 1 else 1;
 
-        std.Thread.sleep(DURATION);
+        try init.io.sleep(.fromMilliseconds(DURATION), .awake);
     }
 
     try stdout.writeAll("\r\x1b[2K"); // carriage return + clear line
+    //------------------------------------------------------------
 }
-
 //--------------------------------------------------------------------------------
-
 fn fillBar(bar: *[MAX_BAR_LEN]u8, bar_index: u8) void {
     const index: u8 = if (bar_index < MAX_BAR_LEN) bar_index else MAX_BAR_LEN;
     for (bar[0..index]) |*b| {
@@ -49,13 +51,10 @@ fn fillBar(bar: *[MAX_BAR_LEN]u8, bar_index: u8) void {
         b.* = ' ';
     }
 }
-
 //--------------------------------------------------------------------------------
-
 pub fn connected(allocator: std.mem.Allocator) bool {
     const s = std.net.tcpConnectToHost(allocator, ADDR, PORT) catch return false;
     defer s.close();
     return true;
 }
-
 //--------------------------------------------------------------------------------

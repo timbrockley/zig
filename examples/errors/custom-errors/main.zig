@@ -13,9 +13,13 @@ fn divideWithErrors(a: f64, b: f64) !f64 {
     return a / b;
 }
 //----------------------------------------------------------------------
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     //----------------------------------------
-    if (std.os.argv.len <= 1) {
+    const allocator = init.arena.allocator();
+    //----------------------------------------
+    const args = try init.minimal.args.toSlice(allocator);
+    //----------------------------------------
+    if (args.len <= 1) {
         //----------------------------------------
         std.debug.print("usage:", .{});
         std.debug.print("\tzig run main.zig -- <FLOAT1> <FLOAT2>\n", .{});
@@ -23,7 +27,7 @@ pub fn main() !void {
         //----------------------------------------
     } else {
         //----------------------------------------
-        var it = std.process.args();
+        var it = init.minimal.args.iterate();
         _ = it.skip();
         //----------------------------------------
         const arg_a = if (it.next()) |a| a else "1.0";

@@ -1,7 +1,6 @@
 //------------------------------------------------------------
 
 const std = @import("std");
-
 //------------------------------------------------------------
 
 const SECONDS_PER_DAY = 86400;
@@ -100,9 +99,12 @@ pub fn toTimestamp(datetime: DateTime) !i64 {
 
 //------------------------------------------------------------
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
-    const ts = std.time.timestamp();
+    // const now = std.Io.Timestamp.now(init.io, .real);
+    const now = std.Io.Timestamp.now(init.io, .real);
+    //------------------------------------------------------------
+    const ts: i64 = now.toSeconds();
     std.debug.print("ts: {any}\n", .{ts});
     //------------------------------------------------------------
     const datetime = try fromTimestamp(ts);

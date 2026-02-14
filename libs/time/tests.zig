@@ -62,7 +62,7 @@ test "toTime" {
 //------------------------------------------------------------
 
 test "now" {
-    const datetime = tbt.now();
+    const datetime = try tbt.now(std.testing.io);
     try std.testing.expect(@TypeOf(datetime) == tbt.DateTime);
     try std.testing.expect(datetime.year > 0);
     try std.testing.expect(datetime.month > 0);
@@ -74,8 +74,8 @@ test "now" {
 //------------------------------------------------------------
 
 test "unixTimestamp" {
-    const result = tbt.unixTimestamp();
-    const expected = std.time.timestamp();
+    const result = tbt.unixTimestamp(std.testing.io);
+    const expected = std.Io.Timestamp.now(std.testing.io, .real).toSeconds();
 
     try std.testing.expect(@TypeOf(result) == i64);
     try std.testing.expect(result > 0);
@@ -89,8 +89,8 @@ test "unixTimestamp" {
 //------------------------------------------------------------
 
 test "unixMilliseconds" {
-    const result = tbt.unixMilliseconds();
-    const expected = std.time.milliTimestamp();
+    const result = tbt.unixMilliseconds(std.testing.io);
+    const expected = std.Io.Timestamp.now(std.testing.io, .real).toMilliseconds();
 
     try std.testing.expect(@TypeOf(result) == i64);
     try std.testing.expect(result > 0);
@@ -104,10 +104,10 @@ test "unixMilliseconds" {
 //------------------------------------------------------------
 
 test "unixNanoseconds" {
-    const result = tbt.unixNanoseconds();
-    const expected = std.time.nanoTimestamp();
+    const result = tbt.unixNanoseconds(std.testing.io);
+    const expected = std.Io.Timestamp.now(std.testing.io, .real).toNanoseconds();
 
-    try std.testing.expect(@TypeOf(result) == i128);
+    try std.testing.expect(@TypeOf(result) == i96);
     try std.testing.expect(result > 0);
 
     const delta = @abs(result - expected);

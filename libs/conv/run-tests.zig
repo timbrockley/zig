@@ -1,18 +1,13 @@
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const ut = @import("libs/unittest.zig");
+const unittest = @import("libs/unittest.zig");
 const conv = @import("conv.zig");
 //--------------------------------------------------------------------------------
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------------
-    ut.init();
+    var ut = try unittest.init(.{ .io = init.io });
     //----------------------------------------------------------------------------
-    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    // defer _ = gpa.deinit();
-    // const allocator = gpa.allocator();
-    var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena_allocator.deinit();
-    var allocator = arena_allocator.allocator();
+    var allocator = init.arena.allocator();
     //----------------------------------------------------------------------------
     {
         //----------------------------------------
@@ -40,7 +35,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -48,13 +43,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -85,7 +80,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -93,17 +88,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    ut.errorPass(name, err);
+                    try ut.errorPass(name, err);
                 } else {
                     fail_count += 1;
-                    ut.errorFail(name, err);
+                    try ut.errorFail(name, err);
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -134,7 +129,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -142,13 +137,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -180,7 +175,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -188,17 +183,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    ut.errorPass(name, err);
+                    try ut.errorPass(name, err);
                 } else {
                     fail_count += 1;
-                    ut.errorFail(name, err);
+                    try ut.errorFail(name, err);
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -229,7 +224,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -237,13 +232,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -275,7 +270,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -283,17 +278,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    ut.errorPass(name, err);
+                    try ut.errorPass(name, err);
                 } else {
                     fail_count += 1;
-                    ut.errorFail(name, err);
+                    try ut.errorFail(name, err);
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -315,13 +310,13 @@ pub fn main() !void {
                 //----------------------------------------
             } else |err| {
                 //----------------------------------------
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        ut.compareByteSlice(name, expected[0..], result[0..]);
+        try ut.compareByteSlice(name, expected[0..], result[0..]);
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -335,7 +330,7 @@ pub fn main() !void {
             total += conv.Base64.plaintextToBase64Length(data);
         }
 
-        ut.compareInt(name, expected_total, total);
+        try ut.compareInt(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -348,7 +343,7 @@ pub fn main() !void {
             total += conv.Base64.plaintextToBase64UrlLength(data);
         }
 
-        ut.compareInt(name, expected_total, total);
+        try ut.compareInt(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -356,9 +351,9 @@ pub fn main() !void {
         const data = "A"; // invalid input
 
         if (conv.Base64.base64ToPlaintextLength(data)) |_| {
-            ut.fail(name, "test failed as it did not return an error");
+            try ut.fail(name, "test failed as it did not return an error");
         } else |err| {
-            ut.errorPass(name, err); // should return an error
+            try ut.errorPass(name, err); // should return an error
         }
     }
     //----------------------------------------------------------------------------
@@ -372,11 +367,11 @@ pub fn main() !void {
             if (conv.Base64.base64ToPlaintextLength(data)) |length| {
                 total += length;
             } else |err| {
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
             }
         }
 
-        ut.compareInt(name, expected_total, total);
+        try ut.compareInt(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -389,7 +384,7 @@ pub fn main() !void {
             total += conv.Base64.base64UrlToPlaintextLength(data);
         }
 
-        ut.compareInt(name, expected_total, total);
+        try ut.compareInt(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -402,7 +397,7 @@ pub fn main() !void {
             total += conv.Base64.base64ToBase64UrlLength(data);
         }
 
-        ut.compareInt(name, expected_total, total);
+        try ut.compareInt(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -415,7 +410,7 @@ pub fn main() !void {
             total += conv.Base64.base64UrlToBase64Length(data);
         }
 
-        ut.compareInt(name, expected_total, total);
+        try ut.compareInt(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -448,7 +443,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -456,13 +451,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -495,7 +490,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -503,17 +498,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    ut.errorPass(name, err);
+                    try ut.errorPass(name, err);
                 } else {
                     fail_count += 1;
-                    ut.errorFail(name, err);
+                    try ut.errorFail(name, err);
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -545,7 +540,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -553,13 +548,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -589,7 +584,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -597,17 +592,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    ut.errorPass(name, err);
+                    try ut.errorPass(name, err);
                 } else {
                     fail_count += 1;
-                    ut.errorFail(name, err);
+                    try ut.errorFail(name, err);
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -639,7 +634,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -647,17 +642,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    ut.errorPass(name, err);
+                    try ut.errorPass(name, err);
                 } else {
                     fail_count += 1;
-                    ut.errorFail(name, err);
+                    try ut.errorFail(name, err);
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -687,7 +682,7 @@ pub fn main() !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, test_case.expected, result);
+                    try ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -695,17 +690,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
-    ut.printSummary();
+    try ut.printSummary();
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------

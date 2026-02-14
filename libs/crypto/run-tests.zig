@@ -1,18 +1,13 @@
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const ut = @import("libs/unittest.zig");
-const obf = @import("crypto.zig");
+const unittest = @import("libs/unittest.zig");
+const tbc = @import("crypto.zig");
 //--------------------------------------------------------------------------------
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------------
-    ut.init();
+    var ut = try unittest.init(.{ .io = init.io });
     //----------------------------------------------------------------------------
-    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    // defer _ = gpa.deinit();
-    // const allocator = gpa.allocator();
-    var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena_allocator.deinit();
-    var allocator = arena_allocator.allocator();
+    var allocator = init.arena.allocator();
     //----------------------------------------------------------------------------
     {
         //----------------------------------------
@@ -38,13 +33,13 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV0.obfuscate(&allocator, test_case.data, .{})) |result| {
+            if (tbc.ObfuscateV0.obfuscate(&allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, test_case.expected, result);
+                    try ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -52,13 +47,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -82,16 +77,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            const result = obf.ObfuscateV0.slideByte(test_case.byte);
+            const result = tbc.ObfuscateV0.slideByte(test_case.byte);
             //----------------------------------------
             if (result != test_case.expected) {
                 fail_count += 1;
-                ut.compareByte(name, test_case.expected, result);
+                try ut.compareByte(name, test_case.expected, result);
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -101,7 +96,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateV0.Encoding,
+            encoding: tbc.ObfuscateV0.Encoding,
         }{
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "Aq\x16\x15\x12~|zwB>qF", .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
@@ -116,16 +111,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV0.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV0.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -135,13 +130,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -151,7 +146,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateV0.Encoding,
+            encoding: tbc.ObfuscateV0.Encoding,
         }{
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = "Aq\x16\x15\x12~|zwB>qF", .encoding = .default },
@@ -166,16 +161,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV0.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV0.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -185,13 +180,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -219,13 +214,13 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV4.obfuscate(&allocator, test_case.data, .{ .mix_chars = test_case.mix_chars })) |result| {
+            if (tbc.ObfuscateV4.obfuscate(&allocator, test_case.data, .{ .mix_chars = test_case.mix_chars })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, test_case.expected, result);
+                    try ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -233,13 +228,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -263,16 +258,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            const result = obf.ObfuscateV4.slideByte(test_case.byte);
+            const result = tbc.ObfuscateV4.slideByte(test_case.byte);
             //----------------------------------------
             if (result != test_case.expected) {
                 fail_count += 1;
-                ut.compareByte(name, test_case.expected, result);
+                try ut.compareByte(name, test_case.expected, result);
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -282,7 +277,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateV4.Encoding,
+            encoding: tbc.ObfuscateV4.Encoding,
             mix_chars: bool,
         }{
             .{ .data = "", .expected = "", .encoding = .default, .mix_chars = false },
@@ -301,16 +296,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV4.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
+            if (tbc.ObfuscateV4.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -320,13 +315,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -336,7 +331,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateV4.Encoding,
+            encoding: tbc.ObfuscateV4.Encoding,
             mix_chars: bool,
         }{
             .{ .data = "", .expected = "", .encoding = .default, .mix_chars = false },
@@ -355,16 +350,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV4.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
+            if (tbc.ObfuscateV4.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -374,13 +369,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -421,13 +416,13 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV5.obfuscate(&allocator, test_case.data, .{})) |result| {
+            if (tbc.ObfuscateV5.obfuscate(&allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, test_case.expected, result);
+                    try ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -435,13 +430,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -465,16 +460,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            const result = obf.ObfuscateV5.slideByte(test_case.byte);
+            const result = tbc.ObfuscateV5.slideByte(test_case.byte);
             //----------------------------------------
             if (result != test_case.expected) {
                 fail_count += 1;
-                ut.compareByte(name, test_case.expected, result);
+                try ut.compareByte(name, test_case.expected, result);
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -484,7 +479,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateV5.Encoding,
+            encoding: tbc.ObfuscateV5.Encoding,
         }{
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "hello", .expected = "6229/", .encoding = .default },
@@ -501,16 +496,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV5.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV5.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -520,13 +515,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -536,7 +531,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateV5.Encoding,
+            encoding: tbc.ObfuscateV5.Encoding,
         }{
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "6229/", .expected = "hello", .encoding = .default },
@@ -553,16 +548,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateV5.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV5.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -572,13 +567,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -599,13 +594,13 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateXOR.obfuscate(&allocator, test_case.data, value, .{})) |result| {
+            if (tbc.ObfuscateXOR.obfuscate(&allocator, test_case.data, value, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    ut.compareByteSlice(name, test_case.expected, result);
+                    try ut.compareByteSlice(name, test_case.expected, result);
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -613,13 +608,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -630,7 +625,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateXOR.Encoding,
+            encoding: tbc.ObfuscateXOR.Encoding,
         }{
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = &[_]u8{ 247, 135, 163, 160, 167, 138, 136, 142, 141, 246, 202, 135, 242 }, .expected = "]---t-n-r-s-q-d-a-b-g--X", .encoding = .default },
@@ -646,16 +641,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateXOR.encode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateXOR.encode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -665,13 +660,13 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -682,7 +677,7 @@ pub fn main() !void {
         const test_cases = [_]struct {
             data: []const u8,
             expected: []const u8,
-            encoding: obf.ObfuscateXOR.Encoding,
+            encoding: tbc.ObfuscateXOR.Encoding,
         }{
             .{ .data = "", .expected = "", .encoding = .default },
             .{ .data = "]---t-n-r-s-q-d-a-b-g--X", .expected = &[_]u8{ 247, 135, 163, 160, 167, 138, 136, 142, 141, 246, 202, 135, 242 }, .encoding = .default },
@@ -697,16 +692,16 @@ pub fn main() !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (obf.ObfuscateXOR.decode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateXOR.decode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
                     if (test_case.encoding == .default) {
-                        ut.compareByteSlice(name, test_case.expected, result);
+                        try ut.compareByteSlice(name, test_case.expected, result);
                     } else {
-                        ut.compareStringSlice(name, test_case.expected, result);
+                        try ut.compareStringSlice(name, test_case.expected, result);
                     }
                     //----------------------------------------
                     allocator.free(result);
@@ -716,17 +711,17 @@ pub fn main() !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                ut.errorFail(name, err);
+                try ut.errorFail(name, err);
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "");
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
-    ut.printSummary();
+    try ut.printSummary();
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
