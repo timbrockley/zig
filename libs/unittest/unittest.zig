@@ -15,8 +15,8 @@ const Self = @This();
 //------------------------------------------------------------
 io: ?std.Io = null,
 //------------------------------------------------------------
-stdout_writer: std.Io.File.Writer = undefined,
-stderr_writer: std.Io.File.Writer = undefined,
+stdout_writer: ?std.Io.File.Writer = null,
+stderr_writer: ?std.Io.File.Writer = null,
 //------------------------------------------------------------
 start_time_ns: i96 = 0,
 //------------------------------------------------------------
@@ -264,23 +264,23 @@ pub fn printSummary(self: *Self) !void {
 }
 //------------------------------------------------------------
 pub fn stdout_print(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-    if (self.io == null) return error.InvalidStdIo;
-    try self.stdout_writer.interface.print(fmt, args);
+    if (self.stdout_writer == null) return error.InvalidStdOut;
+    try self.stdout_writer.?.interface.print(fmt, args);
 }
 //------------------------------------------------------------
 pub fn stdout_writeAll(self: *Self, comptime bytes: []const u8) !void {
-    if (self.io == null) return error.InvalidStdIo;
-    try self.stdout_writer.interface.writeAll(bytes);
+    if (self.stdout_writer == null) return error.InvalidStdOut;
+    try self.stdout_writer.?.interface.writeAll(bytes);
 }
 //------------------------------------------------------------
 pub fn stderr_print(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-    if (self.io == null) return error.InvalidStdIo;
-    try self.stderr_writer.interface.print(fmt, args);
+    if (self.stderr_writer == null) return error.InvalidStdErr;
+    try self.stderr_writer.?.interface.print(fmt, args);
 }
 //------------------------------------------------------------
 pub fn stderr_writeAll(self: *Self, comptime bytes: []const u8) !void {
-    if (self.io == null) return error.InvalidStdIo;
-    try self.stderr_writer.interface.writeAll(bytes);
+    if (self.stderr_writer == null) return error.InvalidStdErr;
+    try self.stderr_writer.?.interface.writeAll(bytes);
 }
 //--------------------------------------------------------------------------------
 pub fn main(processInit: std.process.Init) !void {
