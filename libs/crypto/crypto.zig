@@ -30,7 +30,7 @@ pub const ObfuscateV0 = struct {
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
     pub const Defaults = struct { encoding: Encoding = .default };
     //------------------------------------------------------------
-    pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn obfuscate(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         _ = options;
         //------------------------------------------------------------
@@ -58,7 +58,7 @@ pub const ObfuscateV0 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn encode(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -117,7 +117,7 @@ pub const ObfuscateV0 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn decode(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -228,7 +228,7 @@ pub const ObfuscateV4 = struct {
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
     pub const Defaults = struct { encoding: Encoding = .default, mix_chars: bool = true };
     //------------------------------------------------------------
-    pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn obfuscate(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         const opts = setOptions(Defaults, options);
         //------------------------------------------------------------
@@ -277,7 +277,7 @@ pub const ObfuscateV4 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn encode(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -335,7 +335,7 @@ pub const ObfuscateV4 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn decode(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -449,7 +449,7 @@ pub const ObfuscateV5 = struct {
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
     pub const Defaults = struct { encoding: Encoding = .default };
     //------------------------------------------------------------
-    pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn obfuscate(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         _ = options;
         //------------------------------------------------------------
@@ -500,7 +500,7 @@ pub const ObfuscateV5 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn encode(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -558,7 +558,7 @@ pub const ObfuscateV5 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
+    pub fn decode(allocator: std.mem.Allocator, data: []const u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -672,7 +672,7 @@ pub const ObfuscateXOR = struct {
     pub const Encoding = enum { base, base64, base64url, base91, hex, default };
     pub const Defaults = struct { encoding: Encoding = .default };
     //------------------------------------------------------------
-    pub fn obfuscate(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
+    pub fn obfuscate(allocator: std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         _ = options;
         //------------------------------------------------------------
@@ -689,7 +689,7 @@ pub const ObfuscateXOR = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn encode(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
+    pub fn encode(allocator: std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------
@@ -748,7 +748,7 @@ pub const ObfuscateXOR = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn decode(allocator: *std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
+    pub fn decode(allocator: std.mem.Allocator, data: []const u8, value: u8, options: anytype) ![]u8 {
         //------------------------------------------------------------
         if (data.len == 0) return allocator.alloc(u8, 0);
         //------------------------------------------------------------

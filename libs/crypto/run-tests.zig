@@ -33,7 +33,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV0.obfuscate(&allocator, test_case.data, .{})) |result| {
+            if (tbc.ObfuscateV0.obfuscate(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -111,7 +111,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV0.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV0.encode(allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -161,7 +161,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV0.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV0.decode(allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -214,7 +214,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV4.obfuscate(&allocator, test_case.data, .{ .mix_chars = test_case.mix_chars })) |result| {
+            if (tbc.ObfuscateV4.obfuscate(allocator, test_case.data, .{ .mix_chars = test_case.mix_chars })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -296,7 +296,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV4.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
+            if (tbc.ObfuscateV4.encode(allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -350,7 +350,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV4.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
+            if (tbc.ObfuscateV4.decode(allocator, test_case.data, .{ .encoding = test_case.encoding, .mix_chars = test_case.mix_chars })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -416,7 +416,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV5.obfuscate(&allocator, test_case.data, .{})) |result| {
+            if (tbc.ObfuscateV5.obfuscate(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -496,7 +496,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV5.encode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV5.encode(allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -548,7 +548,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateV5.decode(&allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateV5.decode(allocator, test_case.data, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -594,7 +594,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateXOR.obfuscate(&allocator, test_case.data, value, .{})) |result| {
+            if (tbc.ObfuscateXOR.obfuscate(allocator, test_case.data, value, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -641,7 +641,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateXOR.encode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateXOR.encode(allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -692,7 +692,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (tbc.ObfuscateXOR.decode(&allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
+            if (tbc.ObfuscateXOR.decode(allocator, test_case.data, value, .{ .encoding = test_case.encoding })) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------

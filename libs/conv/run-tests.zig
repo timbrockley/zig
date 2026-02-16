@@ -29,7 +29,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base.encode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Base.encode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -74,7 +74,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base.decode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Base.decode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -123,7 +123,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base64.encode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Base64.encode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -169,7 +169,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base64.decode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Base64.decode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -218,7 +218,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base64.urlEncode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Base64.urlEncode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -264,7 +264,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base64.urlDecode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Base64.urlDecode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -437,7 +437,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base85.encode(&allocator, test_case.data, test_case.options)) |result| {
+            if (conv.Base85.encode(allocator, test_case.data, test_case.options)) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -484,7 +484,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base85.decode(&allocator, test_case.data, test_case.options)) |result| {
+            if (conv.Base85.decode(allocator, test_case.data, test_case.options)) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -534,7 +534,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Base91.encode(&allocator, test_case.data, test_case.options)) |result| {
+            if (conv.Base91.encode(allocator, test_case.data, test_case.options)) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -578,7 +578,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Hex.encode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Hex.encode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -628,7 +628,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.Hex.decode(&allocator, test_case.data, .{})) |result| {
+            if (conv.Hex.decode(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
@@ -676,7 +676,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            if (conv.obfuscate_data(&allocator, test_case.data, .{})) |result| {
+            if (conv.obfuscate_data(allocator, test_case.data, .{})) |result| {
                 //----------------------------------------
                 if (!std.mem.eql(u8, result, test_case.expected)) {
                     //----------------------------------------
