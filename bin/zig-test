@@ -1,5 +1,9 @@
 #!/bin/bash
 #--------------------------------------------------------------------------------
+#################################################################################
+#--------------------------------------------------------------------------------
+ZIG=$( [[ $PWD == */zig015/* ]] && echo -n "/usr/local/bin/zig015" || echo -n "/usr/local/bin/zig" )
+#--------------------------------------------------------------------------------
 match_test() { grep -qE '^\s*test\s+"[^"]*"\s*{\s*$' "$1"; }
 match_libc() { grep -qE '@?cImport|@c(Include|Define|Undef|Struct|Union)|\bstd\.c\b|@import\("std"\)\.c' "$1"; }
 LC=""
@@ -22,11 +26,11 @@ then
 				#----------------------------------------
 				match_libc ${FILENAME} && LC="-lc"
 				#----------------------------------------
-				zig run ${FILENAME} ${LC} -O ${ZIG_BUILD_MODE}
+				${ZIG} run ${FILENAME} ${LC} -O ${ZIG_BUILD_MODE}
 				#----------------------------------------
 			else
 				#----------------------------------------
-				zig test ${FILENAME} -Doptimize=Debug
+				${ZIG} test ${FILENAME} -Doptimize=Debug
 				#----------------------------------------
 			fi
 			#----------------------------------------
@@ -51,7 +55,7 @@ then
         then
 			#----------------------------------------
             echo "${FILENAME}:"
-            zig test "${FILENAME}" -Doptimize=Debug
+            ${ZIG} test "${FILENAME}" -Doptimize=Debug
             echo
 			#----------------------------------------
 		elif [ "${FILENAME}" == "run-tests.zig" ]
@@ -59,13 +63,13 @@ then
 			#----------------------------------------
 			match_libc run-tests.zig && LC="-lc"
 			#----------------------------------------
-			zig run run-tests.zig ${LC} -O ${ZIG_BUILD_MODE}
+			${ZIG} run run-tests.zig ${LC} -O ${ZIG_BUILD_MODE}
 			#----------------------------------------
         elif [ -f "${FILENAME}.zig" ]
         then
 			#----------------------------------------
             echo "${FILENAME}.zig:"
-            zig test "${FILENAME}.zig" -Doptimize=Debug
+            ${ZIG} test "${FILENAME}.zig" -Doptimize=Debug
             echo
 			#----------------------------------------
         else
@@ -94,7 +98,7 @@ else
 		#----------------------------------------
 		match_libc run-tests.zig && LC="-lc"
 		#----------------------------------------
-		zig run run-tests.zig ${LC} -O ${ZIG_BUILD_MODE}
+		${ZIG} run run-tests.zig ${LC} -O ${ZIG_BUILD_MODE}
 		#----------------------------------------
 	elif [ "${ZIG_FILE_COUNT}" -gt 0 ]
 	then
@@ -106,7 +110,7 @@ else
 			then
 				#----------------------------------------
 				echo "${FILENAME}"
-				zig test ${FILENAME} -Doptimize=Debug
+				${ZIG} test ${FILENAME} -Doptimize=Debug
 	            echo
 				#----------------------------------------
 			fi

@@ -1,5 +1,9 @@
 #!/bin/bash
 #--------------------------------------------------------------------------------
+#################################################################################
+#--------------------------------------------------------------------------------
+ZIG=$( [[ $PWD == */zig015/* ]] && echo -n "/usr/local/bin/zig015" || echo -n "/usr/local/bin/zig" )
+#--------------------------------------------------------------------------------
 match_libc() { grep -qE '@?cImport|@c(Include|Define|Undef|Struct|Union)|\bstd\.c\b|@import\("std"\)\.c' "$1"; }
 LC=""
 #--------------------------------------------------------------------------------
@@ -76,7 +80,7 @@ else
 	elif [ -f "build.zig" ]
 	then
 		#----------------------------------------
-		zig build -Doptimize=${ZIG_BUILD_MODE} -Dtarget=${ZIG_BUILD_TARGET} -Dcpu=${ZIG_BUILD_CPU}
+		${ZIG} build -Doptimize=${ZIG_BUILD_MODE} -Dtarget=${ZIG_BUILD_TARGET} -Dcpu=${ZIG_BUILD_CPU}
 		#----------------------------------------
 		exit $?
 		#----------------------------------------
@@ -89,7 +93,7 @@ else
 		#--------------------------------------------------------------------------------
 		mkdir -p ${OUTPUT_PATH}; cd ${OUTPUT_PATH}
 		#----------------------------------------
-		zig build-lib ../root.zig -femit-bin=lib${OUTPUT}.a ${LC} ${FSTRIP} -static -O ${ZIG_BUILD_MODE}
+		${ZIG} build-lib ../root.zig -femit-bin=lib${OUTPUT}.a ${LC} ${FSTRIP} -static -O ${ZIG_BUILD_MODE}
 		[ $? -eq 0 ] && zig build-exe ../main.zig -femit-bin=${OUTPUT} -L. -l${OUTPUT} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
 		exit $?
 		#----------------------------------------
@@ -130,16 +134,16 @@ mkdir -p ${OUTPUT_PATH}; cd ${OUTPUT_PATH}
 if [ "${SOURCE}" == "root.zig" ]
 then
 	#----------------------------------------
-	zig build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.so ${LC} ${FSTRIP} -dynamic -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
-	zig build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.a ${LC} ${FSTRIP} -static -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
+	${ZIG} build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.so ${LC} ${FSTRIP} -dynamic -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
+	${ZIG} build-lib ../${SOURCE} -femit-bin=lib${OUTPUT}.a ${LC} ${FSTRIP} -static -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU}
 	#----------------------------------------
 else
 	#----------------------------------------
 	if [ "${SOURCE}" == "main.zig" ]
 	then
-		zig build-exe ../${SOURCE} -femit-bin=${OUTPUT} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU} ${*}
+		${ZIG} build-exe ../${SOURCE} -femit-bin=${OUTPUT} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU} ${*}
 	else
-		zig build-exe ../${SOURCE} -femit-bin=${SOURCE%.zig} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU} ${*}
+		${ZIG} build-exe ../${SOURCE} -femit-bin=${SOURCE%.zig} ${LC} ${FSTRIP} -O ${ZIG_BUILD_MODE} -target ${ZIG_BUILD_TARGET} -mcpu=${ZIG_BUILD_CPU} ${*}
 	fi
 	#----------------------------------------
 fi
