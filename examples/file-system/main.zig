@@ -14,6 +14,7 @@ pub const TEST_DIR3 = "test/1/2/3";
 
 pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
+    const io = init.io;
     const allocator = init.arena.allocator();
     //------------------------------------------------------------
     //
@@ -21,18 +22,18 @@ pub fn main(init: std.process.Init) !void {
     //
     //------------------------------------------------------------
     std.debug.print("\n", .{});
-    const cwd_handle = std.Io.Dir.cwd();
-    const cwd_string = try cwd_handle.realPathFileAlloc(init.io, ".", allocator);
-    std.debug.print("cwd: {s}\n", .{cwd_string});
+    var dir = std.Io.Dir.cwd();
+    const dir_string = try dir.realPathFileAlloc(io, ".", allocator);
+    std.debug.print("cwd: {s}\n", .{dir_string});
     std.debug.print("\n", .{});
     //------------------------------------------------------------
     //
     // delete file if exists
     //
     //------------------------------------------------------------
-    if (std.Io.Dir.statFile(cwd_handle, init.io, TEST_DIR, .{})) |stat| {
+    if (std.Io.Dir.statFile(dir, io, TEST_DIR, .{})) |stat| {
         if (stat.kind == .file) {
-            try std.Io.Dir.deleteFile(cwd_handle, init.io, TEST_DIR);
+            try std.Io.Dir.deleteFile(dir, io, TEST_DIR);
         }
     } else |_| {}
     //------------------------------------------------------------
@@ -40,7 +41,7 @@ pub fn main(init: std.process.Init) !void {
     // create directory
     //
     //------------------------------------------------------------
-    std.Io.Dir.createDirPath(cwd_handle, init.io, TEST_DIR) catch |err| {
+    std.Io.Dir.createDirPath(dir, io, TEST_DIR) catch |err| {
         if (err != error.PathAlreadyExists) {
             std.debug.print("createDirPath: {s}\n", .{@errorName(err)});
             std.process.exit(1);
@@ -48,7 +49,7 @@ pub fn main(init: std.process.Init) !void {
     };
     std.debug.print("createDirPath: directory created\n", .{});
     //------------------------------------------------------------
-    std.Io.Dir.createDirPath(cwd_handle, init.io, TEST_DIR2) catch |err| {
+    std.Io.Dir.createDirPath(dir, io, TEST_DIR2) catch |err| {
         std.debug.print("createDirPath: {s}\n", .{@errorName(err)});
         std.process.exit(1);
     };
@@ -58,7 +59,7 @@ pub fn main(init: std.process.Init) !void {
     // directory / file exists
     //
     //------------------------------------------------------------
-    const statExisting = std.Io.Dir.statFile(cwd_handle, init.io, TEST_DIR2, .{}) catch |err| {
+    const statExisting = std.Io.Dir.statFile(dir, io, TEST_DIR2, .{}) catch |err| {
         std.debug.print("statExisting: {s}\n", .{@errorName(err)});
         std.process.exit(1);
     };
@@ -68,7 +69,7 @@ pub fn main(init: std.process.Init) !void {
         else => std.debug.print("statFile: exists, type: {s}\n", .{@tagName(statExisting.kind)}),
     }
     //------------------------------------------------------------
-    if (std.Io.Dir.statFile(cwd_handle, init.io, TEST_DIR3, .{})) |statResult| {
+    if (std.Io.Dir.statFile(dir, io, TEST_DIR3, .{})) |statResult| {
         switch (statResult.kind) {
             .directory => std.debug.print("statFile: directory exists\n", .{}),
             .file => std.debug.print("statFile: file exists\n", .{}),
@@ -85,8 +86,8 @@ pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
     {
         const file = std.Io.Dir.createFile(
-            cwd_handle,
-            init.io,
+            dir,
+            io,
             "test.txt",
             .{
                 .read = true,
@@ -96,27 +97,27 @@ pub fn main(init: std.process.Init) !void {
             std.debug.print("createFile: {s}\n", .{@errorName(err)});
             std.process.exit(1);
         };
-        defer file.close(init.io);
+        defer file.close(io);
 
-        try file.writeStreamingAll(init.io, "zig createFile/writeStreamingAll test");
+        try file.writeStreamingAll(io, "zig createFile/writeStreamingAll test");
 
-        const stat = try file.stat(init.io);
+        const stat = try file.stat(io);
         const size = stat.size;
 
         // try file.see(0);
 
-        // var buffer: [100]u8 = undefined;
-        // const bytesRead = try file.readAll(&buffer);
+        // // var buffer: [100]u8 = undefined;
+        // // const bytesRead = try file.readAll(&buffer);
 
-        var buffer = try allocator.alloc(u8, size);
-        defer allocator.free(buffer);
-        // var buffer: [4096]u8 = undefined;
+        // var buffer = try allocator.alloc(u8, size);
+        // defer allocator.free(buffer);
+        // // var buffer: [4096]u8 = undefined;
 
-        const bytesRead = try file.readStreaming(init.io, &buffer);
+        // const bytesRead = try file.readStreaming(io, &buffer);
 
         std.debug.print("createFile: writeAll: size: {d}\n", .{size});
-        std.debug.print("readAll: bytesRead: {d}\n", .{bytesRead});
-        std.debug.print("readAll: fileContents: {s}\n", .{buffer[0..bytesRead]});
+        // std.debug.print("readAll: bytesRead: {d}\n", .{bytesRead});
+        // std.debug.print("readAll: fileContents: {s}\n", .{buffer[0..bytesRead]});
         std.debug.print("\n", .{});
     }
     //------------------------------------------------------------
@@ -151,16 +152,18 @@ pub fn main(init: std.process.Init) !void {
     // list directory entries
     //
     //------------------------------------------------------------
-    // {
-    //     var dir = try std.fs.cwd().openDir(".", .{ .iterate = true });
-    //     defer dir.close();
+    {
+        // var dir = try std.fs.cwd().openDir(".", .{ .iterate = true });
+        // defer dir.close();
+        // var dir = std.Io.Dir.cwd();
 
-    //     var dirIterator = dir.iterate();
-    //     while (try dirIterator.next()) |dirContent| {
-    //         std.debug.print("openDir: {}: {s}\n", .{ dirContent.kind, dirContent.name });
-    //     }
-    //     std.debug.print("\n", .{});
-    // }
+        var dirIterator = dir.iterate();
+        while (try dirIterator.next(io)) |dirContent| {
+            std.debug.print("openDir: {}: {s}\n", .{ dirContent.kind, dirContent.name });
+        }
+        // _ = dirIterator;
+        std.debug.print("\n", .{});
+    }
     //------------------------------------------------------------
 }
 

@@ -82,12 +82,30 @@ then
 else
 	#----------------------------------------
 	find /www/zig/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	find /www/zig015/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
 	#----------------------------------------
 fi
 #--------------------------------------------------------------------------------
 process_directory /www/c/
 #--------------------------------------------------------------------------------
 find /www/zig/ -maxdepth 1 -type d | tail -n +2 | while read -r DIR
+do
+	#----------------------------------------
+	DIR_BASENAME=$(basename "${DIR}")
+	#----------------------------------------
+	case "${DIR_BASENAME}" in
+		".git" | "_archive" | "bin" | "libs")
+			# skip these directories
+			;;
+		*)
+			process_directory ${DIR}
+			;;
+	esac
+	#----------------------------------------
+done
+#--------------------------------------------------------------------------------
+
+find /www/zig015/ -maxdepth 1 -type d | tail -n +2 | while read -r DIR
 do
 	#----------------------------------------
 	DIR_BASENAME=$(basename "${DIR}")
