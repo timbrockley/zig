@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
 const std = @import("std");
 //----------------------------------------------------------------------
+const BRIGHT_ORANGE = "\x1B[38;5;214m";
+const RESET = "\x1B[0m";
+//--------------------------------------------------------------------------------
 const CustomError = error{ DivisionByZero, NegativeInput };
 //----------------------------------------------------------------------
 fn safeDivide(a: f64, b: f64) f64 {
@@ -15,9 +18,12 @@ fn divideWithErrors(a: f64, b: f64) !f64 {
 //----------------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
     //----------------------------------------
-    const allocator = init.arena.allocator();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
+    const allocator = gpa.allocator();
     //----------------------------------------
     const args = try init.minimal.args.toSlice(allocator);
+    defer allocator.free(args);
     //----------------------------------------
     if (args.len <= 1) {
         //----------------------------------------

@@ -3,11 +3,16 @@ const std = @import("std");
 const unittest = @import("libs/unittest.zig");
 const tbc = @import("crypto.zig");
 //--------------------------------------------------------------------------------
+const BRIGHT_ORANGE = "\x1B[38;5;214m";
+const RESET = "\x1B[0m";
+//--------------------------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------------
     var ut = try unittest.init(.{ .io = init.io });
     //----------------------------------------------------------------------------
-    var allocator = init.arena.allocator();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
+    const allocator = gpa.allocator();
     //----------------------------------------------------------------------------
     {
         //----------------------------------------

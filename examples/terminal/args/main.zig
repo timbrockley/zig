@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
 const std = @import("std");
 //----------------------------------------------------------------------
+const BRIGHT_ORANGE = "\x1B[38;5;214m";
+const RESET = "\x1B[0m";
+//--------------------------------------------------------------------------------
 const line = [_]u8{'-'} ** 60;
 //----------------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
@@ -18,9 +21,12 @@ pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------
     std.debug.print("{s}\n", .{line});
     //----------------------------------------------------------------------
-    const allocator = init.arena.allocator();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
+    const allocator = gpa.allocator();
     //----------------------------------------
     const args = try init.minimal.args.toSlice(allocator);
+    defer allocator.free(args);
     //----------------------------------------
     std.debug.print("args.len: {d}\n", .{args.len});
     //----------------------------------------
