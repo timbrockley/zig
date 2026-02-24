@@ -45,7 +45,60 @@ pub fn init(options: anytype) !Self {
     return self;
     //------------------------------------------------------------
 }
-//------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
+pub fn compareStringResultError(self: *Self, name: []const u8, result_error: anyerror![]const u8, expected_result: []const u8, expected_error: ?anyerror) !void {
+    //------------------------------------------------------------
+    var fail_count: usize = 0;
+    //------------------------------------------------------------
+    if (result_error) |result| {
+        //----------------------------------------
+        if (expected_error != null) {
+            //----------------------------------------
+            fail_count += 1;
+            try self.errorExpectedFail(name, expected_error.?);
+            //----------------------------------------
+        } else {
+            //----------------------------------------
+            if (!std.mem.eql(u8, result, expected_result)) {
+                //----------------------------------------
+                fail_count += 1;
+                //----------------------------------------
+                try self.compareStringSlice(name, expected_result, result);
+                //----------------------------------------
+            }
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+    } else |err| {
+        //----------------------------------------
+        if (expected_error != null) {
+            //----------------------------------------
+            if (err != expected_error.?) {
+                //----------------------------------------
+                fail_count += 1;
+                try self.compareError(name, expected_error.?, err);
+                //----------------------------------------
+            }
+            //----------------------------------------
+        } else {
+            //----------------------------------------
+            fail_count += 1;
+            try self.errorFail(name, err);
+            //----------------------------------------
+        }
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    if (fail_count == 0) try self.pass(name, "");
+    //------------------------------------------------------------
+    return;
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
 pub fn compareStringSlice(self: *Self, name: []const u8, expected: []const u8, actual: []const u8) !void {
     //------------------------------------------------------------
     if (std.mem.eql(u8, expected, actual)) {
@@ -150,6 +203,32 @@ pub fn compareInt(self: *Self, name: []const u8, expected: u64, actual: u64) !vo
     //------------------------------------------------------------
 }
 //------------------------------------------------------------
+pub fn compareBool(self: *Self, name: []const u8, expected: bool, actual: bool) !void {
+    //----------------------------------------------------------------------------
+    if (expected == actual) {
+        //----------------------------------------
+        try self.printPass();
+        try self.stdout_print(": {s}\n", .{name});
+        //----------------------------------------
+        self.count_passed += 1;
+        //----------------------------------------
+    } else {
+        //----------------------------------------
+        try self.printFail();
+        try self.stdout_print(":     {s}\n", .{name});
+        try self.printExpected();
+        try self.stdout_print(": {}\n", .{expected});
+        try self.printActual();
+        try self.stdout_print(":   {}\n", .{actual});
+        //----------------------------------------
+        self.count_failed += 1;
+        //----------------------------------------
+    }
+    //----------------------------------------------------------------------------
+    try self.printLine();
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
 pub fn compareError(self: *Self, name: []const u8, expected_error: anyerror, actual_error: anyerror) !void {
     //----------------------------------------------------------------------------
     if (expected_error == actual_error) {
@@ -175,6 +254,8 @@ pub fn compareError(self: *Self, name: []const u8, expected_error: anyerror, act
     try self.printLine();
     //----------------------------------------------------------------------------
 }
+//--------------------------------------------------------------------------------
+//################################################################################
 //--------------------------------------------------------------------------------
 pub fn pass(self: *Self, name: []const u8, message: []const u8) !void {
     //----------------------------------------------------------------------------
@@ -254,6 +335,8 @@ pub fn errorExpectedFail(self: *Self, name: []const u8, expected_error: anyerror
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
 pub fn printExpected(self: *Self) !void {
     try self.printColour(BLUE, "EXPECTED");
 }
@@ -277,7 +360,9 @@ pub fn printLine(self: *Self) !void {
     try self.stdout_print("{s}\n", .{"-" ** 80});
     //------------------------------------------------------------
 }
-//------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
 pub fn printSummary(self: *Self) !void {
     //------------------------------------------------------------
     const io = self.io orelse return error.InvalidStdIo;
@@ -323,83 +408,99 @@ pub fn stderr_writeAll(self: *Self, bytes: []const u8) !void {
     try self.stderr_writer.?.interface.writeAll(bytes);
 }
 //--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
 pub fn main(processInit: std.process.Init) !void {
     //------------------------------------------------------------
     var ut = try init(.{ .io = processInit.io });
     //------------------------------------------------------------
-    // test case 1: compareStringSlice - should pass
+    // test case 1: compareStringResultError - should pass
     //------------------------------------------------------------
-    const expected_string = "foo";
-    const actual_string_pass = "foo";
-    //----------------------------------------
-    try ut.compareStringSlice("test case 1 should pass", expected_string, actual_string_pass);
+    try ut.compareStringResultError("test case 1: compareStringResultError - should pass", "expected_result", "expected_result", null);
     //------------------------------------------------------------
-    // test case 2: compareStringSlice - should fail
+    // test case 2: compareStringResultError - should fail
     //------------------------------------------------------------
-    const actual_string_fail = "bar";
-    //----------------------------------------
-    try ut.compareStringSlice("test case 2 should fail", expected_string, actual_string_fail);
+    try ut.compareStringResultError("test case 2: compareStringResultError - should fail", "expected_result", "invalid_result", null);
     //------------------------------------------------------------
-    // test case 3: compareByteSlice - should pass
+    // test case 3: compareStringResultError - should pass
     //------------------------------------------------------------
-    const expected_bytes = "hello";
-    const actual_bytes_pass = "hello";
-    //----------------------------------------
-    try ut.compareByteSlice("test case 3 should pass", expected_bytes, actual_bytes_pass);
+    try ut.compareStringResultError("test case 3: compareStringResultError - should pass", error.ExpectedError, "", error.ExpectedError);
     //------------------------------------------------------------
-    // test case 4: compareByteSlice - should fail
+    // test case 4: compareStringResultError - should fail
     //------------------------------------------------------------
-    const actual_bytes_fail = "world";
-    //----------------------------------------
-    try ut.compareByteSlice("test case 4 should fail", expected_bytes, actual_bytes_fail);
+    try ut.compareStringResultError("test case 4: compareStringResultError - should fail", error.UnexpectedError, "", null);
     //------------------------------------------------------------
-    // test case 5: compareByte - should pass
+    // test case 5: compareStringSlice - should pass
     //------------------------------------------------------------
-    const expected_byte = 0;
-    const actual_byte_pass = 0;
-    //----------------------------------------
-    try ut.compareByte("test case 5 should pass", expected_byte, actual_byte_pass);
+    try ut.compareStringSlice("test case 5 should pass", "foo", "foo");
     //------------------------------------------------------------
-    // test case 6: compareByte - should fail
+    // test case 6: compareStringSlice - should fail
     //------------------------------------------------------------
-    const actual_byte_fail = 1;
-    //----------------------------------------
-    try ut.compareByte("test case 6 should fail", expected_byte, actual_byte_fail);
+    try ut.compareStringSlice("test case 6 should fail", "foo", "bar");
     //------------------------------------------------------------
-    // test case 7: compareInt - should pass
+    // test case 7: compareByteSlice - should pass
     //------------------------------------------------------------
-    const expected_int = 0;
-    const actual_int_pass = 0;
-    //----------------------------------------
-    try ut.compareInt("test case 7 should pass", expected_int, actual_int_pass);
+    try ut.compareByteSlice("test case 7 should pass", "hello", "hello");
     //------------------------------------------------------------
-    // test case 8: compareInt - should fail
+    // test case 8: compareByteSlice - should fail
     //------------------------------------------------------------
-    const actual_int_fail = 1;
-    //----------------------------------------
-    try ut.compareInt("test case 8 should fail", expected_int, actual_int_fail);
+    try ut.compareByteSlice("test case 8 should fail", "hello", "world");
     //------------------------------------------------------------
-    // test case 9: compareError - should pass
+    // test case 9: compareByte - should pass
     //------------------------------------------------------------
-    const expected_error = error.ExpectError;
-    const actual_error = error.ExpectError;
-    //----------------------------------------
-    try ut.compareError("test case 9 should pass", expected_error, actual_error);
+    try ut.compareByte("test case 9 should pass", 0, 0);
     //------------------------------------------------------------
-    // test case 10: errorExpectedFail - should fail
+    // test case 10: compareByte - should fail
     //------------------------------------------------------------
-    const expected_error_fail = error.ExpectedError;
-    //----------------------------------------
-    try ut.errorExpectedFail("test case 10 should fail", expected_error_fail);
+    try ut.compareByte("test case 10 should fail", 0, 1);
     //------------------------------------------------------------
-    // test case 11: compareError - should fail
+    // test case 11: compareInt - should pass
     //------------------------------------------------------------
-    const expected_error_fail_compare = error.ExpectError;
-    const actual_error_fail_compare = error.InvalidError;
-    //----------------------------------------
-    try ut.compareError("test case 11 should fail", expected_error_fail_compare, actual_error_fail_compare);
+    try ut.compareInt("test case 11 should pass", 0, 0);
+    //------------------------------------------------------------
+    // test case 12: compareInt - should fail
+    //------------------------------------------------------------
+    try ut.compareInt("test case 12 should fail", 0, 1);
+    //------------------------------------------------------------
+    // test case 13: compareBool - should pass
+    //------------------------------------------------------------
+    try ut.compareBool("test case 13 should pass", true, true);
+    //------------------------------------------------------------
+    // test case 14: compareBool - should fail
+    //------------------------------------------------------------
+    try ut.compareBool("test case 14 should fail", true, false);
+    //------------------------------------------------------------
+    // test case 15: compareError - should pass
+    //------------------------------------------------------------
+    try ut.compareError("test case 15 should pass", error.ExpectError, error.ExpectError);
+    //------------------------------------------------------------
+    // test case 16: compareError - should fail
+    //------------------------------------------------------------
+    try ut.compareError("test case 16 should fail", error.ExpectError, error.InvalidError);
+    //------------------------------------------------------------
+    // test case 17: pass - should pass
+    //------------------------------------------------------------
+    try ut.pass("test case 17 should pass", "");
+    //------------------------------------------------------------
+    // test case 18: fail - should fail
+    //------------------------------------------------------------
+    try ut.fail("test case 18 should fail", "");
+    //------------------------------------------------------------
+    // test case 19: errorPass - should pass
+    //------------------------------------------------------------
+    try ut.errorPass("test case 19 should pass", error.ExpectedError);
+    //------------------------------------------------------------
+    // test case 20: errorFail - should fail
+    //------------------------------------------------------------
+    try ut.errorFail("test case 20 should fail", error.UnexpectedError);
+    //------------------------------------------------------------
+    // test case 21: errorExpectedFail - should fail
+    //------------------------------------------------------------
+    try ut.errorExpectedFail("test case 21 should fail", error.ExpectedError);
     //------------------------------------------------------------
     try ut.printSummary();
     //------------------------------------------------------------
 }
+//--------------------------------------------------------------------------------
+//################################################################################
 //--------------------------------------------------------------------------------

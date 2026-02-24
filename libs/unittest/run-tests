@@ -10,14 +10,27 @@ zig-run >"${STDOUT}" 2>"${STDERR}"
 #--------------------------------------------------------------------------------
 [ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
 #--------------------------------------------------------------------------------
-[[ ! "${OUTPUT}" =~ "test case 1 should pass" ]] && echo "(${LINENO}) test case 1 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 2 should fail" ]] && echo "(${LINENO}) test case 2 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 3 should pass" ]] && echo "(${LINENO}) test case 3 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 4 should fail" ]] && echo "(${LINENO}) test case 4 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 1: compareStringResultError - should pass" ]] && echo "(${LINENO}) test case 1: compareStringResultError - should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 2: compareStringResultError - should fail" ]] && echo "(${LINENO}) test case 2: compareStringResultError - should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 3: compareStringResultError - should pass" ]] && echo "(${LINENO}) test case 3: compareStringResultError - should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 4: compareStringResultError - should fail" ]] && echo "(${LINENO}) test case 4: compareStringResultError - should fail" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "test case 5 should pass" ]] && echo "(${LINENO}) test case 5 should pass" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "test case 6 should fail" ]] && echo "(${LINENO}) test case 6 should fail" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "test case 7 should pass" ]] && echo "(${LINENO}) test case 7 should pass" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "test case 8 should fail" ]] && echo "(${LINENO}) test case 8 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 9 should pass" ]] && echo "(${LINENO}) test case 9 should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 10 should fail" ]] && echo "(${LINENO}) test case 10 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 11 should pass" ]] && echo "(${LINENO}) test case 11 should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 12 should fail" ]] && echo "(${LINENO}) test case 12 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 13 should pass" ]] && echo "(${LINENO}) test case 13 should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 14 should fail" ]] && echo "(${LINENO}) test case 14 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 15 should pass" ]] && echo "(${LINENO}) test case 15 should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 16 should fail" ]] && echo "(${LINENO}) test case 16 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 17 should pass" ]] && echo "(${LINENO}) test case 17 should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 18 should fail" ]] && echo "(${LINENO}) test case 18 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 19 should pass" ]] && echo "(${LINENO}) test case 19 should pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 20 should fail" ]] && echo "(${LINENO}) test case 20 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "test case 21 should fail" ]] && echo "(${LINENO}) test case 21 should fail" >> ${ERROR_LOG}
 #--------------------------------------------------------------------------------
 if [ -f ${ERROR_LOG} ]
 then
