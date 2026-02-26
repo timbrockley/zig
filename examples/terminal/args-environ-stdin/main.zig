@@ -38,5 +38,31 @@ pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------
     std.debug.print("{s}\n", .{line});
     //----------------------------------------------------------------------
+    if (init.environ_map.get("HOME")) |home| {
+        std.debug.print("HOME: {s}\n", .{home});
+    } else {
+        std.debug.print("HOME not set\n", .{});
+    }
+    //----------------------------------------------------------------------
+    std.debug.print("{s}\n", .{line});
+    //----------------------------------------------------------------------
+    const stdin_file = std.Io.File.stdin();
+    const stdin_stat = try stdin_file.stat(init.io);
+
+    if (stdin_stat.kind == .character_device) std.debug.print("enter stdin (ctrl + D to end): ", .{});
+
+    var read_buffer: [1024]u8 = undefined;
+    var file_reader = stdin_file.reader(init.io, &read_buffer);
+
+    var data = std.ArrayList(u8){};
+    defer data.deinit(allocator);
+
+    try std.Io.Reader.appendRemainingUnlimited(&file_reader.interface, allocator, &data);
+
+    if (stdin_stat.kind == .character_device) std.debug.print("\n", .{});
+    std.debug.print("stdin ({d} bytes): [{s}]\n", .{ data.items.len, data.items });
+    //----------------------------------------------------------------------
+    std.debug.print("{s}\n", .{line});
+    //----------------------------------------------------------------------
 }
 //----------------------------------------------------------------------

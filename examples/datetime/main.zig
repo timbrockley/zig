@@ -101,7 +101,6 @@ pub fn toTimestamp(datetime: DateTime) !i64 {
 
 pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
-    // const now = std.Io.Timestamp.now(init.io, .real);
     const now = std.Io.Timestamp.now(init.io, .real);
     //------------------------------------------------------------
     const ts: i64 = now.toSeconds();

@@ -19,7 +19,6 @@ pub fn main(init: std.process.Init) !void {
         init.io,
         runOptions,
     ) catch |err| {
-        // std.debug.print("Failed to run child process: {any}\n", .{err});
         return err;
     };
     defer {

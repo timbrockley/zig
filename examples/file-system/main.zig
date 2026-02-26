@@ -45,7 +45,7 @@ pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
     if (std.Io.Dir.statFile(dir, io, TEST_DIR, .{})) |stat| {
         if (stat.kind == .file) {
-            try std.Io.Dir.deleteFile(dir, io, TEST_DIR);
+            try dir.deleteFile(io, TEST_DIR);
         }
     } else |_| {}
     //------------------------------------------------------------
@@ -120,23 +120,33 @@ pub fn main(init: std.process.Init) !void {
     //
     //------------------------------------------------------------
     {
+        //----------------------------------------
         const file = try dir.openFile(io, FILENAME1, .{});
         defer file.close(io);
-
+        //----------------------------------------
         const stat = try file.stat(io);
-
+        //----------------------------------------
         var read_buffer: [1024]u8 = undefined;
         var file_reader = file.reader(io, &read_buffer);
-
-        const data = try file_reader.interface.readAlloc(
+        //----------------------------------------
+        const data1 = try file_reader.interface.readAlloc(
             allocator,
             stat.size,
         );
-        defer allocator.free(data);
+        defer allocator.free(data1);
+        //----------------------------------------
+        try file_reader.seekTo(0);
+        //----------------------------------------
+        var data2 = std.ArrayList(u8){};
+        defer data2.deinit(allocator);
 
+        try std.Io.Reader.appendRemainingUnlimited(&file_reader.interface, allocator, &data2);
+        //----------------------------------------
         std.debug.print("openFile: stat.size: {d}\n", .{stat.size});
-        std.debug.print("reader: toOwnedSlice: {s}\n", .{data});
+        std.debug.print("reader: readAlloc: {s}\n", .{data1});
+        std.debug.print("reader: appendRemainingUnlimited: {s}\n", .{data2.items});
         std.debug.print("\n", .{});
+        //----------------------------------------
     }
     //------------------------------------------------------------
     //
