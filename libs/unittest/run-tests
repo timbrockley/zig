@@ -10,27 +10,27 @@ zig-run >"${STDOUT}" 2>"${STDERR}"
 #--------------------------------------------------------------------------------
 [ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
 #--------------------------------------------------------------------------------
-[[ ! "${OUTPUT}" =~ "test case 1: compareStringResultError - should pass" ]] && echo "(${LINENO}) test case 1: compareStringResultError - should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 2: compareStringResultError - should fail" ]] && echo "(${LINENO}) test case 2: compareStringResultError - should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 3: compareStringResultError - should pass" ]] && echo "(${LINENO}) test case 3: compareStringResultError - should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 4: compareStringResultError - should fail" ]] && echo "(${LINENO}) test case 4: compareStringResultError - should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 5 should pass" ]] && echo "(${LINENO}) test case 5 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 6 should fail" ]] && echo "(${LINENO}) test case 6 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 7 should pass" ]] && echo "(${LINENO}) test case 7 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 8 should fail" ]] && echo "(${LINENO}) test case 8 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 9 should pass" ]] && echo "(${LINENO}) test case 9 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 10 should fail" ]] && echo "(${LINENO}) test case 10 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 11 should pass" ]] && echo "(${LINENO}) test case 11 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 12 should fail" ]] && echo "(${LINENO}) test case 12 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 13 should pass" ]] && echo "(${LINENO}) test case 13 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 14 should fail" ]] && echo "(${LINENO}) test case 14 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 15 should pass" ]] && echo "(${LINENO}) test case 15 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 16 should fail" ]] && echo "(${LINENO}) test case 16 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 17 should pass" ]] && echo "(${LINENO}) test case 17 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 18 should fail" ]] && echo "(${LINENO}) test case 18 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 19 should pass" ]] && echo "(${LINENO}) test case 19 should pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 20 should fail" ]] && echo "(${LINENO}) test case 20 should fail" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "test case 21 should fail" ]] && echo "(${LINENO}) test case 21 should fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareStringResultError expected_result" ]] && echo "(${LINENO}) compareStringResultError expected_result" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareStringResultError invalid_result" ]] && echo "(${LINENO}) compareStringResultError invalid_result" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareStringResultError error.ExpectedError" ]] && echo "(${LINENO}) compareStringResultError error.ExpectedError" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareStringResultError error.UnexpectedError" ]] && echo "(${LINENO}) compareStringResultError error.UnexpectedError" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareStringSlice pass" ]] && echo "(${LINENO}) compareStringSlice pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareStringSlice fail" ]] && echo "(${LINENO}) compareStringSlice fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareByteSlice pass" ]] && echo "(${LINENO}) compareByteSlice pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareByteSlice fail" ]] && echo "(${LINENO}) compareByteSlice fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareByte pass" ]] && echo "(${LINENO}) compareByte pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareByte fail" ]] && echo "(${LINENO}) compareByte fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareInt pass" ]] && echo "(${LINENO}) compareInt pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareInt fail" ]] && echo "(${LINENO}) compareInt fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareBool pass" ]] && echo "(${LINENO}) compareBool pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareBool fail" ]] && echo "(${LINENO}) compareBool fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareError ExpectError" ]] && echo "(${LINENO}) compareError ExpectError" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "compareError InvalidError" ]] && echo "(${LINENO}) compareError InvalidError" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "pass" ]] && echo "(${LINENO}) pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "fail" ]] && echo "(${LINENO}) fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "errorPass error.ExpectedError" ]] && echo "(${LINENO}) errorPass error.ExpectedError" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "errorFail error.UnexpectedError" ]] && echo "(${LINENO}) errorFail error.UnexpectedError" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "errorExpectedFail error.ExpectedError" ]] && echo "(${LINENO}) errorExpectedFail error.ExpectedError" >> ${ERROR_LOG}
 #--------------------------------------------------------------------------------
 if [ -f ${ERROR_LOG} ]
 then

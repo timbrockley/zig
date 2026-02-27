@@ -412,93 +412,101 @@ pub fn stderr_writeAll(self: *Self, bytes: []const u8) !void {
 //--------------------------------------------------------------------------------
 pub fn main(processInit: std.process.Init) !void {
     //------------------------------------------------------------
+    //############################################################
+    //------------------------------------------------------------
     var ut = try init(.{ .io = processInit.io });
     //------------------------------------------------------------
-    // test case 1: compareStringResultError - should pass
+    //############################################################
     //------------------------------------------------------------
-    try ut.compareStringResultError("test case 1: compareStringResultError - should pass", "expected_result", "expected_result", null);
+    // compareStringResultError expected_result
     //------------------------------------------------------------
-    // test case 2: compareStringResultError - should fail
+    try ut.compareStringResultError("compareStringResultError expected_result", "expected_result", "expected_result", null);
     //------------------------------------------------------------
-    try ut.compareStringResultError("test case 2: compareStringResultError - should fail", "expected_result", "invalid_result", null);
+    // compareStringResultError invalid_result - should fail
     //------------------------------------------------------------
-    // test case 3: compareStringResultError - should pass
+    try ut.compareStringResultError("compareStringResultError invalid_result", "expected_result", "invalid_result", null);
     //------------------------------------------------------------
-    try ut.compareStringResultError("test case 3: compareStringResultError - should pass", error.ExpectedError, "", error.ExpectedError);
+    // compareStringResultError error.ExpectedError - should pass
     //------------------------------------------------------------
-    // test case 4: compareStringResultError - should fail
+    try ut.compareStringResultError("compareStringResultError error.ExpectedError", error.ExpectedError, "", error.ExpectedError);
     //------------------------------------------------------------
-    try ut.compareStringResultError("test case 4: compareStringResultError - should fail", error.UnexpectedError, "", null);
+    // compareStringResultError error.UnexpectedError - should fail
     //------------------------------------------------------------
-    // test case 5: compareStringSlice - should pass
+    try ut.compareStringResultError("compareStringResultError error.UnexpectedError", error.UnexpectedError, "", null);
     //------------------------------------------------------------
-    try ut.compareStringSlice("test case 5 should pass", "foo", "foo");
+    // compareStringSlice pass
     //------------------------------------------------------------
-    // test case 6: compareStringSlice - should fail
+    try ut.compareStringSlice("compareStringSlice pass", "foo", "foo");
     //------------------------------------------------------------
-    try ut.compareStringSlice("test case 6 should fail", "foo", "bar");
+    // compareStringSlice fail
     //------------------------------------------------------------
-    // test case 7: compareByteSlice - should pass
+    try ut.compareStringSlice("compareStringSlice fail", "foo", "bar");
     //------------------------------------------------------------
-    try ut.compareByteSlice("test case 7 should pass", "hello", "hello");
+    // compareByteSlice pass
     //------------------------------------------------------------
-    // test case 8: compareByteSlice - should fail
+    try ut.compareByteSlice("compareByteSlice pass", "hello", "hello");
     //------------------------------------------------------------
-    try ut.compareByteSlice("test case 8 should fail", "hello", "world");
+    // compareByteSlice fail
     //------------------------------------------------------------
-    // test case 9: compareByte - should pass
+    try ut.compareByteSlice("compareByteSlice fail", "hello", "world");
     //------------------------------------------------------------
-    try ut.compareByte("test case 9 should pass", 0, 0);
+    // compareByte pass
     //------------------------------------------------------------
-    // test case 10: compareByte - should fail
+    try ut.compareByte("compareByte pass", 0, 0);
     //------------------------------------------------------------
-    try ut.compareByte("test case 10 should fail", 0, 1);
+    // compareByte fail
     //------------------------------------------------------------
-    // test case 11: compareInt - should pass
+    try ut.compareByte("compareByte fail", 0, 1);
     //------------------------------------------------------------
-    try ut.compareInt("test case 11 should pass", 0, 0);
+    // compareInt pass
     //------------------------------------------------------------
-    // test case 12: compareInt - should fail
+    try ut.compareInt("compareInt pass", 0, 0);
     //------------------------------------------------------------
-    try ut.compareInt("test case 12 should fail", 0, 1);
+    // compareInt fail
     //------------------------------------------------------------
-    // test case 13: compareBool - should pass
+    try ut.compareInt("compareInt fail", 0, 1);
     //------------------------------------------------------------
-    try ut.compareBool("test case 13 should pass", true, true);
+    // compareBool pass
     //------------------------------------------------------------
-    // test case 14: compareBool - should fail
+    try ut.compareBool("compareBool pass", true, true);
     //------------------------------------------------------------
-    try ut.compareBool("test case 14 should fail", true, false);
+    // compareBool fail
     //------------------------------------------------------------
-    // test case 15: compareError - should pass
+    try ut.compareBool("compareBool fail", true, false);
     //------------------------------------------------------------
-    try ut.compareError("test case 15 should pass", error.ExpectError, error.ExpectError);
+    // compareError pass
     //------------------------------------------------------------
-    // test case 16: compareError - should fail
+    try ut.compareError("compareError ExpectError", error.ExpectError, error.ExpectError);
     //------------------------------------------------------------
-    try ut.compareError("test case 16 should fail", error.ExpectError, error.InvalidError);
+    // compareError fail
     //------------------------------------------------------------
-    // test case 17: pass - should pass
+    try ut.compareError("compareError InvalidError", error.ExpectError, error.InvalidError);
     //------------------------------------------------------------
-    try ut.pass("test case 17 should pass", "");
+    // pass
     //------------------------------------------------------------
-    // test case 18: fail - should fail
+    try ut.pass("pass", "");
     //------------------------------------------------------------
-    try ut.fail("test case 18 should fail", "");
+    // fail
     //------------------------------------------------------------
-    // test case 19: errorPass - should pass
+    try ut.fail("fail", "");
     //------------------------------------------------------------
-    try ut.errorPass("test case 19 should pass", error.ExpectedError);
+    // errorPass error.ExpectedError
     //------------------------------------------------------------
-    // test case 20: errorFail - should fail
+    try ut.errorPass("errorPass error.ExpectedError", error.ExpectedError);
     //------------------------------------------------------------
-    try ut.errorFail("test case 20 should fail", error.UnexpectedError);
+    // errorFail error.UnexpectedError
     //------------------------------------------------------------
-    // test case 21: errorExpectedFail - should fail
+    try ut.errorFail("errorFail error.UnexpectedError", error.UnexpectedError);
     //------------------------------------------------------------
-    try ut.errorExpectedFail("test case 21 should fail", error.ExpectedError);
+    // errorExpectedFail error.ExpectedError
+    //------------------------------------------------------------
+    try ut.errorExpectedFail("errorExpectedFail error.ExpectedError", error.ExpectedError);
+    //------------------------------------------------------------
+    //############################################################
     //------------------------------------------------------------
     try ut.printSummary();
+    //------------------------------------------------------------
+    //############################################################
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
