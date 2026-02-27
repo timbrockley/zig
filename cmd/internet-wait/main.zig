@@ -2,33 +2,23 @@
 // Copyright 2026, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
-
-// todo => re-write for v0.16
-
 const std: type = @import("std");
 //--------------------------------------------------------------------------------
 const ADDR: []const u8 = "1.1.1.1";
 const PORT: u16 = 53;
-
-const MAX_BAR_LEN: u8 = 10;
-const DURATION: u64 = 100 * std.time.ns_per_ms;
 //--------------------------------------------------------------------------------
-
+const MAX_BAR_LEN: u8 = 10;
+const DURATION: u64 = 100;
+//--------------------------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
     var stdout_writer = std.Io.File.Writer.init(.stdout(), init.io, &.{});
     const stdout = &stdout_writer.interface;
     //------------------------------------------------------------
-    // todo => use init.gpa instead ?
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-
-    const allocator = gpa.allocator();
-
     var bar_index: u8 = 0;
     var bar: [MAX_BAR_LEN]u8 = undefined;
 
-    while (!connected(allocator)) {
+    while (!connected(init.io)) {
         fillBar(&bar, bar_index);
 
         try stdout.print("\rWaiting for internet connection [{s}]", .{bar});
@@ -52,9 +42,11 @@ fn fillBar(bar: *[MAX_BAR_LEN]u8, bar_index: u8) void {
     }
 }
 //--------------------------------------------------------------------------------
-pub fn connected(allocator: std.mem.Allocator) bool {
-    const s = std.net.tcpConnectToHost(allocator, ADDR, PORT) catch return false;
-    defer s.close();
+pub fn connected(io: std.Io) bool {
+    const addr = std.Io.net.IpAddress.resolve(io, ADDR, PORT) catch return false;
+    const s = std.Io.net.IpAddress.connect(addr, io, .{ .mode = .stream }) catch return false;
+    defer s.close(io);
     return true;
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------

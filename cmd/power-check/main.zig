@@ -2,12 +2,14 @@
 // Copyright 2025, Tim Brockley. All rights reserved.
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
-
 const std = @import("std");
 const builtin = @import("builtin");
+//--------------------------------------------------------------------------------
 
-var stdout_writer = std.fs.File.stdout().writer(&.{});
-const stdout_interface = &stdout_writer.interface;
+var io: std.Io = undefined;
+
+const BRIGHT_ORANGE = "\x1B[38;5;214m";
+const RESET = "\x1B[0m";
 
 //--------------------------------------------------------------------------------
 
@@ -22,10 +24,12 @@ pub const PowerStatus = enum {
 
 //--------------------------------------------------------------------------------
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
+    //------------------------------------------------------------
+    io = init.io;
     //------------------------------------------------------------
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
+    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
     const allocator = gpa.allocator();
     //------------------------------------------------------------
     const power_status = switch (builtin.os.tag) {
@@ -38,8 +42,8 @@ pub fn main() !void {
         },
     };
     //------------------------------------------------------------
-    var it = try std.process.ArgIterator.initWithAllocator(allocator);
-    defer it.deinit();
+    var it = init.minimal.args.iterate();
+    //------------------------------------------------------------
     _ = it.skip();
     //------------------------------------------------------------
     if (it.next()) |arg1| {
@@ -54,11 +58,11 @@ pub fn main() !void {
     }
     //------------------------------------------------------------
     if (power_status == .Mains) {
-        try stdout_interface.writeAll("power supply: mains power\n");
+        try std.Io.File.stdout().writeStreamingAll(io, "power supply: mains power\n");
     } else if (power_status == .Battery) {
-        try stdout_interface.writeAll("power supply: battery power\n");
+        try std.Io.File.stdout().writeStreamingAll(io, "power supply: battery power\n");
     } else {
-        try stdout_interface.writeAll("power supply: unknown source\n");
+        try std.Io.File.stdout().writeStreamingAll(io, "power supply: unknown source\n");
     }
     //------------------------------------------------------------
     std.process.exit(0);
@@ -80,25 +84,28 @@ pub fn powerCheckFilePath(allocator: std.mem.Allocator) !PowerStatus {
     const ps_filepath = try findPSFilePath(allocator);
     defer allocator.free(ps_filepath);
     //------------------------------------------------------------
-    var file = try std.fs.cwd().openFile(ps_filepath, .{});
-    defer file.close();
+    const file = try std.Io.Dir.cwd().openFile(io, ps_filepath, .{});
     //------------------------------------------------------------
-    var buffer: [1]u8 = undefined;
-    const bytes_read = try file.readAll(&buffer);
+    var read_buffer: [1024]u8 = undefined;
+    var file_reader = file.reader(io, &read_buffer);
+    //----------------------------------------
+    const data = try file_reader.interface.readAlloc(
+        allocator,
+        1,
+    );
+    defer allocator.free(data);
     //------------------------------------------------------------
-    if (bytes_read == 0) return error.ReadError;
-    //------------------------------------------------------------
-    return if (buffer[0] == '1') .Mains else .Battery;
+    return if (data[0] == '1') .Mains else .Battery;
     //------------------------------------------------------------
 }
 
 pub fn findPSFilePath(allocator: std.mem.Allocator) ![]const u8 {
     //------------------------------------------------------------
-    var dir = try std.fs.cwd().openDir(PS_SEARCH_PATH, .{ .iterate = true });
-    defer dir.close();
+    var opendir_handle = try std.Io.Dir.cwd().openDir(io, PS_SEARCH_PATH, .{ .iterate = true });
+    defer opendir_handle.close(io);
     //------------------------------------------------------------
-    var dirIterator = dir.iterate();
-    while (try dirIterator.next()) |dir_entry| {
+    var dirIterator = opendir_handle.iterate();
+    while (try dirIterator.next(io)) |dir_entry| {
         if (std.mem.startsWith(u8, dir_entry.name, "AC")) {
             return try std.fmt.allocPrint(allocator, "{s}/{s}/online", .{ PS_SEARCH_PATH, dir_entry.name });
         }
@@ -110,17 +117,26 @@ pub fn findPSFilePath(allocator: std.mem.Allocator) ![]const u8 {
 
 pub fn powerCheck_upower(allocator: std.mem.Allocator) !PowerStatus {
     //------------------------------------------------------------
-    const stdout = try childProcess(
-        allocator,
-        &[_][]const u8{ "upower", "--dump" },
-    );
+    const runOptions = std.process.RunOptions{
+        .argv = &[_][]const u8{ "upower", "--dump" },
+    };
     //------------------------------------------------------------
-    defer allocator.free(stdout);
+    const runResult = std.process.run(
+        allocator,
+        io,
+        runOptions,
+    ) catch |err| {
+        return err;
+    };
+    defer {
+        allocator.free(runResult.stdout);
+        allocator.free(runResult.stderr);
+    }
     //------------------------------------------------------------
     var using_battery = false;
     var line_matched = false;
     //------------------------------------------------------------
-    var lines = std.mem.splitScalar(u8, stdout, '\n');
+    var lines = std.mem.splitScalar(u8, runResult.stdout, '\n');
 
     while (lines.next()) |line| {
         if (std.mem.indexOf(u8, line, "on-battery:")) |pos| {
