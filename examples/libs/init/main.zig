@@ -19,7 +19,7 @@ pub fn init(options: anytype) Self {
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-pub fn unixTimestamp(self: Self) !i64 {
+pub fn unixTimestamp(self: *Self) !i64 {
     //------------------------------------------------------------
     return if (self.io) |io|
         std.Io.Timestamp.now(io, .real).toSeconds()
