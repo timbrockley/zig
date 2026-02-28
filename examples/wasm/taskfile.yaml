@@ -1,0 +1,24 @@
+version: '3'
+
+vars:
+  CACHE_PATH: ".zig-cache"
+  OUTPUT_PATH: "zig-out"
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+
+  build:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../math.zig -target wasm32-freestanding -fno-entry --export=add
+      - zig build-exe ../wasi-args.zig -O ReleaseSmall -target wasm32-wasi
+
+  run:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - silent: true
+        cmd: |
+          ../call-wasm.ts -- {{.CLI_ARGS}}
+          wasmtime wasi-args.wasm 123 hello
