@@ -47,20 +47,30 @@ pub fn main(init: std.process.Init) !void {
     std.debug.print("{s}\n", .{line});
     //----------------------------------------------------------------------
     const stdin_file = std.Io.File.stdin();
-    const stdin_stat = try stdin_file.stat(init.io);
+    //----------------------------------------------------------------------
+    var stdin_read_buffer: [1024]u8 = undefined;
+    var stdin_file_reader = stdin_file.reader(init.io, &stdin_read_buffer);
+    //----------------------------------------------------------------------
+    // const stdin_stat = try stdin_file.stat(init.io);
+    // if (stdin_stat.kind == .character_device) std.debug.print("enter stdin: ", .{});
+    if (try stdin_file.isTty(init.io)) {
+        //----------------------------------------------------------------------
+        std.debug.print("enter stdin: ", .{});
 
-    if (stdin_stat.kind == .character_device) std.debug.print("enter stdin (ctrl + D to end): ", .{});
+        const data = try stdin_file_reader.interface.takeDelimiterExclusive('\n');
 
-    var read_buffer: [1024]u8 = undefined;
-    var file_reader = stdin_file.reader(init.io, &read_buffer);
+        std.debug.print("stdin ({d} bytes): [{s}]\n", .{ data.len, data });
+        //----------------------------------------------------------------------
+    } else {
+        //----------------------------------------------------------------------
+        var data = std.ArrayList(u8){};
+        defer data.deinit(allocator);
 
-    var data = std.ArrayList(u8){};
-    defer data.deinit(allocator);
+        try std.Io.Reader.appendRemainingUnlimited(&stdin_file_reader.interface, allocator, &data);
 
-    try std.Io.Reader.appendRemainingUnlimited(&file_reader.interface, allocator, &data);
-
-    if (stdin_stat.kind == .character_device) std.debug.print("\n", .{});
-    std.debug.print("stdin ({d} bytes): [{s}]\n", .{ data.items.len, data.items });
+        std.debug.print("stdin ({d} bytes): [{s}]\n", .{ data.items.len, data.items });
+        //----------------------------------------------------------------------
+    }
     //----------------------------------------------------------------------
     std.debug.print("{s}\n", .{line});
     //----------------------------------------------------------------------
