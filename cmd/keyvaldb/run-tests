@@ -1,0 +1,121 @@
+#!/bin/bash
+#--------------------------------------------------------------------------------
+#################################################################################
+#--------------------------------------------------------------------------------
+# safety check due to remove database directory requests below
+[ ! -f main.zig ] && { echo "(${LINENO}) invalid source directory"; exit 1; }
+#--------------------------------------------------------------------------------
+[ ! -d zig-out ] && mkdir zig-out
+cd zig-out
+#--------------------------------------------------------------------------------
+ERROR_LOG="error.log"; [ -f "${ERROR_LOG}" ] && rm "${ERROR_LOG}"
+#--------------------------------------------------------------------------------
+STDOUT=$(mktemp); STDERR=$(mktemp)
+#--------------------------------------------------------------------------------
+# remove database directory if already exists
+if [ -d test ]
+then
+    zig-run ../main.zig test drop >"${STDOUT}" 2>"${STDERR}"
+    [ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+    [[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+fi
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test INVALID_INSTRUCTION >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "InvalidInstruction" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test create >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test create >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "DatabaseAlreadyExists" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test set k1 v1 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test set k2 v2 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test set k3 v3 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test set k4 v4 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+echo -ne "STDIN_DATA" | zig-run ../main.zig test set k3 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test get >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "InvalidKeyName" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test get k1 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "v1" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test remove >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "InvalidKeyName" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test remove k2 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test list >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "KEY  VALUE" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "k1   v1" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+[[ "${OUTPUT}" =~ "k2   v2" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "k3   STDIN_DATA" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "k4   v4" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test remove k1 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test remove k2 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test remove k3 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test remove k4 >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test list >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "no key-value pairs exist" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test drop >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ "${OUTPUT}" != "" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+zig-run ../main.zig test list >"${STDOUT}" 2>"${STDERR}"
+[ -s "${STDOUT}" ] && OUTPUT=$(cat "${STDOUT}"); [ ! -s "${STDOUT}" ] && OUTPUT=$(cat "${STDERR}")
+[[ ! "${OUTPUT}" =~ "DatabaseDoesNotExist" ]] && echo "(${LINENO}) invalid response" >> ${ERROR_LOG}
+#--------------------------------------------------------------------------------
+if [ -f ${ERROR_LOG} ]
+then
+    cat ${ERROR_LOG} >&2
+else
+    echo "no errors detected"
+fi
+#--------------------------------------------------------------------------------
+[ -f "${STDOUT}" ] && rm "${STDOUT}"
+[ -f "${STDERR}" ] && rm "${STDERR}"
+[ -f "${ERROR_LOG}" ] && rm "${ERROR_LOG}"
+#--------------------------------------------------------------------------------
+exit 0
+#--------------------------------------------------------------------------------
+#################################################################################
+#--------------------------------------------------------------------------------
