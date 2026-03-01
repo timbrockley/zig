@@ -12,8 +12,8 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../math.zig -target wasm32-freestanding -fno-entry --export=add
-      - zig build-exe ../wasi-args.zig -O ReleaseSmall -target wasm32-wasi
+      - zig build-exe ../math.zig -fstrip -O ReleaseSmall -target wasm32-freestanding -fno-entry --export=add
+      - zig build-exe ../wasi-args.zig -fstrip -O ReleaseSmall -target wasm32-wasi
 
   run:
     dir: "{{.OUTPUT_PATH}}"

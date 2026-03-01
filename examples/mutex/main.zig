@@ -1,15 +1,15 @@
 const std = @import("std");
 
 pub const Counter = struct {
-    value: u32,
-    mutex: std.Io.Mutex,
     io: std.Io,
+    mutex: std.Io.Mutex,
+    value: u32,
 
     pub fn init(io: std.Io) Counter {
         return .{
-            .value = 0,
-            .mutex = .init,
             .io = io,
+            .mutex = .init,
+            .value = 0,
         };
     }
 

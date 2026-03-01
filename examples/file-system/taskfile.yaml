@@ -18,7 +18,7 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../main.zig  -femit-bin={{.OUTPUT}} -fstrip -O ${ZIG_BUILD_MODE} -target native -mcpu=baseline
+      - zig build-exe ../main.zig -femit-bin={{.OUTPUT}} -fstrip -O ${ZIG_BUILD_MODE} -target native -mcpu=baseline
 
   run:
     dir: "{{.OUTPUT_PATH}}"

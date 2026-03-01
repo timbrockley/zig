@@ -97,56 +97,85 @@ pub fn main(init: std.process.Init) !void {
     //
     //------------------------------------------------------------
     {
-        const file = dir.createFile(io, FILENAME1, .{
+        //------------------------------------------------------------
+        // if file currently locked then code should wait until unlocked
+        //------------------------------------------------------------
+        const file_handle = dir.createFile(io, FILENAME1, .{
             .read = true,
             .truncate = true, // truncate file if it exists (overwrite)
         }) catch |err| {
             std.debug.print("createFile: {s}\n", .{@errorName(err)});
             std.process.exit(1);
         };
-        defer file.close(io);
-
-        try file.writeStreamingAll(io, "zig createFile/writeStreamingAll test");
-
-        const stat = try file.stat(io);
+        defer file_handle.close(io);
+        //------------------------------------------------------------
+        try file_handle.writeStreamingAll(io, "zig createFile/writeStreamingAll test");
+        //------------------------------------------------------------
+        const stat = try file_handle.stat(io);
         const size = stat.size;
-
+        //------------------------------------------------------------
         std.debug.print("createFile: writeStreamingAll: size: {d}\n", .{size});
         std.debug.print("\n", .{});
+        //------------------------------------------------------------
     }
     //------------------------------------------------------------
     //
-    // read file
+    // read / lock file
     //
     //------------------------------------------------------------
     {
+        //------------------------------------------------------------
+        const file_handle1 = try dir.openFile(io, FILENAME1, .{});
+        defer file_handle1.close(io);
+        //------------------------------------------------------------
+        try file_handle1.lock(io, .exclusive);
+        // defer file_handle1.unlock(io);
+        const t = try std.Thread.spawn(.{}, unlockAfterTimeout, .{ io, file_handle1, 3000 });
+        t.detach();
+        //------------------------------------------------------------
+        const stat1 = try file_handle1.stat(io);
+        //------------------------------------------------------------
+        var read_buffer1: [1024]u8 = undefined;
+        var file_reader1 = file_handle1.reader(io, &read_buffer1);
         //----------------------------------------
-        const file = try dir.openFile(io, FILENAME1, .{});
-        defer file.close(io);
-        //----------------------------------------
-        const stat = try file.stat(io);
-        //----------------------------------------
-        var read_buffer: [1024]u8 = undefined;
-        var file_reader = file.reader(io, &read_buffer);
-        //----------------------------------------
-        const data1 = try file_reader.interface.readAlloc(
+        const data1A = try file_reader1.interface.readAlloc(
             allocator,
-            stat.size,
+            stat1.size,
         );
-        defer allocator.free(data1);
+        defer allocator.free(data1A);
         //----------------------------------------
-        try file_reader.seekTo(0);
+        try file_reader1.seekTo(0);
         //----------------------------------------
-        var data2 = std.ArrayList(u8){};
-        defer data2.deinit(allocator);
-
-        try std.Io.Reader.appendRemainingUnlimited(&file_reader.interface, allocator, &data2);
+        var data1B = std.ArrayList(u8){};
+        defer data1B.deinit(allocator);
         //----------------------------------------
-        std.debug.print("openFile: stat.size: {d}\n", .{stat.size});
-        std.debug.print("reader: readAlloc: {s}\n", .{data1});
-        std.debug.print("reader: appendRemainingUnlimited: {s}\n", .{data2.items});
+        try std.Io.Reader.appendRemainingUnlimited(&file_reader1.interface, allocator, &data1B);
+        //----------------------------------------
+        std.debug.print("openFile: stat.size: {d}\n", .{stat1.size});
+        std.debug.print("reader: readAlloc: {s}\n", .{data1A});
+        std.debug.print("reader: appendRemainingUnlimited: {s}\n", .{data1B.items});
         std.debug.print("\n", .{});
+        //------------------------------------------------------------
+        std.debug.print("waiting for file handle to unlock before acessing file again ...\n\n", .{});
+        //------------------------------------------------------------
+        const file_handle2 = try dir.openFile(io, FILENAME1, .{});
+        defer file_handle2.close(io);
         //----------------------------------------
+        try file_handle2.lock(io, .exclusive);
+        defer file_handle2.unlock(io);
+        //----------------------------------------
+        var read_buffer2: [1024]u8 = undefined;
+        var file_reader2 = file_handle2.reader(io, &read_buffer2);
+        //----------------------------------------
+        const data2 = try file_reader2.interface.readAlloc(
+            allocator,
+            stat1.size,
+        );
+        defer allocator.free(data2);
+        //----------------------------------------
+        std.debug.print("reader: readAlloc: {s}\n", .{data2});
+        std.debug.print("\n", .{});
+        //------------------------------------------------------------
     }
     //------------------------------------------------------------
     //
@@ -154,6 +183,7 @@ pub fn main(init: std.process.Init) !void {
     //
     //------------------------------------------------------------
     {
+        //------------------------------------------------------------
         const read_handle = try dir.openFile(io, FILENAME1, .{});
         defer read_handle.close(io);
 
@@ -183,6 +213,7 @@ pub fn main(init: std.process.Init) !void {
 
         std.debug.print("writer: stat.size: {d}\n", .{write_stat.size});
         std.debug.print("\n", .{});
+        //------------------------------------------------------------
     }
     //------------------------------------------------------------
     //
@@ -190,6 +221,7 @@ pub fn main(init: std.process.Init) !void {
     //
     //------------------------------------------------------------
     {
+        //------------------------------------------------------------
         var opendir_handle = try dir.openDir(io, ".", .{ .iterate = true });
         defer opendir_handle.close(io);
 
@@ -203,8 +235,22 @@ pub fn main(init: std.process.Init) !void {
         }
 
         std.debug.print("\n", .{});
+        //------------------------------------------------------------
     }
     //------------------------------------------------------------
 }
-
+//------------------------------------------------------------
+fn unlockAfterTimeout(
+    io: std.Io,
+    file_handle: std.Io.File,
+    ms: i64,
+) !void {
+    //------------------------------------------------------------
+    std.debug.print("file handle will unlock after {d} milliseconds ... unaffected code can continue to run ...\n\n", .{ms});
+    //------------------------------------------------------------
+    try io.sleep(.fromMilliseconds(ms), .awake);
+    //------------------------------------------------------------
+    defer file_handle.unlock(io);
+    //------------------------------------------------------------
+}
 //------------------------------------------------------------

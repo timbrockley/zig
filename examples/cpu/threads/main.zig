@@ -24,7 +24,7 @@ pub fn main(init: std.process.Init) !void {
     }
     //------------------------------------------------------------
     for (threads) |t| {
-        t.join();
+        t.join(); // waits for the each thread to complete
     }
     //------------------------------------------------------------
 }
