@@ -106,7 +106,7 @@ pub fn createDatabase(self: *Self, directory: []const u8) ![]const u8 {
     const file = try std.Io.Dir.cwd().createFile(self.processInit.io, config_filepath, .{ .read = true, .truncate = true });
     defer file.close(self.processInit.io);
     //------------------------------------------------------------
-    return try self.allocator.alloc(u8, 0);
+    return "";
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -126,7 +126,7 @@ pub fn repairDatabase(self: *Self, directory: []const u8) ![]const u8 {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    return try self.allocator.alloc(u8, 0);
+    return "";
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ pub fn dropDatabase(self: *Self, directory: []const u8) ![]const u8 {
     //------------------------------------------------------------
     try std.Io.Dir.cwd().deleteTree(self.processInit.io, directory);
     //------------------------------------------------------------
-    return try self.allocator.alloc(u8, 0);
+    return "";
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -161,6 +161,12 @@ pub fn listKeys(self: *Self, directory: []const u8) ![]const u8 {
     var opendir_handle = try std.Io.Dir.cwd().openDir(self.processInit.io, directory, .{ .iterate = true });
     defer opendir_handle.close(self.processInit.io);
     //------------------------------------------------------------
+    var entries = std.ArrayList([]const u8){};
+    defer {
+        for (entries.items) |item| self.allocator.free(item);
+        entries.deinit(self.allocator);
+    }
+    //------------------------------------------------------------
     var max_key_len: usize = 3;
     var count: usize = 0;
     //------------------------------------------------------------
@@ -172,6 +178,9 @@ pub fn listKeys(self: *Self, directory: []const u8) ![]const u8 {
         //----------------------------------------
         if (max_key_len < dirEntry.name.len) max_key_len = dirEntry.name.len;
         //----------------------------------------
+        const key_name = try self.allocator.dupe(u8, dirEntry.name);
+        try entries.append(self.allocator, key_name);
+        //----------------------------------------
         count += 1;
         //----------------------------------------
     }
@@ -182,6 +191,12 @@ pub fn listKeys(self: *Self, directory: []const u8) ![]const u8 {
         //------------------------------------------------------------
     } else {
         //------------------------------------------------------------
+        std.mem.sort([]const u8, entries.items, {}, struct {
+            fn lessThan(_: void, a: []const u8, b: []const u8) bool {
+                return std.mem.lessThan(u8, a, b);
+            }
+        }.lessThan);
+        //------------------------------------------------------------
         var buffer = std.ArrayList(u8){};
         errdefer buffer.deinit(self.allocator);
         //------------------------------------------------------------
@@ -190,15 +205,14 @@ pub fn listKeys(self: *Self, directory: []const u8) ![]const u8 {
         //------------------------------------------------------------
         try buffer.print(self.allocator, "\n{s}  VALUE\n", .{header_key});
         //------------------------------------------------------------
-        dirIterator = opendir_handle.iterate();
-        while (try dirIterator.next(self.processInit.io)) |dirEntry| {
+        for (entries.items) |name| {
             //----------------------------------------
-            if (std.mem.eql(u8, dirEntry.name, config_filename)) continue;
+            if (std.mem.eql(u8, name, config_filename)) continue;
             //----------------------------------------
-            const key = try self.rightPad(dirEntry.name, max_key_len);
+            const key = try self.rightPad(name, max_key_len);
             defer self.allocator.free(key);
             //----------------------------------------
-            const value = self.getKey(directory, dirEntry.name) catch |err| {
+            const value = self.getKey(directory, name) catch |err| {
                 try buffer.print(self.allocator, "{s}  {s}{}{s}\n", .{ key, BRIGHT_ORANGE, err, RESET });
                 continue;
             };
@@ -259,7 +273,7 @@ pub fn setKey(self: *Self, directory: []const u8, key: []const u8, value: []cons
         //----------------------------------------
     }
     //------------------------------------------------------------
-    return try self.allocator.alloc(u8, 0);
+    return "";
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -282,7 +296,7 @@ pub fn getKey(self: *Self, directory: []const u8, key: []const u8) ![]u8 {
     if (self.exists(key_filepath) and !self.isFile(key_filepath)) return error.InvalidKeyFile;
     //------------------------------------------------------------
     const read_handle = std.Io.Dir.cwd().openFile(self.processInit.io, key_filepath, .{}) catch |err| {
-        if (err == error.FileNotFound) return try self.allocator.alloc(u8, 0);
+        if (err == error.FileNotFound) return "";
         return err;
     };
     defer read_handle.close(self.processInit.io);
@@ -318,7 +332,7 @@ pub fn mtimeKey(self: *Self, directory: []const u8, key: []const u8) ![]const u8
     if (self.exists(key_filepath) and !self.isFile(key_filepath)) return error.InvalidKeyFile;
     //------------------------------------------------------------
     const read_handle = std.Io.Dir.cwd().openFile(self.processInit.io, key_filepath, .{}) catch |err| {
-        if (err == error.FileNotFound) return try self.allocator.alloc(u8, 0);
+        if (err == error.FileNotFound) return "";
         return err;
     };
     defer read_handle.close(self.processInit.io);
@@ -364,7 +378,7 @@ pub fn removeKey(self: *Self, directory: []const u8, key: []const u8) ![]const u
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    return try self.allocator.alloc(u8, 0);
+    return "";
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
