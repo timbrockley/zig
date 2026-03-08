@@ -51,7 +51,7 @@ pub fn processArguments(self: *Self) ![]const u8 {
     const cmd_name = if (it.next()) |s| std.fs.path.basename(s) else "";
     //------------------------------------------------------------
     const _directory = if (it.next()) |s| s else "";
-    const directory = std.mem.trimStart(u8, _directory, "/");
+    const directory = std.mem.trimEnd(u8, _directory, "/");
     //------------------------------------------------------------
     if (std.mem.eql(u8, directory, "") or
         std.mem.eql(u8, directory, "help") or
