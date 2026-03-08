@@ -13,7 +13,7 @@ LC=""
 if { [ -f "Taskfile.yml" ] || [ -f "Taskfile.yaml" ] || [ -f "taskfile.yml" ] || [ -f "taskfile.yaml" ]; } && task --list-all | grep -q test:
 then
 	#----------------------------------------
-	task test -- ${*}
+	task test -- "$@"
 	#----------------------------------------
 	exit $?
 	#----------------------------------------
@@ -102,7 +102,7 @@ else
 	if [ -f "run-tests" ]
 	then
 		#----------------------------------------
-		/bin/bash run-tests ${*}
+		/bin/bash run-tests "$@"
 		#----------------------------------------
 	elif [ -f "run-tests.zig" ]
 	then
