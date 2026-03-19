@@ -65,7 +65,7 @@ pub fn processArguments(self: *Self) ![]const u8 {
     //------------------------------------------------------------
     const _instruction = if (it.next()) |s| s else "";
     //------------------------------------------------------------
-    const Instruction = enum { create, repair, drop, list, set, get, mtime, remove };
+    const Instruction = enum { create, repair, drop, list, set, get, check, len, mtime, delete };
     const instruction = std.meta.stringToEnum(Instruction, _instruction) orelse {
         return error.InvalidInstruction;
     };
@@ -80,8 +80,10 @@ pub fn processArguments(self: *Self) ![]const u8 {
         .list => self.listKeys(directory),
         .set => self.setKey(directory, key, value),
         .get => self.getKey(directory, key),
+        .check => self.checkKey(directory, key),
+        .len => self.lenKey(directory, key),
         .mtime => self.mtimeKey(directory, key),
-        .remove => self.removeKey(directory, key),
+        .delete => self.deleteKey(directory, key),
     };
     //------------------------------------------------------------
 }
@@ -295,6 +297,8 @@ pub fn getKey(self: *Self, directory: []const u8, key: []const u8) ![]u8 {
     //------------------------------------------------------------
     if (self.exists(key_filepath) and !self.isFile(key_filepath)) return error.InvalidKeyFile;
     //------------------------------------------------------------
+    if (!self.exists(key_filepath)) return "";
+    //------------------------------------------------------------
     const read_handle = std.Io.Dir.cwd().openFile(self.processInit.io, key_filepath, .{}) catch |err| {
         if (err == error.FileNotFound) return "";
         return err;
@@ -309,6 +313,64 @@ pub fn getKey(self: *Self, directory: []const u8, key: []const u8) ![]u8 {
     return try reader.interface.readAlloc(
         self.allocator,
         read_stat.size,
+    );
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn checkKey(self: *Self, directory: []const u8, key: []const u8) ![]u8 {
+    //------------------------------------------------------------
+    try self.checkDirectoryPath(directory);
+    //------------------------------------------------------------
+    if (!self.exists(directory)) return error.DatabaseDoesNotExist;
+    //------------------------------------------------------------
+    const config_filepath = try std.fs.path.join(self.allocator, &[_][]const u8{ directory, config_filename });
+    defer self.allocator.free(config_filepath);
+    //------------------------------------------------------------
+    if (!self.exists(config_filepath)) return error.InvalidConfigFile;
+    //------------------------------------------------------------
+    if (!self.checkKeyName(key)) return error.InvalidKeyName;
+    //------------------------------------------------------------
+    const key_filepath = try std.fs.path.join(self.allocator, &[_][]const u8{ directory, key });
+    defer self.allocator.free(key_filepath);
+    //------------------------------------------------------------
+    if (!self.exists(key_filepath)) return error.KeyDoesNotExist;
+    //------------------------------------------------------------
+    return "";
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn lenKey(self: *Self, directory: []const u8, key: []const u8) ![]u8 {
+    //------------------------------------------------------------
+    try self.checkDirectoryPath(directory);
+    //------------------------------------------------------------
+    if (!self.exists(directory)) return error.DatabaseDoesNotExist;
+    //------------------------------------------------------------
+    const config_filepath = try std.fs.path.join(self.allocator, &[_][]const u8{ directory, config_filename });
+    defer self.allocator.free(config_filepath);
+    //------------------------------------------------------------
+    if (!self.exists(config_filepath)) return error.InvalidConfigFile;
+    //------------------------------------------------------------
+    if (!self.checkKeyName(key)) return error.InvalidKeyName;
+    //------------------------------------------------------------
+    const key_filepath = try std.fs.path.join(self.allocator, &[_][]const u8{ directory, key });
+    defer self.allocator.free(key_filepath);
+    //------------------------------------------------------------
+    if (self.exists(key_filepath) and !self.isFile(key_filepath)) return error.InvalidKeyFile;
+    //------------------------------------------------------------
+    if (!self.exists(key_filepath)) return error.KeyDoesNotExist;
+    //------------------------------------------------------------
+    const read_handle = std.Io.Dir.cwd().openFile(self.processInit.io, key_filepath, .{}) catch |err| {
+        if (err == error.FileNotFound) return "";
+        return err;
+    };
+    defer read_handle.close(self.processInit.io);
+    //------------------------------------------------------------
+    const read_stat = try read_handle.stat(self.processInit.io);
+    //------------------------------------------------------------
+    return try std.fmt.allocPrint(
+        self.allocator,
+        "{d}",
+        .{read_stat.size},
     );
     //------------------------------------------------------------
 }
@@ -330,6 +392,8 @@ pub fn mtimeKey(self: *Self, directory: []const u8, key: []const u8) ![]const u8
     defer self.allocator.free(key_filepath);
     //------------------------------------------------------------
     if (self.exists(key_filepath) and !self.isFile(key_filepath)) return error.InvalidKeyFile;
+    //------------------------------------------------------------
+    if (!self.exists(key_filepath)) return error.KeyDoesNotExist;
     //------------------------------------------------------------
     const read_handle = std.Io.Dir.cwd().openFile(self.processInit.io, key_filepath, .{}) catch |err| {
         if (err == error.FileNotFound) return "";
@@ -354,7 +418,7 @@ pub fn mtimeKey(self: *Self, directory: []const u8, key: []const u8) ![]const u8
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-pub fn removeKey(self: *Self, directory: []const u8, key: []const u8) ![]const u8 {
+pub fn deleteKey(self: *Self, directory: []const u8, key: []const u8) ![]const u8 {
     //------------------------------------------------------------
     try self.checkDirectoryPath(directory);
     //------------------------------------------------------------
@@ -396,11 +460,13 @@ pub fn printHelp(self: *Self, cmd_name: []const u8) ![]const u8 {
         \\{s} <DATABASE_DIRECTORY> set <KEY> <VALUE>
         \\{s} <DATABASE_DIRECTORY> set <KEY> <<< "STDIN_DATA"
         \\{s} <DATABASE_DIRECTORY> get <KEY>
+        \\{s} <DATABASE_DIRECTORY> check <KEY>
+        \\{s} <DATABASE_DIRECTORY> len <KEY>
         \\{s} <DATABASE_DIRECTORY> mtime <KEY>
-        \\{s} <DATABASE_DIRECTORY> remove <KEY>
+        \\{s} <DATABASE_DIRECTORY> delete <KEY>
         \\
         \\
-    , .{cmd_name} ** 9);
+    , .{cmd_name} ** 11);
     //------------------------------------------------------------
     return try buffer.toOwnedSlice(self.allocator);
     //------------------------------------------------------------
@@ -431,7 +497,7 @@ pub fn checkDirectoryName(_: *Self, name: []const u8) bool {
     //------------------------------------------------------------
     for (name) |char| {
         switch (char) {
-            '.', '_', '0'...'9', 'A'...'Z', 'a'...'z' => continue,
+            '.', 'A'...'Z', 'a'...'z', '0'...'9', '_', '-' => continue,
             else => return false,
         }
     }
@@ -448,7 +514,7 @@ pub fn checkKeyName(_: *Self, name: []const u8) bool {
     //------------------------------------------------------------
     for (name) |char| {
         switch (char) {
-            '_', '0'...'9', 'A'...'Z', 'a'...'z' => continue,
+            'A'...'Z', 'a'...'z', '0'...'9', '_', '-' => continue,
             else => return false,
         }
     }

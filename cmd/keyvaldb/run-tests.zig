@@ -2,7 +2,7 @@
 //################################################################################
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const unittest = @import("libs/unittest26057.zig");
+const unittest = @import("libs/unittest26078.zig");
 const keyvaldb = @import("main.zig");
 //--------------------------------------------------------------------------------
 const BRIGHT_ORANGE = "\x1B[38;5;214m";
@@ -199,6 +199,7 @@ pub fn main(init: std.process.Init) !void {
             .{ .name = "getKey: error.DatabaseDoesNotExist", .directory = "test1", .key = "", .expected_result = "", .expected_error = error.DatabaseDoesNotExist },
             .{ .name = "getKey: error.InvalidKeyName", .directory = "test", .key = "", .expected_result = "", .expected_error = error.InvalidKeyName },
             .{ .name = "getKey: error.InvalidKeyName", .directory = "test", .key = "#", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "getKey: test XYZ", .directory = "test", .key = "XYZ", .expected_result = "", .expected_error = null },
             .{ .name = "getKey: test k1", .directory = "test", .key = "k1", .expected_result = "v1", .expected_error = null },
             .{ .name = "getKey: test k2", .directory = "test", .key = "k2", .expected_result = "v2", .expected_error = null },
             .{ .name = "getKey: test k3", .directory = "test", .key = "k3", .expected_result = "v3", .expected_error = null },
@@ -225,24 +226,144 @@ pub fn main(init: std.process.Init) !void {
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
-    // removeKey
+    // checkKey
     //--------------------------------------------------------------------------------
     {
         //------------------------------------------------------------
         const test_cases = [_]struct { name: []const u8, directory: []const u8, key: []const u8, expected_result: []const u8, expected_error: ?anyerror }{
-            .{ .name = "removeKey: error.InvalidDirectoryLocation", .directory = "", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
-            .{ .name = "removeKey: error.InvalidDirectoryLocation", .directory = "/", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
-            .{ .name = "removeKey: error.DatabaseDoesNotExist", .directory = "test1", .key = "", .expected_result = "", .expected_error = error.DatabaseDoesNotExist },
-            .{ .name = "removeKey: error.InvalidKeyName", .directory = "test", .key = "", .expected_result = "", .expected_error = error.InvalidKeyName },
-            .{ .name = "removeKey: error.InvalidKeyName", .directory = "test", .key = "#", .expected_result = "", .expected_error = error.InvalidKeyName },
-            .{ .name = "removeKey: test k2", .directory = "test", .key = "k2", .expected_result = "", .expected_error = null },
+            .{ .name = "checkKey: error.InvalidDirectoryLocation", .directory = "", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "checkKey: error.InvalidDirectoryLocation", .directory = "/", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "checkKey: error.DatabaseDoesNotExist", .directory = "test1", .key = "", .expected_result = "", .expected_error = error.DatabaseDoesNotExist },
+            .{ .name = "checkKey: error.InvalidKeyName", .directory = "test", .key = "", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "checkKey: error.InvalidKeyName", .directory = "test", .key = "#", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "checkKey: test: error.KeyDoesNotExist", .directory = "test", .key = "XYZ", .expected_result = "", .expected_error = error.KeyDoesNotExist },
+            .{ .name = "checkKey: test k1", .directory = "test", .key = "k1", .expected_result = "", .expected_error = null },
+        };
+        //------------------------------------------------------------
+        inline for (test_cases) |test_case| {
+            //----------------------------------------
+            const result_error = kvdb.checkKey(test_case.directory, test_case.key);
+            //----------------------------------------
+            try ut.compareStringResultError(
+                test_case.name,
+                result_error,
+                test_case.expected_result,
+                test_case.expected_error,
+            );
+            //----------------------------------------
+            if (result_error) |result| {
+                defer allocator.free(result);
+            } else |_| {}
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+    }
+    //--------------------------------------------------------------------------------
+    //################################################################################
+    //--------------------------------------------------------------------------------
+    // lenKey
+    //--------------------------------------------------------------------------------
+    {
+        //------------------------------------------------------------
+        const test_cases = [_]struct { name: []const u8, directory: []const u8, key: []const u8, expected_result: []const u8, expected_error: ?anyerror }{
+            .{ .name = "lenKey: error.InvalidDirectoryLocation", .directory = "", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "lenKey: error.InvalidDirectoryLocation", .directory = "/", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "lenKey: error.DatabaseDoesNotExist", .directory = "test1", .key = "", .expected_result = "", .expected_error = error.DatabaseDoesNotExist },
+            .{ .name = "lenKey: error.InvalidKeyName", .directory = "test", .key = "", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "lenKey: error.InvalidKeyName", .directory = "test", .key = "#", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "lenKey: error.KeyDoesNotExist", .directory = "test", .key = "XYZ", .expected_result = "", .expected_error = error.KeyDoesNotExist },
+            .{ .name = "lenKey: test k1", .directory = "test", .key = "k1", .expected_result = "2", .expected_error = null },
+        };
+        //------------------------------------------------------------
+        inline for (test_cases) |test_case| {
+            //----------------------------------------
+            const result_error = kvdb.lenKey(test_case.directory, test_case.key);
+            //----------------------------------------
+            try ut.compareStringResultError(
+                test_case.name,
+                result_error,
+                test_case.expected_result,
+                test_case.expected_error,
+            );
+            //----------------------------------------
+            if (result_error) |result| {
+                defer allocator.free(result);
+            } else |_| {}
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+    }
+    //--------------------------------------------------------------------------------
+    //################################################################################
+    //--------------------------------------------------------------------------------
+    // mtimeKey
+    //--------------------------------------------------------------------------------
+    {
+        //------------------------------------------------------------
+        const test_cases = [_]struct { name: []const u8, directory: []const u8, key: []const u8, expected_result: []const u8, expected_error: ?anyerror }{
+            .{ .name = "mtimeKey: error.InvalidDirectoryLocation", .directory = "", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "mtimeKey: error.InvalidDirectoryLocation", .directory = "/", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "mtimeKey: error.DatabaseDoesNotExist", .directory = "test1", .key = "", .expected_result = "", .expected_error = error.DatabaseDoesNotExist },
+            .{ .name = "mtimeKey: error.InvalidKeyName", .directory = "test", .key = "", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "mtimeKey: error.InvalidKeyName", .directory = "test", .key = "#", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "mtimeKey: error.KeyDoesNotExist", .directory = "test", .key = "XYZ", .expected_result = "", .expected_error = error.KeyDoesNotExist },
+        };
+        //------------------------------------------------------------
+        inline for (test_cases) |test_case| {
+            //----------------------------------------
+            const result_error = kvdb.mtimeKey(test_case.directory, test_case.key);
+            //----------------------------------------
+            try ut.compareStringResultError(
+                test_case.name,
+                result_error,
+                test_case.expected_result,
+                test_case.expected_error,
+            );
+            //----------------------------------------
+            if (result_error) |result| {
+                defer allocator.free(result);
+            } else |_| {}
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+        if (kvdb.mtimeKey("test", "k1")) |result| {
+            //----------------------------------------
+            defer allocator.free(result);
+            //----------------------------------------
+            try ut.compareStringFormat(
+                "mtimeKey: compareStringFormat",
+                result,
+                "dddd-dd-ddTdd:dd:dd.dddddddddZ",
+            );
+            //----------------------------------------
+        } else |err| {
+            //----------------------------------------
+            try ut.errorFail("mtimeKey: compareStringFormat", err);
+            //----------------------------------------
+        }
+        //------------------------------------------------------------
+    }
+    //--------------------------------------------------------------------------------
+    //################################################################################
+    //--------------------------------------------------------------------------------
+    // deleteKey
+    //--------------------------------------------------------------------------------
+    {
+        //------------------------------------------------------------
+        const test_cases = [_]struct { name: []const u8, directory: []const u8, key: []const u8, expected_result: []const u8, expected_error: ?anyerror }{
+            .{ .name = "deleteKey: error.InvalidDirectoryLocation", .directory = "", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "deleteKey: error.InvalidDirectoryLocation", .directory = "/", .key = "", .expected_result = "", .expected_error = error.InvalidDirectoryLocation },
+            .{ .name = "deleteKey: error.DatabaseDoesNotExist", .directory = "test1", .key = "", .expected_result = "", .expected_error = error.DatabaseDoesNotExist },
+            .{ .name = "deleteKey: error.InvalidKeyName", .directory = "test", .key = "", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "deleteKey: error.InvalidKeyName", .directory = "test", .key = "#", .expected_result = "", .expected_error = error.InvalidKeyName },
+            .{ .name = "deleteKey: test k2", .directory = "test", .key = "k2", .expected_result = "", .expected_error = null },
         };
         //------------------------------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
             try ut.compareStringResultError(
                 test_case.name,
-                kvdb.removeKey(test_case.directory, test_case.key),
+                kvdb.deleteKey(test_case.directory, test_case.key),
                 test_case.expected_result,
                 test_case.expected_error,
             );
@@ -281,10 +402,10 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
         }
         //------------------------------------------------------------
-        _ = kvdb.removeKey(database_name, "k1") catch {};
-        _ = kvdb.removeKey(database_name, "k2") catch {};
-        _ = kvdb.removeKey(database_name, "k3") catch {};
-        _ = kvdb.removeKey(database_name, "k4") catch {};
+        _ = kvdb.deleteKey(database_name, "k1") catch {};
+        _ = kvdb.deleteKey(database_name, "k2") catch {};
+        _ = kvdb.deleteKey(database_name, "k3") catch {};
+        _ = kvdb.deleteKey(database_name, "k4") catch {};
         //------------------------------------------------------------
         const result_error = kvdb.listKeys(database_name);
         //----------------------------------------
