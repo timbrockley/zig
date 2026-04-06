@@ -25,6 +25,8 @@ ln -s /usr/local/zig/zig /usr/local/bin/zig
 install latest version of language server
 -----------------------------------------
 
+!!! ONLY INSTALL IF SPECIFICALLY REQUIRED !!!
+
 go to https://zigtools.org/zls/install/
 
 enter version og ziglang downloaded and click "Prebuilt Binary"
