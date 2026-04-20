@@ -44,7 +44,7 @@ fn fillBar(bar: *[MAX_BAR_LEN]u8, bar_index: u8) void {
 //--------------------------------------------------------------------------------
 pub fn connected(io: std.Io) bool {
     const addr = std.Io.net.IpAddress.resolve(io, ADDR, PORT) catch return false;
-    const s = std.Io.net.IpAddress.connect(addr, io, .{ .mode = .stream }) catch return false;
+    const s = std.Io.net.IpAddress.connect(&addr, io, .{ .mode = .stream }) catch return false;
     defer s.close(io);
     return true;
     //------------------------------------------------------------
