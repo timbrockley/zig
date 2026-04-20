@@ -144,7 +144,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         try file_reader1.seekTo(0);
         //----------------------------------------
-        var data1B = std.ArrayList(u8){};
+        var data1B = try std.ArrayList(u8).initCapacity(allocator, 0);
         defer data1B.deinit(allocator);
         //----------------------------------------
         try std.Io.Reader.appendRemainingUnlimited(&file_reader1.interface, allocator, &data1B);

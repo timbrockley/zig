@@ -161,7 +161,7 @@ pub fn listKeys(self: *Self, directory: []const u8) ![]const u8 {
     var opendir_handle = try std.Io.Dir.cwd().openDir(self.processInit.io, directory, .{ .iterate = true });
     defer opendir_handle.close(self.processInit.io);
     //------------------------------------------------------------
-    var entries = std.ArrayList([]const u8){};
+    var entries = try std.ArrayList([]const u8).initCapacity(self.allocator, 0);
     defer {
         for (entries.items) |item| self.allocator.free(item);
         entries.deinit(self.allocator);
@@ -197,7 +197,7 @@ pub fn listKeys(self: *Self, directory: []const u8) ![]const u8 {
             }
         }.lessThan);
         //------------------------------------------------------------
-        var buffer = std.ArrayList(u8){};
+        var buffer = try std.ArrayList(u8).initCapacity(self.allocator, 0);
         errdefer buffer.deinit(self.allocator);
         //------------------------------------------------------------
         const header_key = try self.rightPad("KEY", max_key_len);
@@ -260,7 +260,7 @@ pub fn setKey(self: *Self, directory: []const u8, key: []const u8, value: []cons
         var read_buffer: [1024]u8 = undefined;
         var file_reader = stdin_file.reader(self.processInit.io, &read_buffer);
         //----------------------------------------
-        var data = std.ArrayList(u8){};
+        var data = try std.ArrayList(u8).initCapacity(self.allocator, 0);
         defer data.deinit(self.allocator);
         //----------------------------------------
         try std.Io.Reader.appendRemainingUnlimited(&file_reader.interface, self.allocator, &data);
@@ -446,7 +446,7 @@ pub fn deleteKey(self: *Self, directory: []const u8, key: []const u8) ![]const u
 //--------------------------------------------------------------------------------
 pub fn printHelp(self: *Self, cmd_name: []const u8) ![]const u8 {
     //------------------------------------------------------------
-    var buffer = std.ArrayList(u8){};
+    var buffer = try std.ArrayList(u8).initCapacity(self.allocator, 0);
     defer buffer.deinit(self.allocator);
     //------------------------------------------------------------
     try buffer.print(self.allocator,
