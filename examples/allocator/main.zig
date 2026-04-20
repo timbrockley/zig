@@ -12,7 +12,7 @@ pub fn main(init: std.process.Init) !void {
     //################################################################################
     //--------------------------------------------------------------------------------
     {
-        var allocator = init.gpa;
+        const allocator = init.gpa;
 
         const size: usize = 1024;
         const buffer = try allocator.alloc(u8, size);
@@ -29,26 +29,37 @@ pub fn main(init: std.process.Init) !void {
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
-    {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        // defer _ = gpa.deinit();
-        defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
-        const allocator = gpa.allocator();
+    //
+    // old code used before version 0.15.0
+    //
+    //--------------------------------------------------------------------------------
+    //################################################################################
+    //--------------------------------------------------------------------------------
+    // {
+    //     //--------------------------------------------------------------------------------
+    //     //
+    //     // std.heap.GeneralPurposeAllocator removed in version 0.16.0
+    //     //
+    //     //--------------------------------------------------------------------------------
+    //     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    //     // defer _ = gpa.deinit();
+    //     defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
+    //     const allocator = gpa.allocator();
 
-        const size: usize = 1024;
-        const buffer = try allocator.alloc(u8, size);
-        defer allocator.free(buffer);
-    }
+    //     const size: usize = 1024;
+    //     const buffer = try allocator.alloc(u8, size);
+    //     defer allocator.free(buffer);
+    // }
     //------------------------------------------------------------
-    {
-        var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-        defer arena_allocator.deinit();
-        const allocator = arena_allocator.allocator();
+    // {
+    //     var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    //     defer arena_allocator.deinit();
+    //     const allocator = arena_allocator.allocator();
 
-        const size: usize = 1024;
-        const buffer = try allocator.alloc(u8, size);
-        defer allocator.free(buffer);
-    }
+    //     const size: usize = 1024;
+    //     const buffer = try allocator.alloc(u8, size);
+    //     defer allocator.free(buffer);
+    // }
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------

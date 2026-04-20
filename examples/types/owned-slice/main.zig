@@ -14,11 +14,9 @@ pub fn createOwnedSlice(allocator: std.mem.Allocator) ![]u8 {
     //------------------------------------------------------------
 }
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
-    const allocator1 = gpa.allocator();
+    const allocator1 = init.gpa;
     //------------------------------------------------------------
     const string1 = try createOwnedSlice(allocator1);
     defer allocator1.free(string1);

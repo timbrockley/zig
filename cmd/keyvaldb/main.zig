@@ -12,9 +12,7 @@ pub const RESET = "\x1B[0m";
 //--------------------------------------------------------------------------------
 pub fn main(processInit: std.process.Init) !void {
     //------------------------------------------------------------
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
-    const allocator = gpa.allocator();
+    const allocator = processInit.gpa;
     //------------------------------------------------------------
     var self = try init(.{ .allocator = allocator, .processInit = processInit });
     //------------------------------------------------------------

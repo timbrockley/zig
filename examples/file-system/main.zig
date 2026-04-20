@@ -20,9 +20,7 @@ pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
     const io = init.io;
     //------------------------------------------------------------
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
-    const allocator = gpa.allocator();
+    const allocator = init.gpa;
     //------------------------------------------------------------
     //
     // current working directory

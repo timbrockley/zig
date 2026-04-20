@@ -42,11 +42,9 @@ pub fn escapeBytes(allocator: std.mem.Allocator, data: []const u8, replacements:
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------------
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    const allocator = init.gpa;
     //----------------------------------------------------------------------------
     const data = "\x09\x0A_ABC";
     const replacements = &[_]Replacement{

@@ -21,9 +21,7 @@ pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------
     std.debug.print("{s}\n", .{line});
     //----------------------------------------------------------------------
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer if (gpa.deinit() == .leak) std.debug.print("{s}!!! MEMORY LEAK DETECTED !!!{s}\n\n", .{ BRIGHT_ORANGE, RESET });
-    const allocator = gpa.allocator();
+    const allocator = init.gpa;
     //----------------------------------------
     const args = try init.minimal.args.toSlice(allocator);
     defer allocator.free(args);
