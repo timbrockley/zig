@@ -19,7 +19,7 @@ pub fn main(init: std.process.Init) !void {
 
         bar_index = if (bar_index < MAX_LEN) bar_index + 1 else 1;
 
-        try init.io.sleep(.fromMilliseconds(DURATION), .awake);
+        try init.io.sleep(.fromMilliseconds(DURATION), .real);
     }
     //------------------------------------------------------------
     try stdout.writeAll("\r\x1b[2K"); // carriage return + clear line

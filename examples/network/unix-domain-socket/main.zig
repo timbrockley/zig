@@ -13,7 +13,7 @@ pub fn main(init: std.process.Init) !void {
     const server_thread = try std.Thread.spawn(.{}, serverFunc, .{io});
     server_thread.detach();
     //------------------------------------------------------------
-    try io.sleep(.fromMilliseconds(100), .awake);
+    try io.sleep(.fromMilliseconds(100), .real);
     //------------------------------------------------------------
     try clientFunc(io);
     //------------------------------------------------------------

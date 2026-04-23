@@ -2,7 +2,7 @@
 const std = @import("std");
 //------------------------------------------------------------
 fn work(io: std.Io, id: usize, ms: u8) !void {
-    try io.sleep(.fromMilliseconds(ms), .awake);
+    try io.sleep(.fromMilliseconds(ms), .real);
     std.debug.print("{} finished\n", .{id});
 }
 //------------------------------------------------------------

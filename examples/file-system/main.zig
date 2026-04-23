@@ -246,7 +246,7 @@ fn unlockAfterTimeout(
     //------------------------------------------------------------
     std.debug.print("file handle will unlock after {d} milliseconds ... unaffected code can continue to run ...\n\n", .{ms});
     //------------------------------------------------------------
-    try io.sleep(.fromMilliseconds(ms), .awake);
+    try io.sleep(.fromMilliseconds(ms), .real);
     //------------------------------------------------------------
     defer file_handle.unlock(io);
     //------------------------------------------------------------

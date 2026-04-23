@@ -15,7 +15,7 @@ pub fn main(init: std.process.Init) !void {
     const server_thread = try std.Thread.spawn(.{}, serverFunc, .{io});
     server_thread.detach();
     //------------------------------------------------------------
-    try io.sleep(.fromMilliseconds(100), .awake);
+    try io.sleep(.fromMilliseconds(100), .real);
     //------------------------------------------------------------
     try clientFunc(io);
     //------------------------------------------------------------
@@ -77,7 +77,7 @@ pub fn clientFunc(io: std.Io) !void {
     //-----------------------------------------
     std.debug.print("client: received back from server: {s}\n", .{message});
     //------------------------------------------------------------
-    try io.sleep(.fromMilliseconds(100), .awake);
+    try io.sleep(.fromMilliseconds(100), .real);
     //-----------------------------------------
     try stream.socket.send(io, &server_addr, "STOP");
     //------------------------------------------------------------

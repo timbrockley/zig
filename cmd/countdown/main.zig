@@ -25,7 +25,7 @@ pub fn main(init: std.process.Init) !void {
         while (countdown > 0) {
             try stdout.print("{s}{s}...{d}", .{ CR_CLEARLINE, message, countdown });
             countdown -= 1;
-            try init.io.sleep(.fromMilliseconds(DURATION), .awake);
+            try init.io.sleep(.fromMilliseconds(DURATION), .real);
         }
 
         try stdout.writeAll(CR_CLEARLINE);
