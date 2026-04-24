@@ -24,9 +24,9 @@ pub fn serverFunc(io: std.Io) !void {
     //------------------------------------------------------------
     std.debug.print("server: waiting for data from client\n", .{});
     //------------------------------------------------------------
-    const server_addr = try std.Io.net.IpAddress.resolve(io, SERVER_ADDR, SERVER_PORT);
+    const address = try std.Io.net.IpAddress.resolve(io, SERVER_ADDR, SERVER_PORT);
     //------------------------------------------------------------
-    var server = try server_addr.listen(io, .{ .reuse_address = true });
+    var server = try address.listen(io, .{ .reuse_address = true });
     defer server.deinit(io);
     //------------------------------------------------------------
     var read_buffer: [1024]u8 = undefined;
@@ -69,9 +69,9 @@ pub fn clientFunc(io: std.Io) !void {
     //------------------------------------------------------------
     std.debug.print("client: waiting for data from server\n", .{});
     //------------------------------------------------------------
-    const server_addr = try std.Io.net.IpAddress.resolve(io, SERVER_ADDR, SERVER_PORT);
+    const address = try std.Io.net.IpAddress.resolve(io, SERVER_ADDR, SERVER_PORT);
     //-----------------------------------------
-    var stream = server_addr.connect(io, .{ .mode = .stream }) catch |err| switch (err) {
+    var stream = address.connect(io, .{ .mode = .stream }) catch |err| switch (err) {
         error.ConnectionRefused => {
             std.debug.print("connection refused {s}:{d}\n", .{ SERVER_ADDR, SERVER_PORT });
             return;
