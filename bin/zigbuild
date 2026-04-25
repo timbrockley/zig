@@ -80,7 +80,7 @@ else
 	elif [ -f "build.zig" ]
 	then
 		#----------------------------------------
-		${ZIG} build -Doptimize=${ZIG_BUILD_MODE} -Dtarget=${ZIG_BUILD_TARGET} -Dcpu=${ZIG_BUILD_CPU}
+		${ZIG} build
 		#----------------------------------------
 		exit $?
 		#----------------------------------------
