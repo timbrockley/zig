@@ -25,9 +25,9 @@ pub fn serverFunc(io: std.Io) !void {
     //------------------------------------------------------------
     _ = std.Io.Dir.cwd().deleteFile(io, SOCKET_ADDR) catch {};
     //------------------------------------------------------------
-    const addr = try std.Io.net.UnixAddress.init(SOCKET_ADDR);
+    const address = try std.Io.net.UnixAddress.init(SOCKET_ADDR);
     //------------------------------------------------------------
-    var server = try addr.listen(io, .{});
+    var server = try address.listen(io, .{});
     defer server.deinit(io);
     //------------------------------------------------------------
     var read_buffer: [1024]u8 = undefined;
@@ -70,9 +70,9 @@ pub fn clientFunc(io: std.Io) !void {
     //------------------------------------------------------------
     std.debug.print("client: waiting for data from server\n", .{});
     //------------------------------------------------------------
-    const addr = try std.Io.net.UnixAddress.init(SOCKET_ADDR);
+    const address = try std.Io.net.UnixAddress.init(SOCKET_ADDR);
     //-----------------------------------------
-    var stream = addr.connect(io) catch |err| switch (err) {
+    var stream = address.connect(io) catch |err| switch (err) {
         error.FileNotFound => {
             std.debug.print("socket does not exit: {s}\n", .{SOCKET_ADDR});
             return;
