@@ -18,10 +18,7 @@ fn divideWithErrors(a: f64, b: f64) !f64 {
 //----------------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
     //----------------------------------------
-    const allocator = init.gpa;
-    //----------------------------------------
-    const args = try init.minimal.args.toSlice(allocator);
-    defer allocator.free(args);
+    const args = init.minimal.args.vector;
     //----------------------------------------
     if (args.len <= 1) {
         //----------------------------------------

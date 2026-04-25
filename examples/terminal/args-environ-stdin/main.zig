@@ -23,8 +23,9 @@ pub fn main(init: std.process.Init) !void {
     //----------------------------------------------------------------------
     const allocator = init.gpa;
     //----------------------------------------
-    const args = try init.minimal.args.toSlice(allocator);
-    defer allocator.free(args);
+    // const args = try init.minimal.args.toSlice(allocator);
+    // defer allocator.free(args);
+    const args = init.minimal.args.vector;
     //----------------------------------------
     std.debug.print("args.len: {d}\n", .{args.len});
     //----------------------------------------
