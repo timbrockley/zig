@@ -236,6 +236,46 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
+    //
+    // std.process.setCurrentPath
+    //
+    //------------------------------------------------------------
+    {
+        //------------------------------------------------------------
+        try std.process.setCurrentPath(io, "test");
+
+        var opendir_handle = try dir.openDir(io, ".", .{ .iterate = true });
+        defer opendir_handle.close(io);
+
+        var dirIterator = opendir_handle.iterate();
+        while (try dirIterator.next(io)) |dirEntry| {
+            std.debug.print("iterate: {}: {s}\n", .{ dirEntry.kind, dirEntry.name });
+        }
+
+        std.debug.print("\n", .{});
+        //------------------------------------------------------------
+    }
+    //------------------------------------------------------------
+    //
+    // std.process.setCurrentPath
+    //
+    //------------------------------------------------------------
+    {
+        //------------------------------------------------------------
+        try std.process.setCurrentPath(io, "..");
+
+        var opendir_handle = try dir.openDir(io, ".", .{ .iterate = true });
+        defer opendir_handle.close(io);
+
+        var dirIterator = opendir_handle.iterate();
+        while (try dirIterator.next(io)) |dirEntry| {
+            std.debug.print("iterate: {}: {s}\n", .{ dirEntry.kind, dirEntry.name });
+        }
+
+        std.debug.print("\n", .{});
+        //------------------------------------------------------------
+    }
+    //------------------------------------------------------------
 }
 //------------------------------------------------------------
 fn unlockAfterTimeout(
