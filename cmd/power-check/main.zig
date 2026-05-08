@@ -243,7 +243,7 @@ const SYSTEM_POWER_STATUS = extern struct {
     BatteryFullLifeTime: u32,
 };
 
-extern "kernel32" fn GetSystemPowerStatus(lpSystemPowerStatus: *SYSTEM_POWER_STATUS) callconv(.C) windows.BOOL;
+extern "kernel32" fn GetSystemPowerStatus(lpSystemPowerStatus: *SYSTEM_POWER_STATUS) callconv(.c) windows.BOOL;
 
 pub fn powerCheckWindows() !PowerStatus {
     //------------------------------------------------------------
