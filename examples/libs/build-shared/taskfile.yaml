@@ -1,0 +1,27 @@
+version: '3'
+
+vars:
+  CACHE_PATH: ".zig-cache"
+  OUTPUT_PATH: "zig-out"
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+
+  build:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build -Doptimize=${ZIG_BUILD_MODE}
+      - patchelf --replace-needed liblib-shared.so ./liblib-shared.so ./main
+
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build -Doptimize=Debug
+      - patchelf --replace-needed liblib-shared.so ./liblib-shared.so ./main
+
+  run:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - ./main {{.CLI_ARGS}}

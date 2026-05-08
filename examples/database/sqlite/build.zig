@@ -1,9 +1,8 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{ .default_target = .{ .cpu_model = .baseline } });
-    const optimize = std.builtin.OptimizeMode.ReleaseSmall;
-    const strip = true;
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
 
     const translate_c = b.addTranslateC(.{
         .root_source_file = b.path("src/c.h"),
@@ -18,7 +17,6 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
-            .strip = strip,
             .imports = &.{
                 .{
                     .name = "c",

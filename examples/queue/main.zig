@@ -34,7 +34,7 @@ pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
     while (count < max_count) : (count += 1) {
         //-----------------------------------
-        if (try checkSignals(&sq)) {
+        if (try checkForShutdownSignal(&sq)) {
             std.debug.print("shutting down\n", .{});
             break;
         }
@@ -43,7 +43,7 @@ pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
 }
 //------------------------------------------------------------
-fn checkSignals(sq: *SignalQueue) !bool {
+fn checkForShutdownSignal(sq: *SignalQueue) !bool {
     //------------------------------------------------------------
     const signal = try sq.queue.getOne(sq.io);
     //-----------------------------------
