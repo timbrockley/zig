@@ -4,98 +4,117 @@
 //
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const c = @import("c");
+const c = @cImport({
+    @cInclude("sqlite3.h");
+});
 //--------------------------------------------------------------------------------
-const OUTPUT_PATH = "zig-out";
+const DATABASE_FILENAME = "test1.db";
 //--------------------------------------------------------------------------------
-pub fn main(init: std.process.Init) !u8 {
+const Context = struct { count: usize = 0 };
+//--------------------------------------------------------------------------------
+pub fn main() !u8 {
     //------------------------------------------------------------
-    const io = init.io;
+    // optionl context - if not used then null can be passed
+    var context = Context{}; // passed by reference if used
     //------------------------------------------------------------
-    std.Io.Dir.cwd().createDirPath(io, OUTPUT_PATH) catch |err| {
-        if (err != error.PathAlreadyExists) {
-            std.debug.print("createDirPath: {s}\n", .{@errorName(err)});
-            std.process.exit(1);
-        }
-    };
-    try std.process.setCurrentPath(io, OUTPUT_PATH);
+    var db: ?*c.sqlite3 = null;
+    var rc = c.sqlite3_open(DATABASE_FILENAME, &db);
     //------------------------------------------------------------
-    const database_filename = "test.db";
-    //------------------------------------------------------------
-    var db: ?*c.sqlite3 = undefined;
-    var rc = c.sqlite3_open(database_filename, &db);
     defer _ = c.sqlite3_close(db);
+    //------------------------------------------------------------
     if (rc != c.SQLITE_OK) {
-        std.debug.print("Cannot open database: {s}\n", .{c.sqlite3_errmsg(db)});
-        return 1;
+        std.debug.print("cannot open database: {s}\n", .{c.sqlite3_errmsg(db)});
+        return c.SQLITE_ERROR;
     }
-    //----------------------------------------
+    //------------------------------------------------------------
     {
         //----------------------------------------
-        const stmt = "PRAGMA journal_mode=WAL;";
+        const sql = "PRAGMA journal_mode=WAL;";
         //----------------------------------------
-        var zErrMsg: [*c]u8 = undefined;
-        rc = c.sqlite3_exec(db, stmt, callback, null, &zErrMsg);
+        var zErrMsg: [*c]u8 = null;
+        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
         if (rc != c.SQLITE_OK) {
             defer c.sqlite3_free(zErrMsg);
             std.debug.print("SQL error: {s}\n", .{zErrMsg});
-            return 1;
-        }
-        //----------------------------------------
-    }
-    //----------------------------------------
-    {
-        //----------------------------------------
-        const stmt = "CREATE TABLE IF NOT EXISTS cars (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255));";
-        //----------------------------------------
-        var zErrMsg: [*c]u8 = undefined;
-        rc = c.sqlite3_exec(db, stmt, callback, null, &zErrMsg);
-        if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
-            return 1;
-        }
-        //----------------------------------------
-    }
-    //----------------------------------------
-    {
-        //----------------------------------------
-        const stmt = "INSERT INTO cars (name) VALUES('name1');";
-        //----------------------------------------
-        var zErrMsg: [*c]u8 = undefined;
-        rc = c.sqlite3_exec(db, stmt, callback, null, &zErrMsg);
-        if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
-            return 1;
-        }
-        //----------------------------------------
-    }
-    //----------------------------------------
-    {
-        //----------------------------------------
-        const stmt = "SELECT * FROM cars;";
-        //----------------------------------------
-        var zErrMsg: [*c]u8 = undefined;
-        rc = c.sqlite3_exec(db, stmt, callback, null, &zErrMsg);
-        if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
-            return 1;
+            return c.SQLITE_ERROR;
         }
         //----------------------------------------
     }
     //------------------------------------------------------------
-    return 0;
+    {
+        //----------------------------------------
+        const sql = "DROP TABLE IF EXISTS cars;";
+        //----------------------------------------
+        var zErrMsg: [*c]u8 = null;
+        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        if (rc != c.SQLITE_OK) {
+            defer c.sqlite3_free(zErrMsg);
+            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            return c.SQLITE_ERROR;
+        }
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    {
+        //----------------------------------------
+        const sql = "CREATE TABLE IF NOT EXISTS cars (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255));";
+        //----------------------------------------
+        var zErrMsg: [*c]u8 = null;
+        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        if (rc != c.SQLITE_OK) {
+            defer c.sqlite3_free(zErrMsg);
+            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            return c.SQLITE_ERROR;
+        }
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    {
+        //----------------------------------------
+        const sql = "INSERT INTO cars (name) VALUES('name1');";
+        //----------------------------------------
+        var zErrMsg: [*c]u8 = null;
+        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        if (rc != c.SQLITE_OK) {
+            defer c.sqlite3_free(zErrMsg);
+            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            return c.SQLITE_ERROR;
+        }
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    {
+        //----------------------------------------
+        const sql = "SELECT * FROM cars;";
+        //----------------------------------------
+        var zErrMsg: [*c]u8 = null;
+        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        if (rc != c.SQLITE_OK) {
+            defer c.sqlite3_free(zErrMsg);
+            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            return c.SQLITE_ERROR;
+        }
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    std.debug.print("\ncounter = {d}\n\n", .{context.count});
+    //------------------------------------------------------------
+    return c.SQLITE_OK;
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 fn callback(
-    _: ?*anyopaque,
+    ctx: ?*anyopaque,
     argc: c_int,
     argv: [*c][*c]u8,
     azColName: [*c][*c]u8,
 ) callconv(.c) c_int {
+    //----------------------------------------
+    // optional context pointer - null if not used
+    if (ctx) |ctx_ptr| {
+        const context: *Context = @ptrCast(@alignCast(ctx_ptr));
+        context.count += 1;
+    }
     //----------------------------------------
     for (0..@intCast(argc)) |i| {
         //----------------------------------------
@@ -107,7 +126,7 @@ fn callback(
         //----------------------------------------
     }
     //----------------------------------------
-    return 0;
+    return c.SQLITE_OK;
     //----------------------------------------
 }
 //--------------------------------------------------------------------------------

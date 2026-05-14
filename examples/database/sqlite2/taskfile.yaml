@@ -1,0 +1,20 @@
+version: "3"
+
+vars:
+  CACHE_PATH: ".zig-cache"
+  OUTPUT_PATH: "zig-out"
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+
+  build:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../main.zig -femit-bin=main -lc -lsqlite3 -fstrip -O ReleaseSmall -mcpu=baseline
+
+  run:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - ./main {{.CLI_ARGS}}
