@@ -1329,8 +1329,7 @@ pub fn format(datetime: DateTime, template: []const u8, output: []u8) !usize {
 
 pub fn main(minimal: std.process.Init.Minimal) !void {
     //------------------------------------------------------------
-    var it = minimal.args.iterate();
-    const name = if (it.next()) |arg0| std.fs.path.basename(arg0) else "";
+    const name = std.fs.path.basename(std.mem.span(minimal.args.vector[0]));
     std.debug.print("{s}: main function\n", .{name});
     //------------------------------------------------------------
 }

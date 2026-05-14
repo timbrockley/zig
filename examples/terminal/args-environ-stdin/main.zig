@@ -62,7 +62,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------------------------------------
     } else {
         //----------------------------------------------------------------------
-        var data = try std.ArrayList(u8).initCapacity(allocator, 0);
+        var data: std.ArrayList(u8) = .empty;
         defer data.deinit(allocator);
 
         try std.Io.Reader.appendRemainingUnlimited(&stdin_file_reader.interface, allocator, &data);

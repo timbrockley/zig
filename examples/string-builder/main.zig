@@ -4,7 +4,7 @@ pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
     const allocator = init.arena.allocator();
 
-    var buffer = try std.ArrayList(u8).initCapacity(allocator, 0);
+    var buffer: std.ArrayList(u8) = .empty;
     defer buffer.deinit(allocator);
 
     try buffer.appendSlice(allocator, "hello ");
