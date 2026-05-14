@@ -6,23 +6,14 @@ const std = @import("std");
 pub const ExampleEnum = enum(u8) { no = 0, yes = 1 };
 pub const ExampleRawString = extern struct { ptr: [*]const u8, len: usize };
 pub const Self = extern struct {
-    example_byte: u8,
-    example_enum: ExampleEnum,
-    example_raw_string: ExampleRawString,
+    example_byte: u8 = 0,
+    example_enum: ExampleEnum = .no,
+    example_raw_string: ExampleRawString = .{ .ptr = "", .len = 0 },
 };
 //------------------------------------------------------------
 export fn init() callconv(.c) Self {
     //------------------------------------------------------------
-    const example_string = "";
-    //------------------------------------------------------------
-    const self = Self{
-        .example_byte = 0,
-        .example_enum = .no,
-        .example_raw_string = ExampleRawString{
-            .ptr = example_string.ptr,
-            .len = example_string.len,
-        },
-    };
+    const self = Self{};
     //------------------------------------------------------------
     return self;
     //------------------------------------------------------------
