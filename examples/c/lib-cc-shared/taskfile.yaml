@@ -13,9 +13,15 @@ tasks:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - zig cc -o libmath.so -shared -fPIC ../math.c
+      - patchelf --set-soname libmath.so libmath.so
       - zig build-exe ../main.zig -femit-bin=lib-cc-shared -fstrip -L. -lmath -O ReleaseSmall -target native -mcpu=baseline
-      - patchelf --replace-needed liblibmath.so ./libmath.so ./lib-cc-shared
-      - rm -rf lib-cc-shared.o
+
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig cc -o libmath.so -shared -fPIC ../math.c
+      - patchelf --set-soname libmath.so libmath.so
+      - zig build-exe ../main.zig -femit-bin=lib-cc-shared -L. -lmath -O Debug
 
   run:
     dir: "{{.OUTPUT_PATH}}"

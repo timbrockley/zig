@@ -13,13 +13,15 @@ tasks:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - zig build -Doptimize=${ZIG_BUILD_MODE}
+      - patchelf --set-soname liblib-shared.so liblib-shared.so
       - patchelf --replace-needed liblib-shared.so ./liblib-shared.so ./main
 
   debug:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build -Doptimize=Debug
-      - patchelf --replace-needed liblib-shared.so ./liblib-shared.so ./main
+      - zig build-lib ../root.zig -femit-bin=liblib-shared.so -dynamic -O Debug
+      - patchelf --set-soname liblib-shared.so liblib-shared.so
+      - zig build-exe ../main.zig -femit-bin=main -lc -dynamic -L. -llib-shared -O Debug
 
   run:
     dir: "{{.OUTPUT_PATH}}"

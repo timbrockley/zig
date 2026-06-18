@@ -40,9 +40,9 @@ pub fn serverFunc(io: std.Io) !void {
 
     var server_http = std.http.Server.init(&reader.interface, &writer.interface);
 
-    var req = try server_http.receiveHead();
+    var request = try server_http.receiveHead();
 
-    try req.respond("hello from server", .{});
+    try request.respond("hello from server", .{});
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
     translate_c.linkSystemLibrary("sqlite3", .{});
 
     const exe = b.addExecutable(.{
-        .name = "sqlite-zig",
+        .name = "main",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
             .target = target,
@@ -26,7 +26,12 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    b.installArtifact(exe);
+    const install_exe = b.addInstallArtifact(exe, .{
+        .dest_dir = .{ .override = .{ .custom = "." } },
+    });
+    b.getInstallStep().dependOn(&install_exe.step);
+
+    // b.installArtifact(exe);
 
     const run_step = b.step("run", "Run the app");
     const run_cmd = b.addRunArtifact(exe);

@@ -13,10 +13,17 @@ tasks:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - zig build-lib ../math.zig -femit-bin=libmath.so -dynamic -fstrip -O ReleaseSmall -target native -mcpu=baseline
+      - patchelf --set-soname libmath.so libmath.so
       - zig build-exe ../main.zig -femit-bin=zigmain -dynamic -fstrip -L. -lmath -O ReleaseSmall -target native -mcpu=baseline
-      - patchelf --replace-needed liblibmath.so ./libmath.so ./zigmain
       - gcc -o cmain ../main.c -L. -lmath -Wl,-rpath=.
-      - rm -rf libmath.so.o zigmain.o
+
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-lib ../math.zig -femit-bin=libmath.so -dynamic -O Debug
+      - patchelf --set-soname libmath.so libmath.so
+      - zig build-exe ../main.zig -femit-bin=zigmain -lc -dynamic -L. -lmath -O Debug
+      - gcc -o cmain ../main.c -L. -lmath -Wl,-rpath=.
 
   run:
     dir: "{{.OUTPUT_PATH}}"
