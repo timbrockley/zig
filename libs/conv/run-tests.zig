@@ -333,7 +333,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.plaintextToBase64Length(data);
         }
 
-        try ut.compareInt(name, expected_total, total);
+        try ut.compareInteger(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -346,7 +346,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.plaintextToBase64UrlLength(data);
         }
 
-        try ut.compareInt(name, expected_total, total);
+        try ut.compareInteger(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -374,7 +374,7 @@ pub fn main(init: std.process.Init) !void {
             }
         }
 
-        try ut.compareInt(name, expected_total, total);
+        try ut.compareInteger(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -387,7 +387,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.base64UrlToPlaintextLength(data);
         }
 
-        try ut.compareInt(name, expected_total, total);
+        try ut.compareInteger(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -400,7 +400,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.base64ToBase64UrlLength(data);
         }
 
-        try ut.compareInt(name, expected_total, total);
+        try ut.compareInteger(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {
@@ -413,7 +413,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.base64UrlToBase64Length(data);
         }
 
-        try ut.compareInt(name, expected_total, total);
+        try ut.compareInteger(name, expected_total, total);
     }
     //----------------------------------------------------------------------------
     {

@@ -555,11 +555,11 @@ pub fn main(processInit: std.process.Init) !void {
     //------------------------------------------------------------
     // compareInt pass
     //------------------------------------------------------------
-    try ut.compareInt("compareInt pass", 0, 0);
+    try ut.compareInteger("compareInt pass", 0, 0);
     //------------------------------------------------------------
     // compareInt fail
     //------------------------------------------------------------
-    try ut.compareInt("compareInt fail", 0, 1);
+    try ut.compareInteger("compareInt fail", 0, 1);
     //------------------------------------------------------------
     // compareBool pass
     //------------------------------------------------------------

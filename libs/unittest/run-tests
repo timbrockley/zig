@@ -16,6 +16,8 @@ zig-run >"${STDOUT}" 2>"${STDERR}"
 [[ ! "${OUTPUT}" =~ "FAIL: compareStringResultError error.UnexpectedError" ]] && echo "(${LINENO}) FAIL: compareStringResultError error.UnexpectedError" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "PASS: compareStringSlice pass" ]] && echo "(${LINENO}) PASS: compareStringSlice pass" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "FAIL:     compareStringSlice fail" ]] && echo "(${LINENO}) FAIL:     compareStringSlice fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "PASS: compareCString pass" ]] && echo "(${LINENO}) PASS: compareCString pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "FAIL:     compareCString fail" ]] && echo "(${LINENO}) FAIL:     compareCString fail" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "PASS: compareStringFormat pass" ]] && echo "(${LINENO}) PASS: compareStringFormat pass" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "FAIL: compareStringFormat fail" ]] && echo "(${LINENO}) FAIL: compareStringFormat fail" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "PASS: compareByteSlice pass" ]] && echo "(${LINENO}) PASS: compareByteSlice pass" >> ${ERROR_LOG}
@@ -25,7 +27,9 @@ zig-run >"${STDOUT}" 2>"${STDERR}"
 [[ ! "${OUTPUT}" =~ "PASS: compareInt pass" ]] && echo "(${LINENO}) PASS: compareInt pass" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "FAIL:     compareInt fail" ]] && echo "(${LINENO}) FAIL:     compareInt fail" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "PASS: compareBool pass" ]] && echo "(${LINENO}) PASS: compareBool pass" >> ${ERROR_LOG}
-[[ ! "${OUTPUT}" =~ "FAIL:     compareBool fail" ]] && echo "(${LINENO}) FAIL:     compareBool fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "FAIL:     compareBool fail" ]] && echo "(${LINENO}) FAIL:     compareNull fail" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "PASS: compareNull pass" ]] && echo "(${LINENO}) PASS: compareNull pass" >> ${ERROR_LOG}
+[[ ! "${OUTPUT}" =~ "FAIL: compareNull fail" ]] && echo "(${LINENO}) FAIL: compareNull fail" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "compareError ExpectError" ]] && echo "(${LINENO}) compareError ExpectError" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "compareError InvalidError" ]] && echo "(${LINENO}) compareError InvalidError" >> ${ERROR_LOG}
 [[ ! "${OUTPUT}" =~ "PASS: pass" ]] && echo "(${LINENO}) pass" >> ${ERROR_LOG}

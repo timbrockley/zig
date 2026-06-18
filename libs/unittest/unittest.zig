@@ -125,6 +125,29 @@ pub fn compareStringSlice(self: *Self, name: []const u8, expected: []const u8, a
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
+pub fn compareCString(
+    self: *Self,
+    name: []const u8,
+    expected: [*:0]const u8,
+    actual: ?[*:0]const u8,
+) !void {
+    //------------------------------------------------------------
+    if (actual == null) return self.compareStringSlice(
+        name,
+        std.mem.span(expected),
+        "",
+    );
+    //------------------------------------------------------------
+    return self.compareStringSlice(
+        name,
+        std.mem.span(expected),
+        std.mem.span(actual.?),
+    );
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
 /// Checks string formatting.
 ///
 /// d => Digits (0-9)
@@ -236,6 +259,72 @@ pub fn compareByteSlice(self: *Self, name: []const u8, expected: []const u8, act
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
+pub fn compareEnum(
+    self: *Self,
+    name: []const u8,
+    expected: anytype,
+    actual: @TypeOf(expected),
+) !void {
+    //------------------------------------------------------------
+    if (expected == actual) {
+        //----------------------------------------
+        try self.printPass();
+        try self.stdout_print(": {s}\n", .{name});
+        //----------------------------------------
+        self.count_passed += 1;
+        //----------------------------------------
+    } else {
+        //----------------------------------------
+        try self.printFail();
+        try self.stdout_print(": {s}\n", .{name});
+        try self.printExpected();
+        try self.stdout_print(": .{s}\n", .{@tagName(expected)});
+        try self.printActual();
+        try self.stdout_print(": .{s}\n", .{@tagName(actual)});
+        //----------------------------------------
+        self.count_failed += 1;
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    try self.printLine();
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
+pub fn compareType(
+    self: *Self,
+    name: []const u8,
+    expected: type,
+    actual: type,
+) !void {
+    //------------------------------------------------------------
+    if (expected == actual) {
+        //----------------------------------------
+        try self.printPass();
+        try self.stdout_print(": {s}\n", .{name});
+        //----------------------------------------
+        self.count_passed += 1;
+        //----------------------------------------
+    } else {
+        //----------------------------------------
+        try self.printFail();
+        try self.stdout_print(": {s}\n", .{name});
+        try self.printExpected();
+        try self.stdout_print(": {s}\n", .{@typeName(expected)});
+        try self.printActual();
+        try self.stdout_print(":   {s}\n", .{@typeName(actual)});
+        //----------------------------------------
+        self.count_failed += 1;
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    try self.printLine();
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
 pub fn compareByte(self: *Self, name: []const u8, expected: u8, actual: u8) !void {
     //------------------------------------------------------------
     if (expected == actual) {
@@ -262,7 +351,41 @@ pub fn compareByte(self: *Self, name: []const u8, expected: u8, actual: u8) !voi
     //------------------------------------------------------------
 }
 //------------------------------------------------------------
-pub fn compareInt(self: *Self, name: []const u8, expected: u64, actual: u64) !void {
+pub fn compareInteger(self: *Self, name: []const u8, expected: anytype, actual: anytype) !void {
+    //------------------------------------------------------------
+    comptime {
+        if (!isInteger(@TypeOf(expected))) @compileError("expected must be an integer");
+        if (!isInteger(@TypeOf(actual))) @compileError("actual must be an integer");
+    }
+    //------------------------------------------------------------
+    const _expected: i128 = @intCast(expected);
+    const _actual: i128 = @intCast(actual);
+    //------------------------------------------------------------
+    if (_expected == _actual) {
+        //----------------------------------------
+        try self.printPass();
+        try self.stdout_print(": {s}\n", .{name});
+        //----------------------------------------
+        self.count_passed += 1;
+        //----------------------------------------
+    } else {
+        //----------------------------------------
+        try self.printFail();
+        try self.stdout_print(":     {s}\n", .{name});
+        try self.printExpected();
+        try self.stdout_print(": {d}\n", .{expected});
+        try self.printActual();
+        try self.stdout_print(":   {d}\n", .{actual});
+        //----------------------------------------
+        self.count_failed += 1;
+        //----------------------------------------
+    }
+    //------------------------------------------------------------
+    try self.printLine();
+    //------------------------------------------------------------
+}
+//------------------------------------------------------------
+pub fn compareFloat(self: *Self, name: []const u8, expected: f64, actual: f64) !void {
     //------------------------------------------------------------
     if (expected == actual) {
         //----------------------------------------
@@ -310,6 +433,34 @@ pub fn compareBool(self: *Self, name: []const u8, expected: bool, actual: bool) 
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
+    try self.printLine();
+    //----------------------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+pub fn compareNull(self: *Self, name: []const u8, actual: anytype) !void {
+    //----------------------------------------------------------------------------
+    const T = @TypeOf(actual);
+    //----------------------------------------------------------------------------
+    const is_optional = switch (@typeInfo(T)) {
+        .null => true,
+        .optional => true,
+        else => false,
+    };
+    //----------------------------------------------------------------------------
+    if (is_optional) {
+        if (actual == null) {
+            try self.printPass();
+            self.count_passed += 1;
+        } else {
+            try self.printFail();
+            self.count_failed += 1;
+        }
+    } else {
+        try self.printFail();
+        self.count_failed += 1;
+    }
+    //----------------------------------------------------------------------------
+    try self.stdout_print(": {s}\n", .{name});
     try self.printLine();
     //----------------------------------------------------------------------------
 }
@@ -494,6 +645,13 @@ pub fn stderr_writeAll(self: *Self, bytes: []const u8) !void {
     if (self.stderr_writer == null) return error.InvalidStdErr;
     try self.stderr_writer.?.interface.writeAll(bytes);
 }
+//------------------------------------------------------------
+pub fn isInteger(comptime T: type) bool {
+    return switch (@typeInfo(T)) {
+        .int, .comptime_int => true,
+        else => false,
+    };
+}
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
@@ -529,6 +687,16 @@ pub fn main(processInit: std.process.Init) !void {
     //------------------------------------------------------------
     try ut.compareStringSlice("compareStringSlice fail", "foo", "bar");
     //------------------------------------------------------------
+    // compareCString pass
+    //------------------------------------------------------------
+    try ut.compareCString("compareCString pass", "foo", "foo");
+    try ut.compareCString("compareCString pass", "", null);
+    //------------------------------------------------------------
+    // compareCString fail
+    //------------------------------------------------------------
+    try ut.compareCString("compareCString fail", "foo", "bar");
+    try ut.compareCString("compareCString fail", "foo", null);
+    //------------------------------------------------------------
     // compareStringFormat pass
     //------------------------------------------------------------
     try ut.compareStringFormat("compareStringFormat pass", "2026-03-19T10:13:00.072978925Z", "dddd-dd-ddTdd:dd:dd.dddddddddZ");
@@ -555,11 +723,11 @@ pub fn main(processInit: std.process.Init) !void {
     //------------------------------------------------------------
     // compareInt pass
     //------------------------------------------------------------
-    try ut.compareInt("compareInt pass", 0, 0);
+    try ut.compareInteger("compareInt pass", 0, 0);
     //------------------------------------------------------------
     // compareInt fail
     //------------------------------------------------------------
-    try ut.compareInt("compareInt fail", 0, 1);
+    try ut.compareInteger("compareInt fail", 0, 1);
     //------------------------------------------------------------
     // compareBool pass
     //------------------------------------------------------------
@@ -568,6 +736,16 @@ pub fn main(processInit: std.process.Init) !void {
     // compareBool fail
     //------------------------------------------------------------
     try ut.compareBool("compareBool fail", true, false);
+    //------------------------------------------------------------
+    // compareNull pass
+    //------------------------------------------------------------
+    try ut.compareNull("compareNull pass", null);
+    try ut.compareNull("compareNull pass", @as(?bool, null));
+    //------------------------------------------------------------
+    // compareNull fail
+    //------------------------------------------------------------
+    try ut.compareNull("compareNull fail", false);
+    try ut.compareNull("compareNull fail", @as(?bool, false));
     //------------------------------------------------------------
     // compareError pass
     //------------------------------------------------------------
