@@ -17,6 +17,14 @@ tasks:
       - zig cc -o lib-cc-static ../main.c -L. -lmath -target native -mcpu=baseline
       - rm -rf libmath.a math.o
 
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig cc -o math.o -c ../math.c
+      - zig ar rcs libmath.a math.o
+      - zig cc -o lib-cc-static ../main.c -L. -lmath -target native -mcpu=baseline
+      - rm -rf libmath.a math.o
+
   run:
     dir: "{{.OUTPUT_PATH}}"
     cmds:

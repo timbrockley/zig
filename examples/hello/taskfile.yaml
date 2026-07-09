@@ -37,6 +37,11 @@ tasks:
     cmds:
       - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}}-windows.exe -fstrip -O ReleaseSmall -target x86_64-windows -mcpu=baseline
 
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../{{.SOURCE}} -femit-bin={{.OUTPUT}} -fstrip -O Debug -mcpu=baseline
+
   run:
     cmds:
       - silent: true

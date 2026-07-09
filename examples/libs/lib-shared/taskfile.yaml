@@ -15,6 +15,13 @@ tasks:
       - zig build-lib ../lib-shared.zig -femit-bin=liblib-shared.so -dynamic -fPIC -O ReleaseSmall -target native -mcpu=baseline
       - zig build-exe ../main.zig -femit-bin=lib-shared -dynamic -fstrip -L. -llib-shared -O ReleaseSmall -target native -mcpu=baseline
 
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - echo "REVERTING TO ReleaseSmall (debug mode not used for this example)"
+      - zig build-lib ../lib-shared.zig -femit-bin=liblib-shared.so -dynamic -fPIC -O ReleaseSmall -target native -mcpu=baseline
+      - zig build-exe ../main.zig -femit-bin=lib-shared -dynamic -fstrip -L. -llib-shared -O ReleaseSmall -target native -mcpu=baseline
+
   run:
     dir: "{{.OUTPUT_PATH}}"
     cmds:

@@ -15,6 +15,12 @@ tasks:
       - zig build-exe ../math.zig -fstrip -O ReleaseSmall -target wasm32-freestanding -fno-entry --export=add
       - zig build-exe ../wasi-args.zig -fstrip -O ReleaseSmall -target wasm32-wasi
 
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - zig build-exe ../math.zig -fstrip -O Debug -target wasm32-freestanding -fno-entry --export=add
+      - zig build-exe ../wasi-args.zig -fstrip -O Debug -target wasm32-wasi
+
   run:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
