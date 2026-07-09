@@ -1,0 +1,34 @@
+version: "3"
+
+vars:
+  CACHE_PATH: ".zig-cache"
+  OUTPUT_PATH: "zig-out"
+
+tasks:
+  clean:
+    cmds:
+      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+
+  build:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - test -f libsqlite.so || zig build-lib ../sqlite/libsqlite.zig -femit-bin=libsqlite.so -dynamic -L. -lsqlite3 -fPIC -O ReleaseSmall -target native -mcpu=baseline
+      - patchelf --set-soname libsqlite.so libsqlite.so
+      - zig build-exe ../main.zig -femit-bin=main -lc -O ReleaseSmall -target native -mcpu=baseline
+
+  debug:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - test -f libsqlite.so || zig build-lib ../sqlite/libsqlite.zig -femit-bin=libsqlite.so -dynamic -L. -lsqlite3 -fPIC -O Debug -target native -mcpu=baseline
+      - patchelf --set-soname libsqlite.so libsqlite.so
+      - zig build-exe ../main.zig -femit-bin=main -lc -O Debug -target native -mcpu=baseline
+
+  run:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - ./main {{.CLI_ARGS}}
+
+  test:
+    dir: "{{.OUTPUT_PATH}}"
+    cmds:
+      - ./main {{.CLI_ARGS}}
