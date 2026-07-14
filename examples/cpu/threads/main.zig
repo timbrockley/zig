@@ -1,9 +1,9 @@
 //------------------------------------------------------------
 const std = @import("std");
 //------------------------------------------------------------
-fn work(io: std.Io, id: usize, ms: u8) !void {
+fn worker(io: std.Io, id: usize, ms: u8) !void {
     try io.sleep(.fromMilliseconds(ms), .real);
-    std.debug.print("{} finished\n", .{id});
+    std.debug.print("{} ended\n", .{id});
 }
 //------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
@@ -21,12 +21,12 @@ pub fn main(init: std.process.Init) !void {
         init.io.random(&byte);
         const ms = byte[0] & 0x0F;
         //----------------------------------------
-        threads[i] = try std.Thread.spawn(.{}, work, .{ init.io, i, ms });
+        threads[i] = try std.Thread.spawn(.{}, worker, .{ init.io, i, ms });
         //----------------------------------------
     }
     //------------------------------------------------------------
     for (threads) |t| {
-        t.join(); // waits for the each thread to complete
+        t.join();
     }
     //------------------------------------------------------------
 }

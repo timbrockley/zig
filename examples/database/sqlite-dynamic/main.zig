@@ -4,9 +4,7 @@
 //
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const c = @cImport({
-    @cInclude("sqlite3.h");
-});
+const c = @import("sqlite3-dynamic.zig");
 //--------------------------------------------------------------------------------
 const DATABASE_FILEPATH = "test1.db";
 //--------------------------------------------------------------------------------
@@ -17,6 +15,9 @@ pub fn main() !u8 {
     // optionl context - if not used then null can be passed
     var context = Context{}; // passed by reference if used
     //--------------------------------------------------------------------------------
+    try c.init();
+    defer c.deinit();
+    //------------------------------------------------------------
     var db_handle: ?*c.sqlite3 = null;
     //------------------------------------------------------------
     defer _ = c.sqlite3_close(db_handle);

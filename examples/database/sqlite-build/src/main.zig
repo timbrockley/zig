@@ -6,99 +6,109 @@
 const std = @import("std");
 const c = @import("c");
 //--------------------------------------------------------------------------------
-const DATABASE_FILENAME = "test1.db";
+const DATABASE_FILEPATH = "test1.db";
 //--------------------------------------------------------------------------------
 const Context = struct { count: usize = 0 };
 //--------------------------------------------------------------------------------
 pub fn main() !u8 {
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     // optionl context - if not used then null can be passed
     var context = Context{}; // passed by reference if used
+    //--------------------------------------------------------------------------------
+    var db_handle: ?*c.sqlite3 = null;
     //------------------------------------------------------------
-    var db: ?*c.sqlite3 = null;
-    var rc = c.sqlite3_open(DATABASE_FILENAME, &db);
+    defer _ = c.sqlite3_close(db_handle);
     //------------------------------------------------------------
-    defer _ = c.sqlite3_close(db);
+    std.debug.print("{s}\n", .{"-" ** 80});
     //------------------------------------------------------------
-    if (rc != c.SQLITE_OK) {
-        std.debug.print("cannot open database: {s}\n", .{c.sqlite3_errmsg(db)});
-        return c.SQLITE_ERROR;
+    {
+        //----------------------------------------
+        const rc = c.sqlite3_open(DATABASE_FILEPATH, &db_handle);
+        if (rc != c.SQLITE_OK) {
+            std.debug.print("sqlite3_open: {s}\n", .{c.sqlite3_errmsg(db_handle)});
+            return c.SQLITE_ERROR;
+        }
+        //----------------------------------------
     }
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     {
         //----------------------------------------
         const sql = "PRAGMA journal_mode=WAL;";
         //----------------------------------------
-        var zErrMsg: [*c]u8 = null;
-        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        var errmsg: [*c]u8 = null;
+        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            defer c.sqlite3_free(errmsg);
+            std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
             return c.SQLITE_ERROR;
         }
         //----------------------------------------
     }
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     {
         //----------------------------------------
         const sql = "DROP TABLE IF EXISTS test;";
         //----------------------------------------
-        var zErrMsg: [*c]u8 = null;
-        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        var errmsg: [*c]u8 = null;
+        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            defer c.sqlite3_free(errmsg);
+            std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
             return c.SQLITE_ERROR;
         }
         //----------------------------------------
     }
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     {
         //----------------------------------------
         const sql = "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255));";
         //----------------------------------------
-        var zErrMsg: [*c]u8 = null;
-        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        var errmsg: [*c]u8 = null;
+        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            defer c.sqlite3_free(errmsg);
+            std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
             return c.SQLITE_ERROR;
         }
         //----------------------------------------
     }
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     {
         //----------------------------------------
-        const sql = "INSERT INTO test (name) VALUES('name1');";
+        const sql =
+            \\INSERT INTO test (name) VALUES ('name1');
+            \\INSERT INTO test (name) VALUES ('name2');
+        ;
         //----------------------------------------
-        var zErrMsg: [*c]u8 = null;
-        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        var errmsg: [*c]u8 = null;
+        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            defer c.sqlite3_free(errmsg);
+            std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
             return c.SQLITE_ERROR;
         }
         //----------------------------------------
     }
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     {
         //----------------------------------------
         const sql = "SELECT * FROM test;";
         //----------------------------------------
-        var zErrMsg: [*c]u8 = null;
-        rc = c.sqlite3_exec(db, sql, callback, &context, &zErrMsg);
+        var errmsg: [*c]u8 = null;
+        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
-            defer c.sqlite3_free(zErrMsg);
-            std.debug.print("SQL error: {s}\n", .{zErrMsg});
+            defer c.sqlite3_free(errmsg);
+            std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
             return c.SQLITE_ERROR;
         }
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    std.debug.print("\ncounter = {d}\n\n", .{context.count});
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+    std.debug.print("counter = {d}\n", .{context.count});
+    std.debug.print("{s}\n", .{"-" ** 80});
+    //--------------------------------------------------------------------------------
     return c.SQLITE_OK;
-    //------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 fn callback(
@@ -107,13 +117,13 @@ fn callback(
     argv: [*c][*c]u8,
     azColName: [*c][*c]u8,
 ) callconv(.c) c_int {
-    //----------------------------------------
+    //--------------------------------------------------------------------------------
     // optional context pointer - null if not used
     if (ctx) |ctx_ptr| {
         const context: *Context = @ptrCast(@alignCast(ctx_ptr));
         context.count += 1;
     }
-    //----------------------------------------
+    //--------------------------------------------------------------------------------
     for (0..@intCast(argc)) |i| {
         //----------------------------------------
         if (argv[i] == null) {
@@ -123,8 +133,9 @@ fn callback(
         }
         //----------------------------------------
     }
-    //----------------------------------------
+    std.debug.print("{s}\n", .{"-" ** 80});
+    //--------------------------------------------------------------------------------
     return c.SQLITE_OK;
-    //----------------------------------------
+    //--------------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
