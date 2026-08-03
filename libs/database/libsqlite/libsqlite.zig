@@ -234,6 +234,15 @@ pub export fn sqliteBindNull(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c)
     //----------------------------------------
 }
 //--------------------------------------------------------------------------------
+/// Returns column name.
+pub export fn sqliteColumnName(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 {
+    //----------------------------------------
+    const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
+    //----------------------------------------
+    return c.sqlite3_column_name(stmt, iCol);
+    //----------------------------------------
+}
+//--------------------------------------------------------------------------------
 /// Returns column type.
 pub export fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int {
     //----------------------------------------
