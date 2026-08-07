@@ -20,11 +20,13 @@ tasks:
       - zig build -Doptimize=Debug
 
   run:
+    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - ./main {{.CLI_ARGS}}
 
   test:
+    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmds:
       - zig run ../src/run-tests.zig -O Debug -- "$@"

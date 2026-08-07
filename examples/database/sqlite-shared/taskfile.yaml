@@ -20,11 +20,11 @@ tasks:
       - zig build-exe ../main.zig -femit-bin=main -lc -lsqlite3 -fstrip -O Debug -mcpu=baseline
 
   run:
+    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
-    cmds:
-      - ./main {{.CLI_ARGS}}
+    cmd: ./main
 
   test:
+    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
-    cmds:
-      - ./main {{.CLI_ARGS}}
+    cmd: ./main
