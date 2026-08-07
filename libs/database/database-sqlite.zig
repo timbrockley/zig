@@ -505,7 +505,7 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
     var stmt_handle: ?*anyopaque = null;
     //----------------------------------------
     var buffer: [MAX_TABLE_NAME:0]u8 = undefined;
-    _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %w;", table_name);
+    _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %s;", table_name);
     //------------------------------------------------------------
     var rc: c_int = 0;
     //------------------------------------------------------------
@@ -639,7 +639,7 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
     var stmt_handle: ?*anyopaque = null;
     //------------------------------------------------------------
     var buffer: [MAX_TABLE_NAME:0]u8 = undefined;
-    _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %w;", table_name);
+    _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %s;", table_name);
     //------------------------------------------------------------
     var rc = c.sqlite3_prepare_v2(self.db_handle, @as([*:0]const u8, &buffer), -1, &stmt_handle, null);
     //------------------------------------------------------------
@@ -710,7 +710,7 @@ pub fn getRowCount(self: *Self, table_name: [*c]const u8) !usize {
     _ = c.sqlite3_snprintf(
         @intCast(buffer.len),
         &buffer,
-        "SELECT COUNT(*) FROM %w;",
+        "SELECT COUNT(*) FROM %s;",
         table_name,
     );
     //------------------------------------------------------------
@@ -750,7 +750,7 @@ pub fn getColumnCount(self: *Self, table_name: [*c]const u8) !usize {
     var stmt_handle: ?*anyopaque = null;
     //------------------------------------------------------------
     var buffer: [MAX_TABLE_NAME:0]u8 = undefined;
-    _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %w LIMIT 1;", table_name);
+    _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %s LIMIT 1;", table_name);
     //------------------------------------------------------------
     const rc = c.sqlite3_prepare_v2(self.db_handle, @as([*:0]const u8, &buffer), -1, &stmt_handle, null);
     if (rc != c.SQLITE_OK) {
