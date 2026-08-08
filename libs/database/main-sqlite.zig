@@ -145,6 +145,20 @@ pub fn main(init: std.process.Init) !u8 {
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
+    {
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName(""), false);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("1"), false);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("#"), false);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("A#"), false);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("A-"), false);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("_A"), true);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("_1"), true);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("A"), true);
+        try ut.compareBool("checkTableName", sqlitedb.checkTableName("A1_A2"), true);
+    }
+    //--------------------------------------------------------------------------------
+    //################################################################################
+    //--------------------------------------------------------------------------------
     std.debug.print("database open: db_handle = {any}\n", .{sqlitedb.db_handle});
     //--------------------------------------------------------------------------------
     try ut.printLine();

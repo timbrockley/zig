@@ -139,6 +139,20 @@ pub fn main(init: std.process.Init) !u8 {
     //################################################################################
     //--------------------------------------------------------------------------------
     {
+        try ut.compareBool("checkTableName", checkTableName(""), false);
+        try ut.compareBool("checkTableName", checkTableName("1"), false);
+        try ut.compareBool("checkTableName", checkTableName("#"), false);
+        try ut.compareBool("checkTableName", checkTableName("A#"), false);
+        try ut.compareBool("checkTableName", checkTableName("A-"), false);
+        try ut.compareBool("checkTableName", checkTableName("_A"), true);
+        try ut.compareBool("checkTableName", checkTableName("_1"), true);
+        try ut.compareBool("checkTableName", checkTableName("A"), true);
+        try ut.compareBool("checkTableName", checkTableName("A1_A2"), true);
+    }
+    //--------------------------------------------------------------------------------
+    //################################################################################
+    //--------------------------------------------------------------------------------
+    {
         const rc = sqliteOpen(DATABASE_FILEPATH, &db_handle);
         if (rc != c.SQLITE_OK or db_handle == null) {
             std.debug.print("failed to open database: ({d}) {s}\n", .{ rc, sqliteErrmsg(db_handle) });
@@ -515,7 +529,7 @@ pub fn main(init: std.process.Init) !u8 {
     //--------------------------------------------------------------------------------
     {
         //------------------------------------------------------------
-        const table_name = "test;";
+        const table_name = "test";
 
         var sqlite_columns_table = SQLiteColumnsTable{};
         defer freeSQLiteColumnsTable(&sqlite_columns_table);
@@ -529,12 +543,12 @@ pub fn main(init: std.process.Init) !u8 {
         );
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("getTableColumns error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("getSQLiteColumnsTable error: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
         //------------------------------------------------------------
-        try ut.compareInteger("getTableColumns: row_count", 3, sqlite_columns_table.row_count);
-        try ut.compareInteger("getTableColumns: column_count", 6, sqlite_columns_table.column_count);
+        try ut.compareInteger("getSQLiteColumnsTable: row_count", 3, sqlite_columns_table.row_count);
+        try ut.compareInteger("getSQLiteColumnsTable: column_count", 6, sqlite_columns_table.column_count);
         //------------------------------------------------------------
         if (sqlite_columns_table.row_count < 2) {
             std.log.err("invalid row_count", .{});
@@ -585,85 +599,85 @@ pub fn main(init: std.process.Init) !u8 {
 
             const sqlite_columns = sqlite_columns_table.sqlite_columns.?;
 
-            try ut.compareInteger("getTableColumns: id", 0, sqlite_columns[0].index);
-            try ut.compareCString("getTableColumns: id", "id", sqlite_columns[0].name);
-            try ut.compareInteger("getTableColumns: id", 1, sqlite_columns[0].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: id", 0, sqlite_columns[0].index);
+            try ut.compareCString("getSQLiteColumnsTable: id", "id", sqlite_columns[0].name);
+            try ut.compareInteger("getSQLiteColumnsTable: id", 1, sqlite_columns[0].integer);
 
-            try ut.compareInteger("getTableColumns: value1", 1, sqlite_columns[1].index);
-            try ut.compareCString("getTableColumns: value1", "value1", sqlite_columns[1].name);
-            try ut.compareStringSlice("getTableColumns: value1", "value1", sqlite_columns[1].ptr[0..sqlite_columns[1].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value1", 1, sqlite_columns[1].index);
+            try ut.compareCString("getSQLiteColumnsTable: value1", "value1", sqlite_columns[1].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: value1", "value1", sqlite_columns[1].ptr[0..sqlite_columns[1].len]);
 
-            try ut.compareInteger("getTableColumns: value2", 2, sqlite_columns[2].index);
-            try ut.compareCString("getTableColumns: value2", "value2", sqlite_columns[2].name);
-            try ut.compareStringSlice("getTableColumns: value2", "", sqlite_columns[2].ptr[0..sqlite_columns[2].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value2", 2, sqlite_columns[2].index);
+            try ut.compareCString("getSQLiteColumnsTable: value2", "value2", sqlite_columns[2].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: value2", "", sqlite_columns[2].ptr[0..sqlite_columns[2].len]);
 
-            try ut.compareInteger("getTableColumns: integer", 3, sqlite_columns[3].index);
-            try ut.compareCString("getTableColumns: integer", "integer", sqlite_columns[3].name);
-            try ut.compareInteger("getTableColumns: integer", 1, sqlite_columns[3].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[3].index);
+            try ut.compareCString("getSQLiteColumnsTable: integer", "integer", sqlite_columns[3].name);
+            try ut.compareInteger("getSQLiteColumnsTable: integer", 1, sqlite_columns[3].integer);
 
-            try ut.compareInteger("getTableColumns: float", 4, sqlite_columns[4].index);
-            try ut.compareCString("getTableColumns: float", "float", sqlite_columns[4].name);
-            try ut.compareFloat("getTableColumns: float", 0, sqlite_columns[4].float);
+            try ut.compareInteger("getSQLiteColumnsTable: float", 4, sqlite_columns[4].index);
+            try ut.compareCString("getSQLiteColumnsTable: float", "float", sqlite_columns[4].name);
+            try ut.compareFloat("getSQLiteColumnsTable: float", 0, sqlite_columns[4].float);
 
-            try ut.compareInteger("getTableColumns: blob", 5, sqlite_columns[5].index);
-            try ut.compareCString("getTableColumns: blob", "blob", sqlite_columns[5].name);
+            try ut.compareInteger("getSQLiteColumnsTable: blob", 5, sqlite_columns[5].index);
+            try ut.compareCString("getSQLiteColumnsTable: blob", "blob", sqlite_columns[5].name);
             if (sqlite_columns[5].column_type == .SQLITE_NULL) {
-                try ut.pass("getTableColumns: blob", "");
+                try ut.pass("getSQLiteColumnsTable: blob", "");
             } else {
-                try ut.compareStringSlice("getTableColumns: blob", "", sqlite_columns[5].ptr[0..sqlite_columns[5].len]);
+                try ut.compareStringSlice("getSQLiteColumnsTable: blob", "", sqlite_columns[5].ptr[0..sqlite_columns[5].len]);
             }
 
             //------------------------------------------------------------
 
-            try ut.compareInteger("getTableColumns: id", 0, sqlite_columns[6].index);
-            try ut.compareCString("getTableColumns: id", "id", sqlite_columns[6].name);
-            try ut.compareInteger("getTableColumns: id", 2, sqlite_columns[6].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: id", 0, sqlite_columns[6].index);
+            try ut.compareCString("getSQLiteColumnsTable: id", "id", sqlite_columns[6].name);
+            try ut.compareInteger("getSQLiteColumnsTable: id", 2, sqlite_columns[6].integer);
 
-            try ut.compareInteger("getTableColumns: value1", 1, sqlite_columns[7].index);
-            try ut.compareCString("getTableColumns: value1", "value1", sqlite_columns[7].name);
-            try ut.compareStringSlice("getTableColumns: value1", "", sqlite_columns[7].ptr[0..sqlite_columns[7].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value1", 1, sqlite_columns[7].index);
+            try ut.compareCString("getSQLiteColumnsTable: value1", "value1", sqlite_columns[7].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: value1", "", sqlite_columns[7].ptr[0..sqlite_columns[7].len]);
 
-            try ut.compareInteger("getTableColumns: value2", 2, sqlite_columns[8].index);
-            try ut.compareCString("getTableColumns: value2", "value2", sqlite_columns[8].name);
-            try ut.compareStringSlice("getTableColumns: value2", "value2", sqlite_columns[8].ptr[0..sqlite_columns[8].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value2", 2, sqlite_columns[8].index);
+            try ut.compareCString("getSQLiteColumnsTable: value2", "value2", sqlite_columns[8].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: value2", "value2", sqlite_columns[8].ptr[0..sqlite_columns[8].len]);
 
-            try ut.compareInteger("getTableColumns: integer", 3, sqlite_columns[9].index);
-            try ut.compareCString("getTableColumns: integer", "integer", sqlite_columns[9].name);
-            try ut.compareInteger("getTableColumns: integer", 0, sqlite_columns[9].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[9].index);
+            try ut.compareCString("getSQLiteColumnsTable: integer", "integer", sqlite_columns[9].name);
+            try ut.compareInteger("getSQLiteColumnsTable: integer", 0, sqlite_columns[9].integer);
 
-            try ut.compareInteger("getTableColumns: float", 4, sqlite_columns[10].index);
-            try ut.compareCString("getTableColumns: float", "float", sqlite_columns[10].name);
-            try ut.compareFloat("getTableColumns: float", 2.2, sqlite_columns[10].float);
+            try ut.compareInteger("getSQLiteColumnsTable: float", 4, sqlite_columns[10].index);
+            try ut.compareCString("getSQLiteColumnsTable: float", "float", sqlite_columns[10].name);
+            try ut.compareFloat("getSQLiteColumnsTable: float", 2.2, sqlite_columns[10].float);
 
-            try ut.compareInteger("getTableColumns: blob", 5, sqlite_columns[11].index);
-            try ut.compareCString("getTableColumns: blob", "blob", sqlite_columns[11].name);
-            try ut.compareStringSlice("getTableColumns: blob", "\xF0\x9F\x90\xA7", sqlite_columns[11].ptr[0..sqlite_columns[11].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: blob", 5, sqlite_columns[11].index);
+            try ut.compareCString("getSQLiteColumnsTable: blob", "blob", sqlite_columns[11].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: blob", "\xF0\x9F\x90\xA7", sqlite_columns[11].ptr[0..sqlite_columns[11].len]);
 
             //------------------------------------------------------------
 
-            try ut.compareInteger("getTableColumns: id", 0, sqlite_columns[12].index);
-            try ut.compareCString("getTableColumns: id", "id", sqlite_columns[12].name);
-            try ut.compareInteger("getTableColumns: id", 3, sqlite_columns[12].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: id", 0, sqlite_columns[12].index);
+            try ut.compareCString("getSQLiteColumnsTable: id", "id", sqlite_columns[12].name);
+            try ut.compareInteger("getSQLiteColumnsTable: id", 3, sqlite_columns[12].integer);
 
-            try ut.compareInteger("getTableColumns: value1", 1, sqlite_columns[13].index);
-            try ut.compareCString("getTableColumns: value1", "value1", sqlite_columns[13].name);
-            try ut.compareStringSlice("getTableColumns: value1", "new_value1", sqlite_columns[13].ptr[0..sqlite_columns[13].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value1", 1, sqlite_columns[13].index);
+            try ut.compareCString("getSQLiteColumnsTable: value1", "value1", sqlite_columns[13].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: value1", "new_value1", sqlite_columns[13].ptr[0..sqlite_columns[13].len]);
 
-            try ut.compareInteger("getTableColumns: value2", 2, sqlite_columns[14].index);
-            try ut.compareCString("getTableColumns: value2", "value2", sqlite_columns[14].name);
-            try ut.compareStringSlice("getTableColumns: value2", "new_value2", sqlite_columns[14].ptr[0..sqlite_columns[14].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value2", 2, sqlite_columns[14].index);
+            try ut.compareCString("getSQLiteColumnsTable: value2", "value2", sqlite_columns[14].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: value2", "new_value2", sqlite_columns[14].ptr[0..sqlite_columns[14].len]);
 
-            try ut.compareInteger("getTableColumns: integer", 3, sqlite_columns[15].index);
-            try ut.compareCString("getTableColumns: integer", "integer", sqlite_columns[15].name);
-            try ut.compareInteger("getTableColumns: integer", 3, sqlite_columns[15].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[15].index);
+            try ut.compareCString("getSQLiteColumnsTable: integer", "integer", sqlite_columns[15].name);
+            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[15].integer);
 
-            try ut.compareInteger("getTableColumns: float", 4, sqlite_columns[16].index);
-            try ut.compareCString("getTableColumns: float", "float", sqlite_columns[16].name);
-            try ut.compareFloat("getTableColumns: float", 3.3, sqlite_columns[16].float);
+            try ut.compareInteger("getSQLiteColumnsTable: float", 4, sqlite_columns[16].index);
+            try ut.compareCString("getSQLiteColumnsTable: float", "float", sqlite_columns[16].name);
+            try ut.compareFloat("getSQLiteColumnsTable: float", 3.3, sqlite_columns[16].float);
 
-            try ut.compareInteger("getTableColumns: blob", 5, sqlite_columns[17].index);
-            try ut.compareCString("getTableColumns: blob", "blob", sqlite_columns[17].name);
-            try ut.compareStringSlice("getTableColumns: blob", "\xF0\x9F\x90\xA7\xF0\x9F\x90\xA7", sqlite_columns[17].ptr[0..sqlite_columns[17].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: blob", 5, sqlite_columns[17].index);
+            try ut.compareCString("getSQLiteColumnsTable: blob", "blob", sqlite_columns[17].name);
+            try ut.compareStringSlice("getSQLiteColumnsTable: blob", "\xF0\x9F\x90\xA7\xF0\x9F\x90\xA7", sqlite_columns[17].ptr[0..sqlite_columns[17].len]);
 
             //------------------------------------------------------------
         }
@@ -848,6 +862,7 @@ extern fn getColumnCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errms
 extern fn allocateBytes(len: usize) callconv(.c) [*]u8;
 extern fn reallocateBytes(ptr: ?*anyopaque, len: usize) callconv(.c) [*]u8;
 extern fn freeBytes(ptr: ?*anyopaque) callconv(.c) void;
+extern fn checkTableName(table_name: [*c]const u8) bool;
 //--------------------------------------------------------------------------------
 extern fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) c_int;
 extern fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int;

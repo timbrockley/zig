@@ -86,9 +86,9 @@ pub fn connect(self: *Self, filepath: [*:0]const u8) !void {
         };
         //------------------------------------------------------------
     }
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
     self.db_handle = db_handle;
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Close database and reset db_handle.
@@ -115,6 +115,10 @@ pub fn sqliteGetTable(self: *Self, sql: [*c]const u8, results: [*c][*c][*c]u8, r
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
     const rc = c.sqlite3_get_table(self.db_handle, sql, results, row_count, column_count, errmsg);
     //------------------------------------------------------------
     if (rc != c.SQLITE_OK) return self.returnErrorCode(rc, errmsg.*.?);
@@ -137,6 +141,10 @@ pub fn sqliteFreeTable(self: *Self, results: [*c][*c]u8) void {
 pub fn sqliteExec(self: *Self, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) c_int {
     //------------------------------------------------------------
     self.clearError();
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
     //------------------------------------------------------------
     const rc = c.sqlite3_exec(self.db_handle, sql, callback, ctx, errmsg);
     //----------------------------------------
@@ -568,9 +576,13 @@ pub fn queryCallback(
 pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *SQLiteColumnsTable) !void {
     //------------------------------------------------------------
     self.clearError();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
     if (self.db_handle == null) {
         return self.returnError(c.SQLITE_MISUSE, "invalid db_handle", error.InvalidDBHandle);
+    }
+    //------------------------------------------------------------
+    if (!self.checkTableName(table_name)) {
+        return self.returnError(c.SQLITE_ERROR, "invalid table_name", error.InvalidTableName);
     }
     //------------------------------------------------------------
     table_ptr.row_count = try getRowCount(self, table_name);
@@ -706,7 +718,15 @@ pub fn freeSQLiteColumnsTable(self: *Self, table_ptr: ?*SQLiteColumnsTable) void
 pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
     //------------------------------------------------------------
     self.clearError();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnError(c.SQLITE_MISUSE, "invalid db_handle", error.InvalidDBHandle);
+    }
+    //------------------------------------------------------------
+    if (!self.checkTableName(table_name)) {
+        return self.returnError(c.SQLITE_ERROR, "invalid table_name", error.InvalidTableName);
+    }
+    //------------------------------------------------------------
     var total_backed_bytes: usize = 0;
     //------------------------------------------------------------
     var stmt_handle: ?*anyopaque = null;
@@ -772,9 +792,13 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
 pub fn getRowCount(self: *Self, table_name: [*c]const u8) !usize {
     //------------------------------------------------------------
     self.clearError();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
     if (self.db_handle == null) {
         return self.returnError(c.SQLITE_MISUSE, "invalid db_handle", error.InvalidDBHandle);
+    }
+    //------------------------------------------------------------
+    if (!self.checkTableName(table_name)) {
+        return self.returnError(c.SQLITE_ERROR, "invalid table_name", error.InvalidTableName);
     }
     //------------------------------------------------------------
     var stmt_handle: ?*anyopaque = null;
@@ -813,11 +837,13 @@ pub fn getRowCount(self: *Self, table_name: [*c]const u8) !usize {
 pub fn getColumnCount(self: *Self, table_name: [*c]const u8) !usize {
     //------------------------------------------------------------
     self.clearError();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
     if (self.db_handle == null) {
-        //------------------------------------------------------------
         return self.returnError(c.SQLITE_MISUSE, "invalid db_handle", error.InvalidDBHandle);
-        //------------------------------------------------------------
+    }
+    //------------------------------------------------------------
+    if (!self.checkTableName(table_name)) {
+        return self.returnError(c.SQLITE_ERROR, "invalid table_name", error.InvalidTableName);
     }
     //------------------------------------------------------------
     var stmt_handle: ?*anyopaque = null;
@@ -851,7 +877,7 @@ pub fn getColumnCount(self: *Self, table_name: [*c]const u8) !usize {
 pub fn updateSQLiteColumn(self: *Self, stmt_handle: ?*anyopaque, index: usize, column: *SQLiteColumn) !void {
     //------------------------------------------------------------
     self.clearError();
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------
     if (stmt_handle == null) {
         return self.returnError(c.SQLITE_MISUSE, "invalid stmt_handle", error.InvalidStmtHandle);
     }
@@ -960,6 +986,31 @@ pub fn updateRowMap(
         try row.put(key, value);
         //------------------------------------------------------------
     }
+    //------------------------------------------------------------
+}
+//--------------------------------------------------------------------------------
+//################################################################################
+//--------------------------------------------------------------------------------
+/// Checks table name
+pub fn checkTableName(_: *Self, table_name: [*c]const u8) bool {
+    //------------------------------------------------------------
+    if (table_name == null) return false;
+    if (table_name[0] == 0) return false;
+    //------------------------------------------------------------
+    switch (table_name[0]) {
+        'A'...'Z', 'a'...'z', '_' => {},
+        else => return false,
+    }
+    //------------------------------------------------------------
+    var index: usize = 1;
+    while (table_name[index] != 0) : (index += 1) {
+        switch (table_name[index]) {
+            'A'...'Z', 'a'...'z', '0'...'9', '_' => continue,
+            else => return false,
+        }
+    }
+    //------------------------------------------------------------
+    return true;
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
