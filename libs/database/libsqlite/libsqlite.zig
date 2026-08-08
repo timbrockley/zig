@@ -145,7 +145,7 @@ pub export fn sqlitePrepare(
     if (db_handle == null) {
         stmt_handle.* = null;
         errmsg.* = c.sqlite3_mprintf("invalid db_handle");
-        return c.SQLITE_ERROR;
+        return c.SQLITE_MISUSE;
     }
     //----------------------------------------
     if (errmsg.* != null) errmsg.* = null;

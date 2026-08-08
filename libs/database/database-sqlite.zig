@@ -174,6 +174,15 @@ pub fn sqliteClearBindings(self: *Self, stmt_handle: ?*anyopaque) c_int {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
+    if (self.db_handle == null) {
+        stmt_handle.* = null;
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
+    //------------------------------------------------------------
     const rc = c.sqlite3_clear_bindings(stmt_handle);
     //----------------------------------------
     if (rc != c.SQLITE_OK) return self.returnErrorCode(rc, c.sqlite3_errmsg(self.db_handle));
@@ -186,6 +195,14 @@ pub fn sqliteClearBindings(self: *Self, stmt_handle: ?*anyopaque) c_int {
 pub fn sqliteBindBlob(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) c_int {
     //------------------------------------------------------------
     self.clearError();
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
     //------------------------------------------------------------
     const rc = c.sqlite3_bind_blob(stmt_handle, iCol, ptr, len, destructor_function);
     //----------------------------------------
@@ -200,6 +217,14 @@ pub fn sqliteBindText(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
+    //------------------------------------------------------------
     const rc = c.sqlite3_bind_text(stmt_handle, iCol, ptr, len, destructor_function);
     //------------------------------------------------------------
     if (rc != c.SQLITE_OK) return self.returnErrorCode(rc, c.sqlite3_errmsg(self.db_handle));
@@ -212,6 +237,14 @@ pub fn sqliteBindText(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [
 pub fn sqliteBindInt64(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, integer: i64) c_int {
     //------------------------------------------------------------
     self.clearError();
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
     //------------------------------------------------------------
     const rc = c.sqlite3_bind_int64(stmt_handle, iCol, integer);
     //------------------------------------------------------------
@@ -226,6 +259,14 @@ pub fn sqliteBindDouble(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, floa
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
+    //------------------------------------------------------------
     const rc = c.sqlite3_bind_double(stmt_handle, iCol, float);
     //------------------------------------------------------------
     if (rc != c.SQLITE_OK) return self.returnErrorCode(rc, c.sqlite3_errmsg(self.db_handle));
@@ -238,6 +279,14 @@ pub fn sqliteBindDouble(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, floa
 pub fn sqliteBindNull(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int) c_int {
     //------------------------------------------------------------
     self.clearError();
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
     //------------------------------------------------------------
     const rc = c.sqlite3_bind_null(stmt_handle, iCol);
     //------------------------------------------------------------
@@ -315,10 +364,18 @@ pub fn sqliteStep(self: *Self, stmt_handle: ?*anyopaque) c_int {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
+    //------------------------------------------------------------
     const rc = c.sqlite3_step(stmt_handle);
-    //----------------------------------------
-    if (rc != c.SQLITE_OK) return self.returnErrorCode(rc, c.sqlite3_errmsg(self.db_handle));
-    //----------------------------------------
+    //------------------------------------------------------------
+    self.setErrorMessage(rc, c.sqlite3_errmsg(self.db_handle));
+    //------------------------------------------------------------
     return rc;
     //------------------------------------------------------------
 }
@@ -327,6 +384,14 @@ pub fn sqliteStep(self: *Self, stmt_handle: ?*anyopaque) c_int {
 pub fn sqliteReset(self: *Self, stmt_handle: ?*anyopaque) c_int {
     //------------------------------------------------------------
     self.clearError();
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
     //------------------------------------------------------------
     const rc = c.sqlite3_reset(stmt_handle);
     //------------------------------------------------------------
@@ -340,6 +405,14 @@ pub fn sqliteReset(self: *Self, stmt_handle: ?*anyopaque) c_int {
 pub fn sqliteFinalize(self: *Self, stmt_handle: ?*anyopaque) c_int {
     //------------------------------------------------------------
     self.clearError();
+    //------------------------------------------------------------
+    if (self.db_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (stmt_handle == null) {
+        return self.returnErrorCode(c.SQLITE_MISUSE, "invalid stmt_handle");
+    }
     //------------------------------------------------------------
     const rc = c.sqlite3_finalize(stmt_handle);
     //------------------------------------------------------------
