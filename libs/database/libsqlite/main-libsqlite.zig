@@ -47,7 +47,7 @@ const Context = struct {
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
-pub const SQLiteColumnType = enum(c_int) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
+pub const SQLiteColumnType = enum(i32) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
 //--------------------------------------------------------------------------------
 pub const SQLiteColumn = extern struct {
     index: usize = 0,
@@ -225,8 +225,8 @@ pub fn main(init: std.process.Init) !u8 {
     {
         //--------------------------------------------------------------------------------
         var results: [*c][*c]u8 = undefined;
-        var row_count: c_int = 0;
-        var column_count: c_int = 0;
+        var row_count: i32 = 0;
+        var column_count: i32 = 0;
         //----------------------------------------
         var errmsg: [*c]u8 = null;
         const sql = "SELECT * FROM test;";
@@ -749,10 +749,10 @@ pub fn main(init: std.process.Init) !u8 {
 //--------------------------------------------------------------------------------
 pub fn callback(
     ctx: ?*anyopaque,
-    argc: c_int,
+    argc: i32,
     argv: [*c][*c]u8,
     azColName: [*c][*c]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //----------------------------------------
     var context: *Context = undefined;
     //----------------------------------------
@@ -794,7 +794,7 @@ pub fn newCallback(
     ctx: ?*anyopaque,
     columns: [*]SQLiteColumn,
     column_count: usize,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //----------------------------------------
     var context: *Context = undefined;
     //----------------------------------------
@@ -851,11 +851,11 @@ pub fn newCallback(
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
-extern fn queryCallback(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: *?[*:0]u8) callconv(.c) c_int;
-extern fn getSQLiteColumnsTable(db_handle: ?*anyopaque, table_name: [*c]const u8, table_ptr: *SQLiteColumnsTable, errmsg: *?[*:0]u8) callconv(.c) c_int;
+extern fn queryCallback(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) i32, ctx: ?*anyopaque, errmsg: *?[*:0]u8) callconv(.c) i32;
+extern fn getSQLiteColumnsTable(db_handle: ?*anyopaque, table_name: [*c]const u8, table_ptr: *SQLiteColumnsTable, errmsg: *?[*:0]u8) callconv(.c) i32;
 extern fn freeSQLiteColumnsTable(table_ptr: ?*SQLiteColumnsTable) callconv(.c) void;
 extern fn getTotalColumnDataBytes(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: *?[*:0]u8) callconv(.c) usize;
-extern fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: usize, column: *SQLiteColumn) callconv(.c) c_int;
+extern fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: usize, column: *SQLiteColumn) callconv(.c) i32;
 extern fn getRowCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: *?[*:0]u8) callconv(.c) usize;
 extern fn getColumnCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: *?[*:0]u8) callconv(.c) usize;
 //--------------------------------------------------------------------------------
@@ -864,33 +864,33 @@ extern fn reallocateBytes(ptr: ?*anyopaque, len: usize) callconv(.c) [*]u8;
 extern fn freeBytes(ptr: ?*anyopaque) callconv(.c) void;
 extern fn checkTableName(table_name: [*c]const u8) bool;
 //--------------------------------------------------------------------------------
-extern fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) c_int;
-extern fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int;
-extern fn sqliteBindDouble(stmt_handle: ?*anyopaque, iCol: c_int, float: f64) callconv(.c) c_int;
-extern fn sqliteBindInt64(stmt_handle: ?*anyopaque, iCol: c_int, integer: i64) callconv(.c) c_int;
-extern fn sqliteBindNull(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int;
-extern fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int;
+extern fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) i32;
+extern fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32;
+extern fn sqliteBindDouble(stmt_handle: ?*anyopaque, iCol: i32, float: f64) callconv(.c) i32;
+extern fn sqliteBindInt64(stmt_handle: ?*anyopaque, iCol: i32, integer: i64) callconv(.c) i32;
+extern fn sqliteBindNull(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32;
+extern fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32;
 extern fn sqliteClose(db_handle: ?*anyopaque) callconv(.c) void;
-extern fn sqliteColumnBlob(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8;
-extern fn sqliteColumnBytes(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int;
-extern fn sqliteColumnCount(stmt_handle: ?*anyopaque) callconv(.c) c_int;
-extern fn sqliteColumnDouble(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) f64;
-extern fn sqliteColumnInt64(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) i64;
-extern fn sqliteColumnText(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8;
-extern fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int;
-extern fn sqliteDataCount(stmt_handle: ?*anyopaque) callconv(.c) c_int;
+extern fn sqliteColumnBlob(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8;
+extern fn sqliteColumnBytes(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32;
+extern fn sqliteColumnCount(stmt_handle: ?*anyopaque) callconv(.c) i32;
+extern fn sqliteColumnDouble(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) f64;
+extern fn sqliteColumnInt64(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i64;
+extern fn sqliteColumnText(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8;
+extern fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32;
+extern fn sqliteDataCount(stmt_handle: ?*anyopaque) callconv(.c) i32;
 extern fn sqliteErrmsg(db_handle: ?*anyopaque) callconv(.c) [*c]const u8;
-extern fn sqliteExec(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) c_int;
-extern fn sqliteFinalize(stmt_handle: ?*anyopaque) callconv(.c) c_int;
+extern fn sqliteExec(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, i32, [*c][*c]u8, [*c][*c]u8) callconv(.c) i32, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) i32;
+extern fn sqliteFinalize(stmt_handle: ?*anyopaque) callconv(.c) i32;
 extern fn sqliteFree(ptr: ?*anyopaque) callconv(.c) void;
 extern fn sqliteFreeTable(results: [*c][*c]u8) callconv(.c) void;
-extern fn sqliteGetTable(db_handle: ?*anyopaque, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]c_int, column_count: [*c]c_int, errmsg: [*c][*c]u8) callconv(.c) c_int;
-extern fn sqliteMalloc64(len: c_ulonglong) callconv(.c) ?*anyopaque;
-extern fn sqliteOpen(filepath: [*:0]const u8, db_handle: *?*anyopaque) callconv(.c) c_int;
-extern fn sqlitePrepare(db_handle: ?*anyopaque, sql: [*c]const u8, stmt_handle: *?*anyopaque, errmsg: *?[*:0]u8) callconv(.c) c_int;
-extern fn sqliteRealloc64(ptr: ?*anyopaque, len: c_ulonglong) callconv(.c) ?*anyopaque;
-extern fn sqliteReset(stmt_handle: ?*anyopaque) callconv(.c) c_int;
-extern fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) c_int;
+extern fn sqliteGetTable(db_handle: ?*anyopaque, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]i32, column_count: [*c]i32, errmsg: [*c][*c]u8) callconv(.c) i32;
+extern fn sqliteMalloc64(len: u64) callconv(.c) ?*anyopaque;
+extern fn sqliteOpen(filepath: [*:0]const u8, db_handle: *?*anyopaque) callconv(.c) i32;
+extern fn sqlitePrepare(db_handle: ?*anyopaque, sql: [*c]const u8, stmt_handle: *?*anyopaque, errmsg: *?[*:0]u8) callconv(.c) i32;
+extern fn sqliteRealloc64(ptr: ?*anyopaque, len: u64) callconv(.c) ?*anyopaque;
+extern fn sqliteReset(stmt_handle: ?*anyopaque) callconv(.c) i32;
+extern fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) i32;
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------

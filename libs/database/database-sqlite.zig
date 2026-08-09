@@ -12,7 +12,7 @@ const MAX_ERRMSG: usize = 256;
 const MAX_TABLE_NAME: usize = 256;
 //--------------------------------------------------------------------------------
 db_handle: ?*anyopaque = null,
-rc: c_int = c.SQLITE_OK,
+rc: i32 = c.SQLITE_OK,
 errmsg: [MAX_ERRMSG:0]u8 = [_:0]u8{0} ** MAX_ERRMSG,
 //--------------------------------------------------------------------------------
 pub const SQLiteDB = @This();
@@ -20,7 +20,7 @@ pub const Self = @This();
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
-pub const SQLiteColumnType = enum(c_int) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
+pub const SQLiteColumnType = enum(i32) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
 //--------------------------------------------------------------------------------
 pub const SQLiteColumn = extern struct {
     index: usize = 0,
@@ -111,7 +111,7 @@ pub fn sqliteErrmsg(self: *Self) [*c]const u8 {
 //################################################################################
 //--------------------------------------------------------------------------------
 /// Updates result, row_count and column_count or errmsg if an error occurs.
-pub fn sqliteGetTable(self: *Self, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]c_int, column_count: [*c]c_int, errmsg: [*c][*c]u8) c_int {
+pub fn sqliteGetTable(self: *Self, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]i32, column_count: [*c]i32, errmsg: [*c][*c]u8) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -138,7 +138,7 @@ pub fn sqliteFreeTable(self: *Self, results: [*c][*c]u8) void {
 //--------------------------------------------------------------------------------
 /// Runs query and run callback function to deal with data for each row.
 /// Optional context pointer can be used by callback function to maintain state.
-pub fn sqliteExec(self: *Self, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) c_int {
+pub fn sqliteExec(self: *Self, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, i32, [*c][*c]u8, [*c][*c]u8) callconv(.c) i32, ctx: ?*anyopaque, errmsg: [*c][*c]u8) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -157,7 +157,7 @@ pub fn sqliteExec(self: *Self, sql: [*c]const u8, callback: ?*const fn (?*anyopa
 //################################################################################
 //--------------------------------------------------------------------------------
 // Provides a statement handle for use by calling code.
-pub fn sqlitePrepare(self: *Self, sql: [*c]const u8, stmt_handle: *?*anyopaque) c_int {
+pub fn sqlitePrepare(self: *Self, sql: [*c]const u8, stmt_handle: *?*anyopaque) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -178,7 +178,7 @@ pub fn sqlitePrepare(self: *Self, sql: [*c]const u8, stmt_handle: *?*anyopaque) 
 }
 //--------------------------------------------------------------------------------
 /// Clears bindings on prepared statement.
-pub fn sqliteClearBindings(self: *Self, stmt_handle: ?*anyopaque) c_int {
+pub fn sqliteClearBindings(self: *Self, stmt_handle: ?*anyopaque) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -200,7 +200,7 @@ pub fn sqliteClearBindings(self: *Self, stmt_handle: ?*anyopaque) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Binds blob data to a column.
-pub fn sqliteBindBlob(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) c_int {
+pub fn sqliteBindBlob(self: *Self, stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -221,7 +221,7 @@ pub fn sqliteBindBlob(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [
 }
 //--------------------------------------------------------------------------------
 /// Binds text data to a column.
-pub fn sqliteBindText(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) c_int {
+pub fn sqliteBindText(self: *Self, stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -242,7 +242,7 @@ pub fn sqliteBindText(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, ptr: [
 }
 //--------------------------------------------------------------------------------
 /// Binds in i64 to a column.
-pub fn sqliteBindInt64(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, integer: i64) c_int {
+pub fn sqliteBindInt64(self: *Self, stmt_handle: ?*anyopaque, iCol: i32, integer: i64) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -263,7 +263,7 @@ pub fn sqliteBindInt64(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, integ
 }
 //--------------------------------------------------------------------------------
 /// Binds an f64 to a column.
-pub fn sqliteBindDouble(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, float: f64) c_int {
+pub fn sqliteBindDouble(self: *Self, stmt_handle: ?*anyopaque, iCol: i32, float: f64) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -284,7 +284,7 @@ pub fn sqliteBindDouble(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int, floa
 }
 //--------------------------------------------------------------------------------
 /// Binds a null value to a column.
-pub fn sqliteBindNull(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int) c_int {
+pub fn sqliteBindNull(self: *Self, stmt_handle: ?*anyopaque, iCol: i32) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -305,70 +305,70 @@ pub fn sqliteBindNull(self: *Self, stmt_handle: ?*anyopaque, iCol: c_int) c_int 
 }
 //--------------------------------------------------------------------------------
 /// Returns column name.
-pub fn sqliteColumnName(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) [*c]const u8 {
+pub fn sqliteColumnName(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) [*c]const u8 {
     //------------------------------------------------------------
     return c.sqlite3_column_name(stmt_handle, iCol);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns column type.
-pub fn sqliteColumnType(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) c_int {
+pub fn sqliteColumnType(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) i32 {
     //------------------------------------------------------------
     return c.sqlite3_column_type(stmt_handle, iCol);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns a pointer to a BLOB of bytes.
-pub fn sqliteColumnBlob(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) [*c]const u8 {
+pub fn sqliteColumnBlob(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) [*c]const u8 {
     //------------------------------------------------------------
     return c.sqlite3_column_blob(stmt_handle, iCol);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns a pointer to a UTF-8 text result (zero terminated).
-pub fn sqliteColumnText(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) [*c]const u8 {
+pub fn sqliteColumnText(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) [*c]const u8 {
     //------------------------------------------------------------
     return c.sqlite3_column_text(stmt_handle, iCol);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns an i64 integer.
-pub fn sqliteColumnInt64(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) i64 {
+pub fn sqliteColumnInt64(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) i64 {
     //------------------------------------------------------------
     return c.sqlite3_column_int64(stmt_handle, iCol);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns an f64 float value.
-pub fn sqliteColumnDouble(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) f64 {
+pub fn sqliteColumnDouble(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) f64 {
     //------------------------------------------------------------
     return c.sqlite3_column_double(stmt_handle, iCol);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns number of bytes in column.
-pub fn sqliteColumnBytes(_: *Self, stmt_handle: ?*anyopaque, iCol: c_int) usize {
+pub fn sqliteColumnBytes(_: *Self, stmt_handle: ?*anyopaque, iCol: i32) usize {
     //------------------------------------------------------------
     return @intCast(c.sqlite3_column_bytes(stmt_handle, iCol));
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns number of columns provided by statement.
-pub fn sqliteColumnCount(_: *Self, stmt_handle: ?*anyopaque) c_int {
+pub fn sqliteColumnCount(_: *Self, stmt_handle: ?*anyopaque) i32 {
     //------------------------------------------------------------
     return c.sqlite3_column_count(stmt_handle);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns number of columns in current row (ONLY during SQLITE_ROW stage).
-pub fn sqliteDataCount(_: *Self, stmt_handle: ?*anyopaque) c_int {
+pub fn sqliteDataCount(_: *Self, stmt_handle: ?*anyopaque) i32 {
     //------------------------------------------------------------
     return c.sqlite3_data_count(stmt_handle);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Runs c.sqlite3_step using statement handle.
-pub fn sqliteStep(self: *Self, stmt_handle: ?*anyopaque) c_int {
+pub fn sqliteStep(self: *Self, stmt_handle: ?*anyopaque) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -389,7 +389,7 @@ pub fn sqliteStep(self: *Self, stmt_handle: ?*anyopaque) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Resets prepared statement handle (does not clear bindings).
-pub fn sqliteReset(self: *Self, stmt_handle: ?*anyopaque) c_int {
+pub fn sqliteReset(self: *Self, stmt_handle: ?*anyopaque) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -410,7 +410,7 @@ pub fn sqliteReset(self: *Self, stmt_handle: ?*anyopaque) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Finalises prepared statement handle.
-pub fn sqliteFinalize(self: *Self, stmt_handle: ?*anyopaque) c_int {
+pub fn sqliteFinalize(self: *Self, stmt_handle: ?*anyopaque) i32 {
     //------------------------------------------------------------
     self.clearError();
     //------------------------------------------------------------
@@ -487,7 +487,7 @@ pub fn freeBytes(_: *Self, ptr: ?*anyopaque) void {
 pub fn queryCallback(
     self: *Self,
     sql: [*c]const u8,
-    callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) c_int,
+    callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) i32,
     ctx: ?*anyopaque,
 ) !void {
     //------------------------------------------------------------
@@ -592,7 +592,7 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
     var buffer: [MAX_TABLE_NAME:0]u8 = undefined;
     _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %s;", table_name);
     //------------------------------------------------------------
-    var rc: c_int = 0;
+    var rc: i32 = 0;
     //------------------------------------------------------------
     rc = c.sqlite3_prepare_v2(self.db_handle, @as([*:0]const u8, &buffer), -1, &stmt_handle, null);
     //------------------------------------------------------------
@@ -755,7 +755,7 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
             //------------------------------------------------------------
             for (0..column_count) |column_index| {
                 //------------------------------------------------------------
-                const iCol: c_int = @intCast(column_index);
+                const iCol: i32 = @intCast(column_index);
                 //------------------------------------------------------------
                 const name = c.sqlite3_column_name(stmt_handle, iCol);
                 const name_len = std.mem.len(name);
@@ -882,7 +882,7 @@ pub fn updateSQLiteColumn(self: *Self, stmt_handle: ?*anyopaque, index: usize, c
         return self.returnError(c.SQLITE_MISUSE, "invalid stmt_handle", error.InvalidStmtHandle);
     }
     //------------------------------------------------------------
-    const iCol: c_int = @intCast(index);
+    const iCol: i32 = @intCast(index);
     //------------------------------------------------------------
     const name = c.sqlite3_column_name(stmt_handle, iCol);
     //------------------------------------------------------------
@@ -1017,7 +1017,7 @@ pub fn checkTableName(_: *Self, table_name: [*c]const u8) bool {
 //################################################################################
 //--------------------------------------------------------------------------------
 /// sets rc and errmsg then returns an rc.
-pub fn returnErrorCode(self: *Self, rc: c_int, errmsg: [*:0]const u8) c_int {
+pub fn returnErrorCode(self: *Self, rc: i32, errmsg: [*:0]const u8) i32 {
     //------------------------------------------------------------
     self.setErrorMessage(rc, errmsg);
     //----------------------------------------
@@ -1026,7 +1026,7 @@ pub fn returnErrorCode(self: *Self, rc: c_int, errmsg: [*:0]const u8) c_int {
 }
 //--------------------------------------------------------------------------------
 /// sets rc and errmsg then returns an error.
-pub fn returnError(self: *Self, rc: c_int, errmsg: [*:0]const u8, err: anyerror) anyerror {
+pub fn returnError(self: *Self, rc: i32, errmsg: [*:0]const u8, err: anyerror) anyerror {
     //------------------------------------------------------------
     self.setErrorMessage(rc, errmsg);
     //------------------------------------------------------------
@@ -1035,7 +1035,7 @@ pub fn returnError(self: *Self, rc: c_int, errmsg: [*:0]const u8, err: anyerror)
 }
 //--------------------------------------------------------------------------------
 /// sets rc and errmsg then returns an error.
-pub fn returnFormattedError(self: *Self, rc: c_int, comptime fmt: []const u8, args: anytype, err: anyerror) anyerror {
+pub fn returnFormattedError(self: *Self, rc: i32, comptime fmt: []const u8, args: anytype, err: anyerror) anyerror {
     //------------------------------------------------------------
     self.setFormattedErrorMessage(rc, fmt, args);
     //------------------------------------------------------------
@@ -1053,7 +1053,7 @@ pub fn clearError(self: *Self) void {
 }
 //--------------------------------------------------------------------------------
 /// sets rc and errmsg.
-pub fn setErrorMessage(self: *Self, rc: c_int, errmsg: [*:0]const u8) void {
+pub fn setErrorMessage(self: *Self, rc: i32, errmsg: [*:0]const u8) void {
     //------------------------------------------------------------
     self.rc = rc;
     //------------------------------------------------------------
@@ -1070,7 +1070,7 @@ pub fn setErrorMessage(self: *Self, rc: c_int, errmsg: [*:0]const u8) void {
 }
 //--------------------------------------------------------------------------------
 /// sets rc and errmsg using passed in format and arguments.
-pub fn setFormattedErrorMessage(self: *Self, rc: c_int, comptime fmt: []const u8, args: anytype) void {
+pub fn setFormattedErrorMessage(self: *Self, rc: i32, comptime fmt: []const u8, args: anytype) void {
     //------------------------------------------------------------
     self.rc = rc;
     //------------------------------------------------------------
@@ -1082,7 +1082,7 @@ pub fn setFormattedErrorMessage(self: *Self, rc: c_int, comptime fmt: []const u8
 }
 //--------------------------------------------------------------------------------
 /// returns rc.
-pub fn errorCode(self: *Self) c_int {
+pub fn errorCode(self: *Self) i32 {
     //------------------------------------------------------------
     return self.rc;
     //------------------------------------------------------------
@@ -1099,77 +1099,77 @@ pub fn errorMessage(self: *Self) [*:0]const u8 {
 //--------------------------------------------------------------------------------
 pub const c = struct {
     //--------------------------------------------------------------------------------
-    pub const SQLITE_INTEGER = @as(c_int, 1);
-    pub const SQLITE_FLOAT = @as(c_int, 2);
-    pub const SQLITE_TEXT = @as(c_int, 3);
-    pub const SQLITE_BLOB = @as(c_int, 4);
-    pub const SQLITE_NULL = @as(c_int, 5);
+    pub const SQLITE_INTEGER = @as(i32, 1);
+    pub const SQLITE_FLOAT = @as(i32, 2);
+    pub const SQLITE_TEXT = @as(i32, 3);
+    pub const SQLITE_BLOB = @as(i32, 4);
+    pub const SQLITE_NULL = @as(i32, 5);
     //--------------------------------------------------------------------------------
-    pub const SQLITE_OK = @as(c_int, 0);
-    pub const SQLITE_ERROR = @as(c_int, 1);
-    pub const SQLITE_INTERNAL = @as(c_int, 2);
-    pub const SQLITE_PERM = @as(c_int, 3);
-    pub const SQLITE_ABORT = @as(c_int, 4);
-    pub const SQLITE_BUSY = @as(c_int, 5);
-    pub const SQLITE_LOCKED = @as(c_int, 6);
-    pub const SQLITE_NOMEM = @as(c_int, 7);
-    pub const SQLITE_READONLY = @as(c_int, 8);
-    pub const SQLITE_INTERRUPT = @as(c_int, 9);
-    pub const SQLITE_IOERR = @as(c_int, 10);
-    pub const SQLITE_CORRUPT = @as(c_int, 11);
-    pub const SQLITE_NOTFOUND = @as(c_int, 12);
-    pub const SQLITE_FULL = @as(c_int, 13);
-    pub const SQLITE_CANTOPEN = @as(c_int, 14);
-    pub const SQLITE_PROTOCOL = @as(c_int, 15);
-    pub const SQLITE_EMPTY = @as(c_int, 16);
-    pub const SQLITE_SCHEMA = @as(c_int, 17);
-    pub const SQLITE_TOOBIG = @as(c_int, 18);
-    pub const SQLITE_CONSTRAINT = @as(c_int, 19);
-    pub const SQLITE_MISMATCH = @as(c_int, 20);
-    pub const SQLITE_MISUSE = @as(c_int, 21);
-    pub const SQLITE_NOLFS = @as(c_int, 22);
-    pub const SQLITE_AUTH = @as(c_int, 23);
-    pub const SQLITE_FORMAT = @as(c_int, 24);
-    pub const SQLITE_RANGE = @as(c_int, 25);
-    pub const SQLITE_NOTADB = @as(c_int, 26);
-    pub const SQLITE_NOTICE = @as(c_int, 27);
-    pub const SQLITE_WARNING = @as(c_int, 28);
-    pub const SQLITE_ROW = @as(c_int, 100);
-    pub const SQLITE_DONE = @as(c_int, 101);
+    pub const SQLITE_OK = @as(i32, 0);
+    pub const SQLITE_ERROR = @as(i32, 1);
+    pub const SQLITE_INTERNAL = @as(i32, 2);
+    pub const SQLITE_PERM = @as(i32, 3);
+    pub const SQLITE_ABORT = @as(i32, 4);
+    pub const SQLITE_BUSY = @as(i32, 5);
+    pub const SQLITE_LOCKED = @as(i32, 6);
+    pub const SQLITE_NOMEM = @as(i32, 7);
+    pub const SQLITE_READONLY = @as(i32, 8);
+    pub const SQLITE_INTERRUPT = @as(i32, 9);
+    pub const SQLITE_IOERR = @as(i32, 10);
+    pub const SQLITE_CORRUPT = @as(i32, 11);
+    pub const SQLITE_NOTFOUND = @as(i32, 12);
+    pub const SQLITE_FULL = @as(i32, 13);
+    pub const SQLITE_CANTOPEN = @as(i32, 14);
+    pub const SQLITE_PROTOCOL = @as(i32, 15);
+    pub const SQLITE_EMPTY = @as(i32, 16);
+    pub const SQLITE_SCHEMA = @as(i32, 17);
+    pub const SQLITE_TOOBIG = @as(i32, 18);
+    pub const SQLITE_CONSTRAINT = @as(i32, 19);
+    pub const SQLITE_MISMATCH = @as(i32, 20);
+    pub const SQLITE_MISUSE = @as(i32, 21);
+    pub const SQLITE_NOLFS = @as(i32, 22);
+    pub const SQLITE_AUTH = @as(i32, 23);
+    pub const SQLITE_FORMAT = @as(i32, 24);
+    pub const SQLITE_RANGE = @as(i32, 25);
+    pub const SQLITE_NOTADB = @as(i32, 26);
+    pub const SQLITE_NOTICE = @as(i32, 27);
+    pub const SQLITE_WARNING = @as(i32, 28);
+    pub const SQLITE_ROW = @as(i32, 100);
+    pub const SQLITE_DONE = @as(i32, 101);
     //--------------------------------------------------------------------------------
     pub const sqlite3 = anyopaque;
     pub const sqlite3_stmt = anyopaque;
     //--------------------------------------------------------------------------------
-    pub var sqlite3_bind_blob: *const fn (stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int = undefined;
-    pub var sqlite3_bind_double: *const fn (stmt_handle: ?*anyopaque, iCol: c_int, float: f64) callconv(.c) c_int = undefined;
-    pub var sqlite3_bind_int64: *const fn (stmt_handle: ?*anyopaque, iCol: c_int, integer: i64) callconv(.c) c_int = undefined;
-    pub var sqlite3_bind_null: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int = undefined;
-    pub var sqlite3_bind_text: *const fn (stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int = undefined;
-    pub var sqlite3_clear_bindings: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
-    pub var sqlite3_close: *const fn (db_handle: ?*anyopaque) callconv(.c) c_int = undefined;
-    pub var sqlite3_column_blob: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 = undefined;
-    pub var sqlite3_column_bytes: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int = undefined;
-    pub var sqlite3_column_count: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
-    pub var sqlite3_column_double: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) f64 = undefined;
-    pub var sqlite3_column_int64: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) i64 = undefined;
-    pub var sqlite3_column_name: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 = undefined;
-    pub var sqlite3_column_text: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 = undefined;
-    pub var sqlite3_column_type: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int = undefined;
-    pub var sqlite3_data_count: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
+    pub var sqlite3_bind_blob: *const fn (stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 = undefined;
+    pub var sqlite3_bind_double: *const fn (stmt_handle: ?*anyopaque, iCol: i32, float: f64) callconv(.c) i32 = undefined;
+    pub var sqlite3_bind_int64: *const fn (stmt_handle: ?*anyopaque, iCol: i32, integer: i64) callconv(.c) i32 = undefined;
+    pub var sqlite3_bind_null: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32 = undefined;
+    pub var sqlite3_bind_text: *const fn (stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 = undefined;
+    pub var sqlite3_clear_bindings: *const fn (stmt_handle: ?*anyopaque) callconv(.c) i32 = undefined;
+    pub var sqlite3_close: *const fn (db_handle: ?*anyopaque) callconv(.c) i32 = undefined;
+    pub var sqlite3_column_blob: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8 = undefined;
+    pub var sqlite3_column_bytes: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32 = undefined;
+    pub var sqlite3_column_count: *const fn (stmt_handle: ?*anyopaque) callconv(.c) i32 = undefined;
+    pub var sqlite3_column_double: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) f64 = undefined;
+    pub var sqlite3_column_int64: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i64 = undefined;
+    pub var sqlite3_column_name: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8 = undefined;
+    pub var sqlite3_column_text: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8 = undefined;
+    pub var sqlite3_column_type: *const fn (stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32 = undefined;
+    pub var sqlite3_data_count: *const fn (stmt_handle: ?*anyopaque) callconv(.c) i32 = undefined;
     pub var sqlite3_errmsg: *const fn (db_handle: ?*anyopaque) callconv(.c) [*c]const u8 = undefined;
-    pub var sqlite3_exec: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) c_int = undefined;
-    pub var sqlite3_finalize: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
+    pub var sqlite3_exec: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, i32, [*c][*c]u8, [*c][*c]u8) callconv(.c) i32, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) i32 = undefined;
+    pub var sqlite3_finalize: *const fn (stmt_handle: ?*anyopaque) callconv(.c) i32 = undefined;
     pub var sqlite3_free: *const fn (ptr: ?*anyopaque) callconv(.c) void = undefined;
     pub var sqlite3_free_table: *const fn (results: [*c][*c]u8) callconv(.c) void = undefined;
-    pub var sqlite3_get_table: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]c_int, column_count: [*c]c_int, errmsg: [*c][*c]u8) callconv(.c) c_int = undefined;
+    pub var sqlite3_get_table: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]i32, column_count: [*c]i32, errmsg: [*c][*c]u8) callconv(.c) i32 = undefined;
     pub var sqlite3_malloc64: *const fn (len: c_ulonglong) callconv(.c) ?*anyopaque = undefined;
     pub var sqlite3_mprintf: *const fn ([*c]const u8, ...) callconv(.c) [*c]u8 = undefined;
-    pub var sqlite3_open: *const fn (filepath: [*:0]const u8, db_handle: *?*anyopaque) callconv(.c) c_int = undefined;
-    pub var sqlite3_prepare_v2: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, nByte: c_int, ppStmt: *?*anyopaque, pzTail: [*c][*c]const u8) callconv(.c) c_int = undefined;
+    pub var sqlite3_open: *const fn (filepath: [*:0]const u8, db_handle: *?*anyopaque) callconv(.c) i32 = undefined;
+    pub var sqlite3_prepare_v2: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, nByte: i32, ppStmt: *?*anyopaque, pzTail: [*c][*c]const u8) callconv(.c) i32 = undefined;
     pub var sqlite3_realloc64: *const fn (ptr: ?*anyopaque, len: c_ulonglong) callconv(.c) ?*anyopaque = undefined;
-    pub var sqlite3_reset: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
-    pub var sqlite3_snprintf: *const fn (c_int, [*c]u8, [*c]const u8, ...) callconv(.c) [*c]u8 = undefined;
-    pub var sqlite3_step: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
+    pub var sqlite3_reset: *const fn (stmt_handle: ?*anyopaque) callconv(.c) i32 = undefined;
+    pub var sqlite3_snprintf: *const fn (i32, [*c]u8, [*c]const u8, ...) callconv(.c) [*c]u8 = undefined;
+    pub var sqlite3_step: *const fn (stmt_handle: ?*anyopaque) callconv(.c) i32 = undefined;
     //--------------------------------------------------------------------------------
 };
 //--------------------------------------------------------------------------------

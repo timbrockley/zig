@@ -225,8 +225,8 @@ pub fn main(init: std.process.Init) !u8 {
     {
         //--------------------------------------------------------------------------------
         var results: [*c][*c]u8 = undefined;
-        var row_count: c_int = 0;
-        var column_count: c_int = 0;
+        var row_count: i32 = 0;
+        var column_count: i32 = 0;
         //----------------------------------------
         var errmsg: [*c]u8 = null;
         const sql = "SELECT * FROM test;";
@@ -824,10 +824,10 @@ pub fn main(init: std.process.Init) !u8 {
 //--------------------------------------------------------------------------------
 pub fn callback(
     ctx: ?*anyopaque,
-    argc: c_int,
+    argc: i32,
     argv: [*c][*c]u8,
     azColName: [*c][*c]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //----------------------------------------
     var context: *Context = undefined;
     //----------------------------------------
@@ -869,7 +869,7 @@ pub fn newCallback(
     ctx: ?*anyopaque,
     columns: [*]ds.SQLiteColumn,
     column_count: usize,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //----------------------------------------
     var context: *Context = undefined;
     //----------------------------------------

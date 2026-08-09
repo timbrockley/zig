@@ -12,7 +12,7 @@ const c = @cImport({
     @cInclude("sqlite3.h");
 });
 //--------------------------------------------------------------------------------
-pub const SQLiteColumnType = enum(c_int) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
+pub const SQLiteColumnType = enum(i32) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
 //--------------------------------------------------------------------------------
 pub const SQLiteColumn = extern struct {
     index: usize = 0,
@@ -45,7 +45,7 @@ const Self = @This();
 pub export fn sqliteOpen(
     filepath: [*:0]const u8,
     db_handle: *?*anyopaque,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //----------------------------------------
     var db: ?*c.sqlite3 = null;
     //----------------------------------------
@@ -86,10 +86,10 @@ pub export fn sqliteGetTable(
     db_handle: ?*anyopaque,
     sql: [*c]const u8,
     results: [*c][*c][*c]u8,
-    row_count: [*c]c_int,
-    column_count: [*c]c_int,
+    row_count: [*c]i32,
+    column_count: [*c]i32,
     errmsg: [*c][*c]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -116,10 +116,10 @@ pub export fn sqliteFreeTable(results: [*c][*c]u8) callconv(.c) void {
 pub export fn sqliteExec(
     db_handle: ?*anyopaque,
     sql: [*c]const u8,
-    callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int,
+    callback: ?*const fn (?*anyopaque, i32, [*c][*c]u8, [*c][*c]u8) callconv(.c) i32,
     ctx: ?*anyopaque,
     errmsg: [*c][*c]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -140,7 +140,7 @@ pub export fn sqlitePrepare(
     sql: [*c]const u8,
     stmt_handle: *?*anyopaque,
     errmsg: *?[*:0]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -169,7 +169,7 @@ pub export fn sqlitePrepare(
 }
 //--------------------------------------------------------------------------------
 /// Clears bindings on prepared statement.
-pub export fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) c_int {
+pub export fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -180,7 +180,7 @@ pub export fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Binds blob data to a column.
-pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int {
+pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
     //----------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //----------------------------------------
@@ -191,7 +191,7 @@ pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]con
 }
 //--------------------------------------------------------------------------------
 /// Binds text data to a column.
-pub export fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) c_int {
+pub export fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -202,7 +202,7 @@ pub export fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: c_int, ptr: [*c]con
 }
 //--------------------------------------------------------------------------------
 /// Binds in i64 to a column.
-pub export fn sqliteBindInt64(stmt_handle: ?*anyopaque, iCol: c_int, integer: i64) callconv(.c) c_int {
+pub export fn sqliteBindInt64(stmt_handle: ?*anyopaque, iCol: i32, integer: i64) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -213,7 +213,7 @@ pub export fn sqliteBindInt64(stmt_handle: ?*anyopaque, iCol: c_int, integer: i6
 }
 //--------------------------------------------------------------------------------
 /// Binds an f64 to a column.
-pub export fn sqliteBindDouble(stmt_handle: ?*anyopaque, iCol: c_int, float: f64) callconv(.c) c_int {
+pub export fn sqliteBindDouble(stmt_handle: ?*anyopaque, iCol: i32, float: f64) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -224,7 +224,7 @@ pub export fn sqliteBindDouble(stmt_handle: ?*anyopaque, iCol: c_int, float: f64
 }
 //--------------------------------------------------------------------------------
 /// Binds a null value to a column.
-pub export fn sqliteBindNull(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int {
+pub export fn sqliteBindNull(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -235,7 +235,7 @@ pub export fn sqliteBindNull(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c)
 }
 //--------------------------------------------------------------------------------
 /// Returns column name.
-pub export fn sqliteColumnName(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 {
+pub export fn sqliteColumnName(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -244,7 +244,7 @@ pub export fn sqliteColumnName(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.
 }
 //--------------------------------------------------------------------------------
 /// Returns column type.
-pub export fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int {
+pub export fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -253,7 +253,7 @@ pub export fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.
 }
 //--------------------------------------------------------------------------------
 /// Returns a pointer to a BLOB of bytes.
-pub export fn sqliteColumnBlob(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 {
+pub export fn sqliteColumnBlob(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -263,7 +263,7 @@ pub export fn sqliteColumnBlob(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.
 }
 //--------------------------------------------------------------------------------
 /// Returns a pointer to a UTF-8 text result (zero terminated).
-pub export fn sqliteColumnText(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) [*c]const u8 {
+pub export fn sqliteColumnText(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -272,7 +272,7 @@ pub export fn sqliteColumnText(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.
 }
 //--------------------------------------------------------------------------------
 /// Returns an i64 integer.
-pub export fn sqliteColumnInt64(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) i64 {
+pub export fn sqliteColumnInt64(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i64 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -281,7 +281,7 @@ pub export fn sqliteColumnInt64(stmt_handle: ?*anyopaque, iCol: c_int) callconv(
 }
 //--------------------------------------------------------------------------------
 /// Returns an f64 float value.
-pub export fn sqliteColumnDouble(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) f64 {
+pub export fn sqliteColumnDouble(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) f64 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -290,7 +290,7 @@ pub export fn sqliteColumnDouble(stmt_handle: ?*anyopaque, iCol: c_int) callconv
 }
 //--------------------------------------------------------------------------------
 /// Returns number of bytes in column.
-pub export fn sqliteColumnBytes(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int {
+pub export fn sqliteColumnBytes(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -299,7 +299,7 @@ pub export fn sqliteColumnBytes(stmt_handle: ?*anyopaque, iCol: c_int) callconv(
 }
 //--------------------------------------------------------------------------------
 /// Returns number of columns provided by statement.
-pub export fn sqliteColumnCount(stmt_handle: ?*anyopaque) callconv(.c) c_int {
+pub export fn sqliteColumnCount(stmt_handle: ?*anyopaque) callconv(.c) i32 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -308,7 +308,7 @@ pub export fn sqliteColumnCount(stmt_handle: ?*anyopaque) callconv(.c) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Returns number of columns in current row (ONLY during SQLITE_ROW stage).
-pub export fn sqliteDataCount(stmt_handle: ?*anyopaque) callconv(.c) c_int {
+pub export fn sqliteDataCount(stmt_handle: ?*anyopaque) callconv(.c) i32 {
     //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //------------------------------------------------------------
@@ -317,7 +317,7 @@ pub export fn sqliteDataCount(stmt_handle: ?*anyopaque) callconv(.c) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Runs sqlite3_step using statement handle.
-pub export fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) c_int {
+pub export fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -328,7 +328,7 @@ pub export fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Resets prepared statement handle (does not clear bindings).
-pub export fn sqliteReset(stmt_handle: ?*anyopaque) callconv(.c) c_int {
+pub export fn sqliteReset(stmt_handle: ?*anyopaque) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -339,7 +339,7 @@ pub export fn sqliteReset(stmt_handle: ?*anyopaque) callconv(.c) c_int {
 }
 //--------------------------------------------------------------------------------
 /// Finalises prepared statement handle.
-pub export fn sqliteFinalize(stmt_handle: ?*anyopaque) callconv(.c) c_int {
+pub export fn sqliteFinalize(stmt_handle: ?*anyopaque) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -352,14 +352,14 @@ pub export fn sqliteFinalize(stmt_handle: ?*anyopaque) callconv(.c) c_int {
 //################################################################################
 //--------------------------------------------------------------------------------
 /// Returns a pointer to a block of memory at least N bytes.
-pub export fn sqliteMalloc64(len: c_ulonglong) callconv(.c) ?*anyopaque {
+pub export fn sqliteMalloc64(len: u64) callconv(.c) ?*anyopaque {
     //------------------------------------------------------------
     return c.sqlite3_malloc64(len);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Returns a pointer to a reallocated block of memory at least N bytes (old block freed by sqlite).
-pub export fn sqliteRealloc64(ptr: ?*anyopaque, len: c_ulonglong) callconv(.c) ?*anyopaque {
+pub export fn sqliteRealloc64(ptr: ?*anyopaque, len: u64) callconv(.c) ?*anyopaque {
     //------------------------------------------------------------
     return c.sqlite3_realloc64(ptr, len);
     //------------------------------------------------------------
@@ -379,10 +379,10 @@ pub export fn sqliteFree(ptr: ?*anyopaque) callconv(.c) void {
 pub export fn queryCallback(
     db_handle: ?*anyopaque,
     sql: [*c]const u8,
-    callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) c_int,
+    callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) i32,
     ctx: ?*anyopaque,
     errmsg: *?[*:0]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -393,7 +393,7 @@ pub export fn queryCallback(
     //------------------------------------------------------------
     const db: *c.sqlite3 = @ptrCast(@alignCast(db_handle.?));
     //------------------------------------------------------------
-    var rc: c_int = 0;
+    var rc: i32 = 0;
     var stmt: ?*c.sqlite3_stmt = null;
     //------------------------------------------------------------
     rc = c.sqlite3_prepare_v2(db, sql, -1, &stmt, null);
@@ -477,7 +477,7 @@ pub export fn getSQLiteColumnsTable(
     table_name: [*c]const u8,
     table_ptr: *SQLiteColumnsTable,
     errmsg: *?[*:0]u8,
-) callconv(.c) c_int {
+) callconv(.c) i32 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -505,7 +505,7 @@ pub export fn getSQLiteColumnsTable(
     var buffer: [MAX_TABLE_NAME:0]u8 = undefined;
     _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %s;", table_name);
     //------------------------------------------------------------
-    var rc: c_int = 0;
+    var rc: i32 = 0;
     //------------------------------------------------------------
     rc = c.sqlite3_prepare_v2(db, @as([*:0]const u8, &buffer), -1, &stmt, null);
     //------------------------------------------------------------
@@ -674,7 +674,7 @@ pub export fn getTotalColumnDataBytes(
             //------------------------------------------------------------
             for (0..column_count) |column_index| {
                 //----------------------------------------
-                const iCol: c_int = @intCast(column_index);
+                const iCol: i32 = @intCast(column_index);
                 //----------------------------------------
                 const name = c.sqlite3_column_name(stmt, iCol);
                 const name_len = std.mem.len(name);
@@ -709,13 +709,13 @@ pub export fn getTotalColumnDataBytes(
 }
 //--------------------------------------------------------------------------------
 /// Update SQLite column values.
-pub export fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: usize, column: *SQLiteColumn) callconv(.c) c_int {
+pub export fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: usize, column: *SQLiteColumn) callconv(.c) i32 {
     //----------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //----------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
     //----------------------------------------
-    const iCol: c_int = @intCast(index);
+    const iCol: i32 = @intCast(index);
     //----------------------------------------
     const name = c.sqlite3_column_name(stmt, iCol);
     //------------------------------------------------------------
