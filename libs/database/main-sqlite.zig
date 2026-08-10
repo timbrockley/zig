@@ -867,7 +867,7 @@ pub fn callback(
 //--------------------------------------------------------------------------------
 pub fn newCallback(
     ctx: ?*anyopaque,
-    columns: [*]ds.SQLiteColumn,
+    columns_ptr: [*]ds.SQLiteColumn,
     column_count: usize,
 ) callconv(.c) i32 {
     //----------------------------------------
@@ -881,7 +881,7 @@ pub fn newCallback(
         return c.SQLITE_ERROR;
     }
     //----------------------------------------
-    for (columns[0..column_count]) |column| {
+    for (columns_ptr[0..column_count]) |column| {
         //----------------------------------------
         std.debug.print("{s} = ", .{std.mem.span(column.name)});
 
@@ -906,7 +906,7 @@ pub fn newCallback(
     ds.updateRow(
         context.allocator,
         &current_row,
-        columns[0..column_count],
+        columns_ptr[0..column_count],
     ) catch return c.SQLITE_ERROR;
     //----------------------------------------
     context.fixed_rows.append(context.allocator, current_row) catch return c.SQLITE_ERROR;
@@ -916,7 +916,7 @@ pub fn newCallback(
     ds.updateRowMap(
         context.allocator,
         &row,
-        columns[0..column_count],
+        columns_ptr[0..column_count],
     ) catch return c.SQLITE_ERROR;
     //----------------------------------------
     context.row_maps.append(context.allocator, row) catch return c.SQLITE_ERROR;

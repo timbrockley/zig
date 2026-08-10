@@ -116,7 +116,13 @@ pub fn sqliteGetTable(self: *Self, sql: [*c]const u8, results: [*c][*c][*c]u8, r
     self.clearError();
     //------------------------------------------------------------
     if (self.db_handle == null) {
+        errmsg.* = c.sqlite3_mprintf("invalid db_handle");
         return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        errmsg.* = c.sqlite3_mprintf("invalid sqlite query");
+        return self.returnErrorCode(c.SQLITE_ERROR, "invalid sqlite query");
     }
     //------------------------------------------------------------
     const rc = c.sqlite3_get_table(self.db_handle, sql, results, row_count, column_count, errmsg);
@@ -143,7 +149,13 @@ pub fn sqliteExec(self: *Self, sql: [*c]const u8, callback: ?*const fn (?*anyopa
     self.clearError();
     //------------------------------------------------------------
     if (self.db_handle == null) {
+        errmsg.* = c.sqlite3_mprintf("invalid db_handle");
         return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        errmsg.* = c.sqlite3_mprintf("invalid sqlite query");
+        return self.returnErrorCode(c.SQLITE_ERROR, "invalid sqlite query");
     }
     //------------------------------------------------------------
     const rc = c.sqlite3_exec(self.db_handle, sql, callback, ctx, errmsg);
@@ -164,6 +176,10 @@ pub fn sqlitePrepare(self: *Self, sql: [*c]const u8, stmt_handle: *?*anyopaque) 
     if (self.db_handle == null) {
         stmt_handle.* = null;
         return self.returnErrorCode(c.SQLITE_MISUSE, "invalid db_handle");
+    }
+    //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        return self.returnErrorCode(c.SQLITE_ERROR, "invalid sqlite query");
     }
     //------------------------------------------------------------
     const rc = c.sqlite3_prepare_v2(self.db_handle, sql, -1, stmt_handle, null);
@@ -497,6 +513,10 @@ pub fn queryCallback(
         return self.returnError(c.SQLITE_MISUSE, "invalid db_handle", error.InvalidDBHandle);
     }
     //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        return self.returnError(c.SQLITE_ERROR, "invalid sqlite query", error.InvalidSQLiteQuery);
+    }
+    //------------------------------------------------------------
     var stmt_handle: ?*anyopaque = null;
     //------------------------------------------------------------
     var rc = self.sqlitePrepare(sql, &stmt_handle);
@@ -507,19 +527,21 @@ pub fn queryCallback(
     defer _ = self.sqliteFinalize(stmt_handle);
     //------------------------------------------------------------
     const column_count: usize = @intCast(self.sqliteColumnCount(stmt_handle));
+    if (column_count == 0) {
+        return self.returnError(c.SQLITE_ERROR, "column count is zero", error.ZeroColumnCount);
+    }
     //------------------------------------------------------------
     const total_bytes: usize = column_count * @sizeOf(SQLiteColumn);
     const raw_ptr = self.sqliteMalloc64(@intCast(total_bytes)) orelse {
         return self.returnError(
             c.SQLITE_NOMEM,
-            "c.sqlite3_malloc64 error",
+            "sqlite3_malloc64 error",
             error.SQLiteMalloc64Error,
         );
     };
     defer self.sqliteFree(raw_ptr);
     //------------------------------------------------------------
-    const columns: [*]SQLiteColumn = @ptrCast(@alignCast(raw_ptr));
-    const columns_ptr = columns;
+    const columns_ptr: [*]SQLiteColumn = @ptrCast(@alignCast(raw_ptr));
     //------------------------------------------------------------
     while (true) {
         //------------------------------------------------------------
@@ -619,7 +641,7 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
     if (sqlite_columns_ptr == null) {
         return self.returnError(
             c.SQLITE_NOMEM,
-            "c.sqlite3_malloc64 failed: sqlite_columns_ptr",
+            "sqlite3_malloc64 failed: sqlite_columns_ptr",
             error.SQLiteMalloc64Error,
         );
     }
@@ -630,7 +652,7 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
     if (backed_mem_ptr == null) {
         return self.returnError(
             c.SQLITE_NOMEM,
-            "c.sqlite3_malloc64 failed: backed_mem_ptr",
+            "sqlite3_malloc64 failed: backed_mem_ptr",
             error.SQLiteMalloc64Error,
         );
     }

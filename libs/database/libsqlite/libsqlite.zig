@@ -98,6 +98,11 @@ pub export fn sqliteGetTable(
         return c.SQLITE_MISUSE;
     }
     //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        errmsg.* = c.sqlite3_mprintf("invalid sqlite query");
+        return c.SQLITE_ERROR;
+    }
+    //------------------------------------------------------------
     const db: *c.sqlite3 = @ptrCast(@alignCast(db_handle.?));
     //------------------------------------------------------------
     return c.sqlite3_get_table(db, sql, results, row_count, column_count, errmsg);
@@ -128,6 +133,11 @@ pub export fn sqliteExec(
         return c.SQLITE_MISUSE;
     }
     //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        errmsg.* = c.sqlite3_mprintf("invalid sqlite query");
+        return c.SQLITE_ERROR;
+    }
+    //------------------------------------------------------------
     const db: *c.sqlite3 = @ptrCast(@alignCast(db_handle.?));
     //------------------------------------------------------------
     return c.sqlite3_exec(db, sql, callback, ctx, errmsg);
@@ -148,6 +158,11 @@ pub export fn sqlitePrepare(
         stmt_handle.* = null;
         errmsg.* = c.sqlite3_mprintf("invalid db_handle");
         return c.SQLITE_MISUSE;
+    }
+    //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        errmsg.* = c.sqlite3_mprintf("invalid sqlite query");
+        return c.SQLITE_ERROR;
     }
     //------------------------------------------------------------
     const db: *c.sqlite3 = @ptrCast(@alignCast(db_handle.?));
@@ -391,6 +406,11 @@ pub export fn queryCallback(
         return c.SQLITE_MISUSE;
     }
     //------------------------------------------------------------
+    if (sql == null or sql[0] == 0) {
+        errmsg.* = c.sqlite3_mprintf("invalid sqlite query");
+        return c.SQLITE_ERROR;
+    }
+    //------------------------------------------------------------
     const db: *c.sqlite3 = @ptrCast(@alignCast(db_handle.?));
     //------------------------------------------------------------
     var rc: i32 = 0;
@@ -410,6 +430,10 @@ pub export fn queryCallback(
     const stmt_handle: ?*anyopaque = @ptrCast(stmt.?);
     //------------------------------------------------------------
     const column_count: usize = @intCast(c.sqlite3_column_count(stmt));
+    if (column_count == 0) {
+        errmsg.* = c.sqlite3_mprintf("column count is zero");
+        return c.SQLITE_ERROR;
+    }
     //------------------------------------------------------------
     const total_bytes = column_count * @sizeOf(SQLiteColumn);
     //------------------------------------------------------------
@@ -419,8 +443,7 @@ pub export fn queryCallback(
     };
     defer c.sqlite3_free(raw_ptr);
     //------------------------------------------------------------
-    const columns: [*]SQLiteColumn = @ptrCast(@alignCast(raw_ptr));
-    const columns_ptr = columns;
+    const columns_ptr: [*]SQLiteColumn = @ptrCast(@alignCast(raw_ptr));
     //------------------------------------------------------------
     while (true) {
         //------------------------------------------------------------

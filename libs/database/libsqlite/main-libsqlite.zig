@@ -169,7 +169,7 @@ pub fn main(init: std.process.Init) !u8 {
         const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteExec error: {s}\n", .{errmsg});
+            std.debug.print("sqliteExec: {s}\n", .{errmsg});
             return @intCast(rc);
         }
 
@@ -182,7 +182,7 @@ pub fn main(init: std.process.Init) !u8 {
         const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteExec error: {s}\n", .{errmsg});
+            std.debug.print("sqliteExec: {s}\n", .{errmsg});
             return @intCast(rc);
         }
     }
@@ -193,7 +193,7 @@ pub fn main(init: std.process.Init) !u8 {
         const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteExec error: {s}\n", .{errmsg});
+            std.debug.print("sqliteExec: {s}\n", .{errmsg});
             return @intCast(rc);
         }
     }
@@ -204,7 +204,7 @@ pub fn main(init: std.process.Init) !u8 {
         const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteExec error: {s}\n", .{errmsg});
+            std.debug.print("sqliteExec: {s}\n", .{errmsg});
             return @intCast(rc);
         }
     }
@@ -215,7 +215,7 @@ pub fn main(init: std.process.Init) !u8 {
         const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteExec error: {s}\n", .{errmsg});
+            std.debug.print("sqliteExec: {s}\n", .{errmsg});
             return @intCast(rc);
         }
     }
@@ -241,7 +241,7 @@ pub fn main(init: std.process.Init) !u8 {
         //----------------------------------------
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteGetTable error: {s}\n", .{errmsg});
+            std.debug.print("sqliteGetTable: {s}\n", .{errmsg});
             return @intCast(rc);
         }
         //----------------------------------------
@@ -305,7 +305,7 @@ pub fn main(init: std.process.Init) !u8 {
         const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteExec error: {s}\n", .{errmsg});
+            std.debug.print("sqliteExec: {s}\n", .{errmsg});
             return @intCast(rc);
         }
     }
@@ -324,7 +324,7 @@ pub fn main(init: std.process.Init) !u8 {
         );
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("queryCallback error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("queryCallback: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
     }
@@ -344,7 +344,7 @@ pub fn main(init: std.process.Init) !u8 {
         var rc = sqlitePrepare(db_handle, sql, &stmt_handle, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqlitePrepare error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("sqlitePrepare: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
         //------------------------------------------------------------
@@ -410,12 +410,12 @@ pub fn main(init: std.process.Init) !u8 {
         //------------------------------------------------------------
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqliteBind error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("sqliteBind: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
         //------------------------------------------------------------
         if (sqliteStep(stmt_handle) != c.SQLITE_DONE) {
-            std.debug.print("sqliteStep error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("sqliteStep: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
         //------------------------------------------------------------
@@ -434,7 +434,7 @@ pub fn main(init: std.process.Init) !u8 {
         var rc = sqlitePrepare(db_handle, sql, &stmt_handle, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("sqlitePrepare error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("sqlitePrepare: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
         //------------------------------------------------------------
@@ -519,7 +519,7 @@ pub fn main(init: std.process.Init) !u8 {
         const column_count = getColumnCount(db_handle, "test", &errmsg);
         if (errmsg != null) {
             defer sqliteFree(errmsg);
-            std.debug.print("getColumnCount error: {s}\n", .{errmsg.?});
+            std.debug.print("getColumnCount: {s}\n", .{errmsg.?});
             return 1;
         }
         try ut.compareInteger("getColumnCount", 6, column_count);
@@ -543,7 +543,7 @@ pub fn main(init: std.process.Init) !u8 {
         );
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.debug.print("getSQLiteColumnsTable error: ({d}) {s}\n", .{ rc, errmsg });
+            std.debug.print("getSQLiteColumnsTable: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
         //------------------------------------------------------------
