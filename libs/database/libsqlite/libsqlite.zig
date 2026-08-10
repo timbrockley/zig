@@ -527,9 +527,7 @@ pub export fn getSQLiteColumnsTable(
     var buffer: [MAX_TABLE_NAME:0]u8 = undefined;
     _ = c.sqlite3_snprintf(@intCast(buffer.len), &buffer, "SELECT * FROM %s;", table_name);
     //------------------------------------------------------------
-    var rc: i32 = 0;
-    //------------------------------------------------------------
-    rc = c.sqlite3_prepare_v2(db, @as([*:0]const u8, &buffer), -1, &stmt, null);
+    const rc = c.sqlite3_prepare_v2(db, @as([*:0]const u8, &buffer), -1, &stmt, null);
     //------------------------------------------------------------
     if (rc != c.SQLITE_OK) {
         //----------------------------------------
@@ -572,9 +570,9 @@ pub export fn getSQLiteColumnsTable(
     //------------------------------------------------------------
     while (true) {
         //------------------------------------------------------------
-        rc = c.sqlite3_step(stmt);
+        const step_rc = c.sqlite3_step(stmt);
         //------------------------------------------------------------
-        if (rc == c.SQLITE_ROW) {
+        if (step_rc == c.SQLITE_ROW) {
             //------------------------------------------------------------
             for (0..table_ptr.column_count) |column_index| {
                 //------------------------------------------------------------
@@ -612,14 +610,14 @@ pub export fn getSQLiteColumnsTable(
             //------------------------------------------------------------
             current_row += 1;
             //------------------------------------------------------------
-        } else if (rc == c.SQLITE_DONE) {
+        } else if (step_rc == c.SQLITE_DONE) {
             //----------------------------------------
             break;
             //----------------------------------------
         } else {
             //----------------------------------------
             errmsg.* = c.sqlite3_mprintf("%s", c.sqlite3_errmsg(db));
-            return rc;
+            return step_rc;
             //----------------------------------------
         }
         //------------------------------------------------------------
