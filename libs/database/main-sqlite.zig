@@ -795,8 +795,8 @@ pub fn main(init: std.process.Init) !u8 {
         try ut.compareInteger("queryCallback/newCallback (row_maps)", 0, (row_map.get("integer").?).integer);
         try ut.compareFloat("queryCallback/newCallback (row_maps)", 2.2, (row_map.get("float").?).float);
         switch (row_map.get("blob").?) {
-            .string => |s| try ut.compareStringSlice("queryCallback/newCallback (row_maps)", "\xF0\x9F\x90\xA7", s),
-            else => try ut.fail("queryCallback/newCallback (row_maps)", "expected a string"),
+            .bytes => |b| try ut.compareByteSlice("queryCallback/newCallback (row_maps)", "\xF0\x9F\x90\xA7", b),
+            else => try ut.fail("queryCallback/newCallback (row_maps)", "expected bytes"),
         }
         try ut.compareStringSlice("queryCallback/newCallback (row_maps)", "X", (row_map.get("blob_optional").?).string);
         //----------------------------------------------------------------------

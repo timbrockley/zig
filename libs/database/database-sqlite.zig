@@ -47,6 +47,7 @@ pub const ColumnValue = union(enum) {
     integer: i64,
     float: f64,
     string: []const u8,
+    bytes: []u8,
 };
 //--------------------------------------------------------------------------------
 //################################################################################
@@ -994,7 +995,8 @@ pub fn updateRowMap(
             .SQLITE_NULL => .{ .null = {} },
             .SQLITE_INTEGER => .{ .integer = column.integer },
             .SQLITE_FLOAT => .{ .float = column.float },
-            .SQLITE_TEXT, .SQLITE_BLOB => .{ .string = try allocator.dupe(u8, column.ptr[0..column.len]) },
+            .SQLITE_TEXT => .{ .string = try allocator.dupe(u8, column.ptr[0..column.len]) },
+            .SQLITE_BLOB => .{ .bytes = try allocator.dupe(u8, column.ptr[0..column.len]) },
             else => return error.UnknownColumnType,
         };
         //------------------------------------------------------------
