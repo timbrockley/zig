@@ -682,14 +682,14 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
                 column_data[data_index + name_len] = 0;
                 sqlite_column.name = @ptrCast(&column_data[data_index]);
                 data_index += name_len + 1;
-                //----------------------------------------
+                //------------------------------------------------------------
                 if (sqlite_column.column_type == .SQLITE_TEXT or sqlite_column.column_type == .SQLITE_BLOB) {
-                    //------------------------------------------------------------
+                    //----------------------------------------
                     const column_dest = column_data[data_index .. data_index + sqlite_column.len];
                     @memcpy(column_dest, sqlite_column.ptr[0..sqlite_column.len]);
                     sqlite_column.ptr = @ptrCast(&column_data[data_index]);
                     data_index += sqlite_column.len;
-                    //------------------------------------------------------------
+                    //----------------------------------------
                 }
                 //------------------------------------------------------------
                 sqlite_columns[table_index] = sqlite_column;
@@ -735,7 +735,7 @@ pub fn freeSQLiteColumnsTable(self: *Self, table_ptr: ?*SQLiteColumnsTable) void
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-/// Returns total backed bytes required for name an blob data.
+/// Returns total backed bytes required for name, text and blob data.
 pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
     //------------------------------------------------------------
     self.clearError();
