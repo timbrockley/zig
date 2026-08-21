@@ -11,7 +11,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         const name = "lib.init";
         //----------------------------------------
-        try ut.compareByte(name, 0, lib.example_byte);
+        try ut.compareByte(name, lib.example_byte, 0, .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -21,7 +21,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         const result = lib.setByte(1);
         //----------------------------------------
-        try ut.compareBool(name, true, result);
+        try ut.compareBool(name, result, true, .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -31,7 +31,7 @@ pub fn main(init: std.process.Init) !void {
         //----------------------------------------
         const result = lib.getByte();
         //----------------------------------------
-        try ut.compareByte(name, 1, result);
+        try ut.compareByte(name, result, 1, .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------

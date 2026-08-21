@@ -94,8 +94,8 @@ pub fn main(init: std.process.Init) !u8 {
         @memcpy(partial1, "ABC");
 
         // std.debug.print("{s}\n", .{partial});
-        try ut.compareStringSlice("sqliteMalloc64", "ABC", partial1);
-        try ut.compareStringSlice("sqliteMalloc64", "ABC", buffer1[0..3]);
+        try ut.compareStringSlice("sqliteMalloc64",  partial1,  "ABC",  .{ .src = @src() });
+        try ut.compareStringSlice("sqliteMalloc64",  buffer1[0..3],  "ABC",  .{ .src = @src() });
 
         const raw2 = sqliteRealloc64(ptr1, len * 2);
         defer sqliteFree(raw2);
@@ -106,8 +106,8 @@ pub fn main(init: std.process.Init) !u8 {
         @memcpy(partial2, "ABC");
 
         // std.debug.print("{s}\n", .{partial});
-        try ut.compareStringSlice("sqliteRealloc64", "ABC", partial2);
-        try ut.compareStringSlice("sqliteRealloc64", "ABC", buffer2[0..3]);
+        try ut.compareStringSlice("sqliteRealloc64",  partial2,  "ABC",  .{ .src = @src() });
+        try ut.compareStringSlice("sqliteRealloc64",  buffer2[0..3],  "ABC",  .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
     {
@@ -121,8 +121,8 @@ pub fn main(init: std.process.Init) !u8 {
         @memcpy(partial1, "123");
 
         // std.debug.print("{s}\n", .{partial});
-        try ut.compareStringSlice("allocateBytes", "123", partial1);
-        try ut.compareStringSlice("allocateBytes", "123", buffer1[0..3]);
+        try ut.compareStringSlice("allocateBytes",  partial1,  "123",  .{ .src = @src() });
+        try ut.compareStringSlice("allocateBytes",  buffer1[0..3],  "123",  .{ .src = @src() });
 
         // reallocate memory
         const ptr2 = reallocateBytes(ptr1, len * 2);
@@ -132,22 +132,22 @@ pub fn main(init: std.process.Init) !u8 {
         const partial2 = buffer2[0..3];
         @memcpy(partial2, "ABC");
 
-        try ut.compareStringSlice("reallocateBytes", "ABC", partial2);
-        try ut.compareStringSlice("reallocateBytes", "ABC", buffer2[0..3]);
+        try ut.compareStringSlice("reallocateBytes",  partial2,  "ABC",  .{ .src = @src() });
+        try ut.compareStringSlice("reallocateBytes",  buffer2[0..3],  "ABC",  .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
     {
-        try ut.compareBool("checkTableName", checkTableName(""), false);
-        try ut.compareBool("checkTableName", checkTableName("1"), false);
-        try ut.compareBool("checkTableName", checkTableName("#"), false);
-        try ut.compareBool("checkTableName", checkTableName("A#"), false);
-        try ut.compareBool("checkTableName", checkTableName("A-"), false);
-        try ut.compareBool("checkTableName", checkTableName("_A"), true);
-        try ut.compareBool("checkTableName", checkTableName("_1"), true);
-        try ut.compareBool("checkTableName", checkTableName("A"), true);
-        try ut.compareBool("checkTableName", checkTableName("A1_A2"), true);
+        try ut.compareBool("checkTableName",  false,  checkTableName(""),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  false,  checkTableName("1"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  false,  checkTableName("#"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  false,  checkTableName("A#"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  false,  checkTableName("A-"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  true,  checkTableName("_A"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  true,  checkTableName("_1"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  true,  checkTableName("A"),  .{ .src = @src() });
+        try ut.compareBool("checkTableName",  true,  checkTableName("A1_A2"),  .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
     //################################################################################
@@ -272,28 +272,28 @@ pub fn main(init: std.process.Init) !u8 {
         //----------------------------------------
         const column_cells = _row_count * _columns_count;
         const total_cells = column_cells + _columns_count;
-        try ut.compareInteger("sqliteGetTable: row_count", 2, _row_count);
-        try ut.compareInteger("sqliteGetTable: columns_count", 6, _columns_count);
-        try ut.compareInteger("sqliteGetTable: column_cells", 12, column_cells);
-        try ut.compareInteger("sqliteGetTable: total_cells", 18, total_cells);
-        try ut.compareCString("sqliteGetTable", "id", results[0]);
-        try ut.compareCString("sqliteGetTable", "value1", results[1]);
-        try ut.compareCString("sqliteGetTable", "value2", results[2]);
-        try ut.compareCString("sqliteGetTable", "integer", results[3]);
-        try ut.compareCString("sqliteGetTable", "float", results[4]);
-        try ut.compareCString("sqliteGetTable", "blob", results[5]);
-        try ut.compareCString("sqliteGetTable", "1", results[6]);
-        try ut.compareCString("sqliteGetTable", "value1", results[7]);
-        try ut.compareCString("sqliteGetTable", "", results[8]);
-        try ut.compareCString("sqliteGetTable", "1", results[9]);
-        try ut.compareCString("sqliteGetTable", "0.0", results[10]);
-        try ut.compareCString("sqliteGetTable", "", results[11]);
-        try ut.compareCString("sqliteGetTable", "2", results[12]);
-        try ut.compareCString("sqliteGetTable", "", results[13]);
-        try ut.compareCString("sqliteGetTable", "value2", results[14]);
-        try ut.compareCString("sqliteGetTable", "0", results[15]);
-        try ut.compareCString("sqliteGetTable", "2.2", results[16]);
-        try ut.compareCString("sqliteGetTable", "\xF0\x9F\x90\xA7", results[17]);
+        try ut.compareInteger("sqliteGetTable: row_count",  _row_count,  2,  .{ .src = @src() });
+        try ut.compareInteger("sqliteGetTable: columns_count",  _columns_count,  6,  .{ .src = @src() });
+        try ut.compareInteger("sqliteGetTable: column_cells",  column_cells,  12,  .{ .src = @src() });
+        try ut.compareInteger("sqliteGetTable: total_cells",  total_cells,  18,  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[0],  "id",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[1],  "value1",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[2],  "value2",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[3],  "integer",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[4],  "float",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[5],  "blob",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[6],  "1",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[7],  "value1",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[8],  "",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[9],  "1",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[10],  "0.0",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[11],  "",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[12],  "2",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[13],  "",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[14],  "value2",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[15],  "0",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[16],  "2.2",  .{ .src = @src() });
+        try ut.compareCString("sqliteGetTable",  results[17],  "\xF0\x9F\x90\xA7",  .{ .src = @src() });
         //--------------------------------------------------------------------------------
     }
     //--------------------------------------------------------------------------------
@@ -443,7 +443,7 @@ pub fn main(init: std.process.Init) !u8 {
         const column_count: usize = @intCast(sqliteColumnCount(stmt_handle));
         //----------------------------------------
         const expected_column_count = 6;
-        try ut.compareInteger("sqliteColumnCount", expected_column_count, column_count);
+        try ut.compareInteger("sqliteColumnCount",  column_count,  expected_column_count,  .{ .src = @src() });
         //------------------------------------------------------------
         var row: usize = 0;
         //----------------------------------------
@@ -476,12 +476,12 @@ pub fn main(init: std.process.Init) !u8 {
                 if (row == 2) {
                     //----------------------------------------
                     try ut.printLine();
-                    try ut.compareInteger("sqliteBindInt64/sqliteColumnInt64", 3, id);
-                    try ut.compareStringSlice("sqliteBindText/sqliteColumnText", "new_value1", std.mem.span(value1));
-                    try ut.compareStringSlice("sqliteBindText/sqliteColumnText", "new_value2", std.mem.span(value2));
-                    try ut.compareInteger("sqliteBindInt64/sqliteColumnInt64", 3, integer);
-                    try ut.compareFloat("sqliteBindDouble/sqliteColumnDouble", 3.3, float);
-                    try ut.compareStringSlice("sqliteBindNull/sqliteBindBlob/sqliteColumnBlob", "\xF0\x9F\x90\xA7\xF0\x9F\x90\xA7", blob);
+                    try ut.compareInteger("sqliteBindInt64/sqliteColumnInt64",  id,  3,  .{ .src = @src() });
+                    try ut.compareStringSlice("sqliteBindText/sqliteColumnText",  std.mem.span(value1),  "new_value1",  .{ .src = @src() });
+                    try ut.compareStringSlice("sqliteBindText/sqliteColumnText",  std.mem.span(value2),  "new_value2",  .{ .src = @src() });
+                    try ut.compareInteger("sqliteBindInt64/sqliteColumnInt64",  integer,  3,  .{ .src = @src() });
+                    try ut.compareFloat("sqliteBindDouble/sqliteColumnDouble", 3.3, float, .{ .src = @src() });
+                    try ut.compareStringSlice("sqliteBindNull/sqliteBindBlob/sqliteColumnBlob",  blob,  "\xF0\x9F\x90\xA7\xF0\x9F\x90\xA7",  .{ .src = @src() });
                     //----------------------------------------
                 }
                 //---------------------------
@@ -511,7 +511,7 @@ pub fn main(init: std.process.Init) !u8 {
             defer sqliteFree(errmsg);
             return 1;
         }
-        try ut.compareInteger("getRowCount", 3, row_count);
+        try ut.compareInteger("getRowCount",  row_count,  3,  .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
     {
@@ -522,7 +522,7 @@ pub fn main(init: std.process.Init) !u8 {
             std.debug.print("getColumnCount: {s}\n", .{errmsg.?});
             return 1;
         }
-        try ut.compareInteger("getColumnCount", 6, column_count);
+        try ut.compareInteger("getColumnCount",  column_count,  6,  .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
     //################################################################################
@@ -547,8 +547,8 @@ pub fn main(init: std.process.Init) !u8 {
             return @intCast(rc);
         }
         //------------------------------------------------------------
-        try ut.compareInteger("getSQLiteColumnsTable: row_count", 3, sqlite_columns_table.row_count);
-        try ut.compareInteger("getSQLiteColumnsTable: column_count", 6, sqlite_columns_table.column_count);
+        try ut.compareInteger("getSQLiteColumnsTable: row_count",  sqlite_columns_table.row_count,  3,  .{ .src = @src() });
+        try ut.compareInteger("getSQLiteColumnsTable: column_count",  sqlite_columns_table.column_count,  6,  .{ .src = @src() });
         //------------------------------------------------------------
         if (sqlite_columns_table.row_count < 2) {
             std.log.err("invalid row_count", .{});
@@ -599,85 +599,85 @@ pub fn main(init: std.process.Init) !u8 {
 
             const sqlite_columns = sqlite_columns_table.sqlite_columns.?;
 
-            try ut.compareInteger("getSQLiteColumnsTable: id", 0, sqlite_columns[0].index);
-            try ut.compareCString("getSQLiteColumnsTable: id", "id", sqlite_columns[0].name);
-            try ut.compareInteger("getSQLiteColumnsTable: id", 1, sqlite_columns[0].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: id",  sqlite_columns[0].index,  0,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: id",  sqlite_columns[0].name,  "id",  .{ .src = @src() });
+            try ut.compareInteger("getSQLiteColumnsTable: id",  sqlite_columns[0].integer,  1,  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: value1", 1, sqlite_columns[1].index);
-            try ut.compareCString("getSQLiteColumnsTable: value1", "value1", sqlite_columns[1].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: value1", "value1", sqlite_columns[1].ptr[0..sqlite_columns[1].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value1",  sqlite_columns[1].index,  1,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: value1",  sqlite_columns[1].name,  "value1",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: value1",  sqlite_columns[1].ptr[0..sqlite_columns[1].len],  "value1",  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: value2", 2, sqlite_columns[2].index);
-            try ut.compareCString("getSQLiteColumnsTable: value2", "value2", sqlite_columns[2].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: value2", "", sqlite_columns[2].ptr[0..sqlite_columns[2].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value2",  sqlite_columns[2].index,  2,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: value2",  sqlite_columns[2].name,  "value2",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: value2",  sqlite_columns[2].ptr[0..sqlite_columns[2].len],  "",  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[3].index);
-            try ut.compareCString("getSQLiteColumnsTable: integer", "integer", sqlite_columns[3].name);
-            try ut.compareInteger("getSQLiteColumnsTable: integer", 1, sqlite_columns[3].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: integer",  sqlite_columns[3].index,  3,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: integer",  sqlite_columns[3].name,  "integer",  .{ .src = @src() });
+            try ut.compareInteger("getSQLiteColumnsTable: integer",  sqlite_columns[3].integer,  1,  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: float", 4, sqlite_columns[4].index);
-            try ut.compareCString("getSQLiteColumnsTable: float", "float", sqlite_columns[4].name);
-            try ut.compareFloat("getSQLiteColumnsTable: float", 0, sqlite_columns[4].float);
+            try ut.compareInteger("getSQLiteColumnsTable: float",  sqlite_columns[4].index,  4,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: float",  sqlite_columns[4].name,  "float",  .{ .src = @src() });
+            try ut.compareFloat("getSQLiteColumnsTable: float", 0, sqlite_columns[4].float, .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: blob", 5, sqlite_columns[5].index);
-            try ut.compareCString("getSQLiteColumnsTable: blob", "blob", sqlite_columns[5].name);
+            try ut.compareInteger("getSQLiteColumnsTable: blob",  sqlite_columns[5].index,  5,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: blob",  sqlite_columns[5].name,  "blob",  .{ .src = @src() });
             if (sqlite_columns[5].column_type == .SQLITE_NULL) {
-                try ut.pass("getSQLiteColumnsTable: blob", "");
+                try ut.pass("getSQLiteColumnsTable: blob", "", .{ .src = @src() });
             } else {
-                try ut.compareStringSlice("getSQLiteColumnsTable: blob", "", sqlite_columns[5].ptr[0..sqlite_columns[5].len]);
+                try ut.compareStringSlice("getSQLiteColumnsTable: blob",  sqlite_columns[5].ptr[0..sqlite_columns[5].len],  "",  .{ .src = @src() });
             }
 
             //------------------------------------------------------------
 
-            try ut.compareInteger("getSQLiteColumnsTable: id", 0, sqlite_columns[6].index);
-            try ut.compareCString("getSQLiteColumnsTable: id", "id", sqlite_columns[6].name);
-            try ut.compareInteger("getSQLiteColumnsTable: id", 2, sqlite_columns[6].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: id",  sqlite_columns[6].index,  0,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: id",  sqlite_columns[6].name,  "id",  .{ .src = @src() });
+            try ut.compareInteger("getSQLiteColumnsTable: id",  sqlite_columns[6].integer,  2,  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: value1", 1, sqlite_columns[7].index);
-            try ut.compareCString("getSQLiteColumnsTable: value1", "value1", sqlite_columns[7].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: value1", "", sqlite_columns[7].ptr[0..sqlite_columns[7].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value1",  sqlite_columns[7].index,  1,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: value1",  sqlite_columns[7].name,  "value1",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: value1",  sqlite_columns[7].ptr[0..sqlite_columns[7].len],  "",  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: value2", 2, sqlite_columns[8].index);
-            try ut.compareCString("getSQLiteColumnsTable: value2", "value2", sqlite_columns[8].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: value2", "value2", sqlite_columns[8].ptr[0..sqlite_columns[8].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value2",  sqlite_columns[8].index,  2,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: value2",  sqlite_columns[8].name,  "value2",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: value2",  sqlite_columns[8].ptr[0..sqlite_columns[8].len],  "value2",  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[9].index);
-            try ut.compareCString("getSQLiteColumnsTable: integer", "integer", sqlite_columns[9].name);
-            try ut.compareInteger("getSQLiteColumnsTable: integer", 0, sqlite_columns[9].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: integer",  sqlite_columns[9].index,  3,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: integer",  sqlite_columns[9].name,  "integer",  .{ .src = @src() });
+            try ut.compareInteger("getSQLiteColumnsTable: integer",  sqlite_columns[9].integer,  0,  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: float", 4, sqlite_columns[10].index);
-            try ut.compareCString("getSQLiteColumnsTable: float", "float", sqlite_columns[10].name);
-            try ut.compareFloat("getSQLiteColumnsTable: float", 2.2, sqlite_columns[10].float);
+            try ut.compareInteger("getSQLiteColumnsTable: float",  sqlite_columns[10].index,  4,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: float",  sqlite_columns[10].name,  "float",  .{ .src = @src() });
+            try ut.compareFloat("getSQLiteColumnsTable: float", 2.2, sqlite_columns[10].float, .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: blob", 5, sqlite_columns[11].index);
-            try ut.compareCString("getSQLiteColumnsTable: blob", "blob", sqlite_columns[11].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: blob", "\xF0\x9F\x90\xA7", sqlite_columns[11].ptr[0..sqlite_columns[11].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: blob",  sqlite_columns[11].index,  5,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: blob",  sqlite_columns[11].name,  "blob",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: blob",  sqlite_columns[11].ptr[0..sqlite_columns[11].len],  "\xF0\x9F\x90\xA7",  .{ .src = @src() });
 
             //------------------------------------------------------------
 
-            try ut.compareInteger("getSQLiteColumnsTable: id", 0, sqlite_columns[12].index);
-            try ut.compareCString("getSQLiteColumnsTable: id", "id", sqlite_columns[12].name);
-            try ut.compareInteger("getSQLiteColumnsTable: id", 3, sqlite_columns[12].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: id",  sqlite_columns[12].index,  0,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: id",  sqlite_columns[12].name,  "id",  .{ .src = @src() });
+            try ut.compareInteger("getSQLiteColumnsTable: id",  sqlite_columns[12].integer,  3,  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: value1", 1, sqlite_columns[13].index);
-            try ut.compareCString("getSQLiteColumnsTable: value1", "value1", sqlite_columns[13].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: value1", "new_value1", sqlite_columns[13].ptr[0..sqlite_columns[13].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value1",  sqlite_columns[13].index,  1,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: value1",  sqlite_columns[13].name,  "value1",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: value1",  sqlite_columns[13].ptr[0..sqlite_columns[13].len],  "new_value1",  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: value2", 2, sqlite_columns[14].index);
-            try ut.compareCString("getSQLiteColumnsTable: value2", "value2", sqlite_columns[14].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: value2", "new_value2", sqlite_columns[14].ptr[0..sqlite_columns[14].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: value2",  sqlite_columns[14].index,  2,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: value2",  sqlite_columns[14].name,  "value2",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: value2",  sqlite_columns[14].ptr[0..sqlite_columns[14].len],  "new_value2",  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[15].index);
-            try ut.compareCString("getSQLiteColumnsTable: integer", "integer", sqlite_columns[15].name);
-            try ut.compareInteger("getSQLiteColumnsTable: integer", 3, sqlite_columns[15].integer);
+            try ut.compareInteger("getSQLiteColumnsTable: integer",  sqlite_columns[15].index,  3,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: integer",  sqlite_columns[15].name,  "integer",  .{ .src = @src() });
+            try ut.compareInteger("getSQLiteColumnsTable: integer",  sqlite_columns[15].integer,  3,  .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: float", 4, sqlite_columns[16].index);
-            try ut.compareCString("getSQLiteColumnsTable: float", "float", sqlite_columns[16].name);
-            try ut.compareFloat("getSQLiteColumnsTable: float", 3.3, sqlite_columns[16].float);
+            try ut.compareInteger("getSQLiteColumnsTable: float",  sqlite_columns[16].index,  4,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: float",  sqlite_columns[16].name,  "float",  .{ .src = @src() });
+            try ut.compareFloat("getSQLiteColumnsTable: float", 3.3, sqlite_columns[16].float, .{ .src = @src() });
 
-            try ut.compareInteger("getSQLiteColumnsTable: blob", 5, sqlite_columns[17].index);
-            try ut.compareCString("getSQLiteColumnsTable: blob", "blob", sqlite_columns[17].name);
-            try ut.compareStringSlice("getSQLiteColumnsTable: blob", "\xF0\x9F\x90\xA7\xF0\x9F\x90\xA7", sqlite_columns[17].ptr[0..sqlite_columns[17].len]);
+            try ut.compareInteger("getSQLiteColumnsTable: blob",  sqlite_columns[17].index,  5,  .{ .src = @src() });
+            try ut.compareCString("getSQLiteColumnsTable: blob",  sqlite_columns[17].name,  "blob",  .{ .src = @src() });
+            try ut.compareStringSlice("getSQLiteColumnsTable: blob",  sqlite_columns[17].ptr[0..sqlite_columns[17].len],  "\xF0\x9F\x90\xA7\xF0\x9F\x90\xA7",  .{ .src = @src() });
 
             //------------------------------------------------------------
         }
@@ -702,8 +702,8 @@ pub fn main(init: std.process.Init) !u8 {
     const name = context.string_rows.items[0].name;
     const value = context.string_rows.items[0].value;
 
-    try ut.compareStringSlice("sqliteExec/callback", "journal_mode", name);
-    try ut.compareStringSlice("sqliteExec/callback", "wal", value);
+    try ut.compareStringSlice("sqliteExec/callback",  name,  "journal_mode",  .{ .src = @src() });
+    try ut.compareStringSlice("sqliteExec/callback",  value,  "wal",  .{ .src = @src() });
     //--------------------------------------------------------------------------------
     if (context.fixed_rows.items.len >= 2) {
         //----------------------------------------------------------------------
@@ -711,21 +711,21 @@ pub fn main(init: std.process.Init) !u8 {
 
         fixed_rows = context.fixed_rows.items[0];
 
-        try ut.compareInteger("queryCallback/newCallback", 1, fixed_rows.id);
-        try ut.compareStringSlice("queryCallback/newCallback", "value1", fixed_rows.value1);
-        try ut.compareStringSlice("queryCallback/newCallback", "", fixed_rows.value2);
-        try ut.compareInteger("queryCallback/newCallback", 1, fixed_rows.integer);
-        try ut.compareFloat("queryCallback/newCallback", 0, fixed_rows.float);
-        try ut.compareStringSlice("queryCallback/newCallback", "", fixed_rows.blob);
+        try ut.compareInteger("queryCallback/newCallback",  fixed_rows.id,  1,  .{ .src = @src() });
+        try ut.compareStringSlice("queryCallback/newCallback",  fixed_rows.value1,  "value1",  .{ .src = @src() });
+        try ut.compareStringSlice("queryCallback/newCallback",  fixed_rows.value2,  "",  .{ .src = @src() });
+        try ut.compareInteger("queryCallback/newCallback",  fixed_rows.integer,  1,  .{ .src = @src() });
+        try ut.compareFloat("queryCallback/newCallback", 0, fixed_rows.float, .{ .src = @src() });
+        try ut.compareStringSlice("queryCallback/newCallback",  fixed_rows.blob,  "",  .{ .src = @src() });
 
         fixed_rows = context.fixed_rows.items[1];
 
-        try ut.compareInteger("queryCallback/newCallback", 2, fixed_rows.id);
-        try ut.compareStringSlice("queryCallback/newCallback", "", fixed_rows.value1);
-        try ut.compareStringSlice("queryCallback/newCallback", "value2", fixed_rows.value2);
-        try ut.compareInteger("queryCallback/newCallback", 0, fixed_rows.integer);
-        try ut.compareFloat("queryCallback/newCallback", 2.2, fixed_rows.float);
-        try ut.compareStringSlice("queryCallback/newCallback", "\xF0\x9F\x90\xA7", fixed_rows.blob);
+        try ut.compareInteger("queryCallback/newCallback",  fixed_rows.id,  2,  .{ .src = @src() });
+        try ut.compareStringSlice("queryCallback/newCallback",  fixed_rows.value1,  "",  .{ .src = @src() });
+        try ut.compareStringSlice("queryCallback/newCallback",  fixed_rows.value2,  "value2",  .{ .src = @src() });
+        try ut.compareInteger("queryCallback/newCallback",  fixed_rows.integer,  0,  .{ .src = @src() });
+        try ut.compareFloat("queryCallback/newCallback", 2.2, fixed_rows.float, .{ .src = @src() });
+        try ut.compareStringSlice("queryCallback/newCallback",  fixed_rows.blob,  "\xF0\x9F\x90\xA7",  .{ .src = @src() });
         //----------------------------------------------------------------------
     } else {
         //----------------------------------------------------------------------
@@ -894,3 +894,4 @@ extern fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) i32;
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
+

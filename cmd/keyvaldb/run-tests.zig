@@ -2,7 +2,7 @@
 //################################################################################
 //--------------------------------------------------------------------------------
 const std = @import("std");
-const unittest = @import("libs/unittest26078.zig");
+const unittest = @import("libs/unittest26233.zig");
 const keyvaldb = @import("main.zig");
 //--------------------------------------------------------------------------------
 const BRIGHT_ORANGE = "\x1B[38;5;214m";
@@ -32,7 +32,7 @@ pub fn main(init: std.process.Init) !void {
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
-    try ut.compareStringSlice("config_filename", config_filename, keyvaldb.config_filename);
+    try ut.compareStringSlice("config_filename", keyvaldb.config_filename, config_filename, .{ .src = @src() });
     //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
@@ -45,12 +45,7 @@ pub fn main(init: std.process.Init) !void {
         const file = try dir.createFile(init.io, database_name, .{ .read = true, .truncate = true });
         defer file.close(init.io);
         //------------------------------------------------------------
-        try ut.compareStringResultError(
-            "createDatabase: error.InvalidDatabaseFilepath",
-            kvdb.createDatabase(database_name),
-            "",
-            error.InvalidDatabaseFilepath,
-        );
+        try ut.compareStringResultError("createDatabase: error.InvalidDatabaseFilepath", kvdb.createDatabase(database_name), "", error.InvalidDatabaseFilepath, .{ .src = @src() });
         //------------------------------------------------------------
         try dir.deleteTree(init.io, database_name);
         //------------------------------------------------------------
@@ -58,12 +53,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         // create directory to test createDatabase returns error
         //------------------------------------------------------------
-        try ut.compareStringResultError(
-            "createDatabase: error.InvalidConfigFile",
-            kvdb.createDatabase(database_name),
-            "",
-            error.InvalidConfigFile,
-        );
+        try ut.compareStringResultError("createDatabase: error.InvalidConfigFile", kvdb.createDatabase(database_name), "", error.InvalidConfigFile, .{ .src = @src() });
         //------------------------------------------------------------
         try dir.deleteTree(init.io, database_name);
         //------------------------------------------------------------
@@ -86,12 +76,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                kvdb.createDatabase(test_case.directory),
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, kvdb.createDatabase(test_case.directory), test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //------------------------------------------------------------
         }
         //------------------------------------------------------------
@@ -105,12 +90,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         // database should already exist - no repair required
         //------------------------------------------------------------
-        try ut.compareStringResultError(
-            "repairDatabase: already exists - repair not required",
-            kvdb.repairDatabase(database_name),
-            "",
-            null,
-        );
+        try ut.compareStringResultError("repairDatabase: already exists - repair not required", kvdb.repairDatabase(database_name), "", null, .{ .src = @src() });
         //------------------------------------------------------------
         // remove config file to test if repairDatabase creates it
         //------------------------------------------------------------
@@ -118,18 +98,13 @@ pub fn main(init: std.process.Init) !void {
         defer allocator.free(config_filepath);
         try dir.deleteTree(init.io, config_filepath);
         //------------------------------------------------------------
-        try ut.compareStringResultError(
-            "repairDatabase: config file removed - repair required",
-            kvdb.repairDatabase(database_name),
-            "",
-            null,
-        );
+        try ut.compareStringResultError("repairDatabase: config file removed - repair required", kvdb.repairDatabase(database_name), "", null, .{ .src = @src() });
         //------------------------------------------------------------
         // check if config file created by repairDatabase
         if (std.Io.Dir.cwd().statFile(init.io, config_filepath, .{})) |_| {
-            try ut.pass("repairDatabase: config_filepath successfully created", "");
+            try ut.pass("repairDatabase: config_filepath successfully created", "", .{ .src = @src() });
         } else |err| {
-            try ut.errorFail("repairDatabase: config_filepath", err);
+            try ut.errorFail("repairDatabase: config_filepath", err, .{ .src = @src() });
         }
         //------------------------------------------------------------
     }
@@ -144,12 +119,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                kvdb.repairDatabase(test_case.directory),
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, kvdb.repairDatabase(test_case.directory), test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -174,12 +144,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                kvdb.setKey(test_case.directory, test_case.key, test_case.value),
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, kvdb.setKey(test_case.directory, test_case.key, test_case.value), test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -207,12 +172,7 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
             const result_error = kvdb.getKey(test_case.directory, test_case.key);
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                result_error,
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, result_error, test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
             if (result_error) |result| {
                 defer allocator.free(result);
@@ -242,12 +202,7 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
             const result_error = kvdb.checkKey(test_case.directory, test_case.key);
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                result_error,
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, result_error, test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
             if (result_error) |result| {
                 defer allocator.free(result);
@@ -277,12 +232,7 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
             const result_error = kvdb.lenKey(test_case.directory, test_case.key);
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                result_error,
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, result_error, test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
             if (result_error) |result| {
                 defer allocator.free(result);
@@ -311,12 +261,7 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
             const result_error = kvdb.mtimeKey(test_case.directory, test_case.key);
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                result_error,
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, result_error, test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
             if (result_error) |result| {
                 defer allocator.free(result);
@@ -328,15 +273,11 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
             defer allocator.free(result);
             //----------------------------------------
-            try ut.compareStringFormat(
-                "mtimeKey: compareStringFormat",
-                result,
-                "dddd-dd-ddTdd:dd:dd.dddddddddZ",
-            );
+            try ut.compareStringFormat("mtimeKey: compareStringFormat", result, "dddd-dd-ddTdd:dd:dd.dddddddddZ", .{ .src = @src() });
             //----------------------------------------
         } else |err| {
             //----------------------------------------
-            try ut.errorFail("mtimeKey: compareStringFormat", err);
+            try ut.errorFail("mtimeKey: compareStringFormat", err, .{ .src = @src() });
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -359,12 +300,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                kvdb.deleteKey(test_case.directory, test_case.key),
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, kvdb.deleteKey(test_case.directory, test_case.key), test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
         }
         //------------------------------------------------------------
@@ -387,12 +323,7 @@ pub fn main(init: std.process.Init) !void {
             //----------------------------------------
             const result_error = kvdb.listKeys(test_case.directory);
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                result_error,
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, result_error, test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
             if (result_error) |result| {
                 defer allocator.free(result);
@@ -407,7 +338,7 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         const result_error = kvdb.listKeys(database_name);
         //----------------------------------------
-        try ut.compareStringResultError("listKeys", result_error, "no key-value pairs exist\n", null);
+        try ut.compareStringResultError("listKeys", result_error, "no key-value pairs exist\n", null, .{ .src = @src() });
         //----------------------------------------
         if (result_error) |result| {
             defer allocator.free(result);
@@ -430,20 +361,15 @@ pub fn main(init: std.process.Init) !void {
         //------------------------------------------------------------
         inline for (test_cases) |test_case| {
             //----------------------------------------
-            try ut.compareStringResultError(
-                test_case.name,
-                kvdb.dropDatabase(test_case.directory),
-                test_case.expected_result,
-                test_case.expected_error,
-            );
+            try ut.compareStringResultError(test_case.name, kvdb.dropDatabase(test_case.directory), test_case.expected_result, test_case.expected_error, .{ .src = @src() });
             //----------------------------------------
         }
         //------------------------------------------------------------
         // check if database directory has been deleted by dropDatabase
         if (std.Io.Dir.cwd().statFile(init.io, database_name, .{})) |_| {
-            try ut.fail("dropDatabase: database directory has not been deleted", "");
+            try ut.fail("dropDatabase: database directory has not been deleted", "", .{ .src = @src() });
         } else |err| {
-            try ut.compareError("dropDatabase: error.FileNotFound", err, error.FileNotFound);
+            try ut.compareError("dropDatabase: error.FileNotFound", error.FileNotFound, err, .{ .src = @src() });
         }
         //------------------------------------------------------------
     }

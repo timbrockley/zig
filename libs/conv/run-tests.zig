@@ -38,7 +38,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -46,13 +46,13 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -91,17 +91,17 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    try ut.errorPass(name, err);
+                    try ut.errorPass(name, err, .{ .src = @src() });
                 } else {
                     fail_count += 1;
-                    try ut.errorFail(name, err);
+                    try ut.errorFail(name, err, .{ .src = @src() });
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -140,13 +140,13 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -178,7 +178,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -186,17 +186,17 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    try ut.errorPass(name, err);
+                    try ut.errorPass(name, err, .{ .src = @src() });
                 } else {
                     fail_count += 1;
-                    try ut.errorFail(name, err);
+                    try ut.errorFail(name, err, .{ .src = @src() });
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -227,7 +227,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -235,13 +235,13 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -273,7 +273,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -281,17 +281,17 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    try ut.errorPass(name, err);
+                    try ut.errorPass(name, err, .{ .src = @src() });
                 } else {
                     fail_count += 1;
-                    try ut.errorFail(name, err);
+                    try ut.errorFail(name, err, .{ .src = @src() });
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -313,13 +313,13 @@ pub fn main(init: std.process.Init) !void {
                 //----------------------------------------
             } else |err| {
                 //----------------------------------------
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        try ut.compareByteSlice(name, expected[0..], result[0..]);
+        try ut.compareByteSlice(name, result[0..], expected[0..], .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -333,7 +333,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.plaintextToBase64Length(data);
         }
 
-        try ut.compareInteger(name, expected_total, total);
+        try ut.compareInteger(name, total, expected_total, .{ .src = @src() });
     }
     //----------------------------------------------------------------------------
     {
@@ -346,7 +346,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.plaintextToBase64UrlLength(data);
         }
 
-        try ut.compareInteger(name, expected_total, total);
+        try ut.compareInteger(name, total, expected_total, .{ .src = @src() });
     }
     //----------------------------------------------------------------------------
     {
@@ -354,9 +354,9 @@ pub fn main(init: std.process.Init) !void {
         const data = "A"; // invalid input
 
         if (conv.Base64.base64ToPlaintextLength(data)) |_| {
-            try ut.fail(name, "test failed as it did not return an error");
+            try ut.fail(name, "test failed as it did not return an error", .{ .src = @src() });
         } else |err| {
-            try ut.errorPass(name, err); // should return an error
+            try ut.errorPass(name, err, .{ .src = @src() }); // should return an error
         }
     }
     //----------------------------------------------------------------------------
@@ -370,11 +370,11 @@ pub fn main(init: std.process.Init) !void {
             if (conv.Base64.base64ToPlaintextLength(data)) |length| {
                 total += length;
             } else |err| {
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
             }
         }
 
-        try ut.compareInteger(name, expected_total, total);
+        try ut.compareInteger(name, total, expected_total, .{ .src = @src() });
     }
     //----------------------------------------------------------------------------
     {
@@ -387,7 +387,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.base64UrlToPlaintextLength(data);
         }
 
-        try ut.compareInteger(name, expected_total, total);
+        try ut.compareInteger(name, total, expected_total, .{ .src = @src() });
     }
     //----------------------------------------------------------------------------
     {
@@ -400,7 +400,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.base64ToBase64UrlLength(data);
         }
 
-        try ut.compareInteger(name, expected_total, total);
+        try ut.compareInteger(name, total, expected_total, .{ .src = @src() });
     }
     //----------------------------------------------------------------------------
     {
@@ -413,7 +413,7 @@ pub fn main(init: std.process.Init) !void {
             total += conv.Base64.base64UrlToBase64Length(data);
         }
 
-        try ut.compareInteger(name, expected_total, total);
+        try ut.compareInteger(name, total, expected_total, .{ .src = @src() });
     }
     //----------------------------------------------------------------------------
     {
@@ -446,7 +446,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -454,13 +454,13 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -493,7 +493,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -501,17 +501,17 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    try ut.errorPass(name, err);
+                    try ut.errorPass(name, err, .{ .src = @src() });
                 } else {
                     fail_count += 1;
-                    try ut.errorFail(name, err);
+                    try ut.errorFail(name, err, .{ .src = @src() });
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -543,7 +543,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -551,13 +551,13 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -587,7 +587,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -595,17 +595,17 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    try ut.errorPass(name, err);
+                    try ut.errorPass(name, err, .{ .src = @src() });
                 } else {
                     fail_count += 1;
-                    try ut.errorFail(name, err);
+                    try ut.errorFail(name, err, .{ .src = @src() });
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -637,7 +637,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareStringSlice(name, test_case.expected, result);
+                    try ut.compareStringSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -645,17 +645,17 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 if (test_case.expected_error != null and err == test_case.expected_error.?) {
-                    try ut.errorPass(name, err);
+                    try ut.errorPass(name, err, .{ .src = @src() });
                 } else {
                     fail_count += 1;
-                    try ut.errorFail(name, err);
+                    try ut.errorFail(name, err, .{ .src = @src() });
                 }
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------
@@ -685,7 +685,7 @@ pub fn main(init: std.process.Init) !void {
                     //----------------------------------------
                     fail_count += 1;
                     //----------------------------------------
-                    try ut.compareByteSlice(name, test_case.expected, result);
+                    try ut.compareByteSlice(name, result, test_case.expected, .{ .src = @src() });
                     allocator.free(result);
                     //----------------------------------------
                 }
@@ -693,13 +693,13 @@ pub fn main(init: std.process.Init) !void {
             } else |err| {
                 //----------------------------------------
                 fail_count += 1;
-                try ut.errorFail(name, err);
+                try ut.errorFail(name, err, .{ .src = @src() });
                 //----------------------------------------
             }
             //----------------------------------------
         }
         //----------------------------------------
-        if (fail_count == 0) try ut.pass(name, "");
+        if (fail_count == 0) try ut.pass(name, "", .{ .src = @src() });
         //----------------------------------------
     }
     //----------------------------------------------------------------------------

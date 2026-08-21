@@ -73,117 +73,117 @@ pub fn main(init: std.process.Init) !void {
     //-------------------------------------------------------------
     var ut = try unittest.init(.{ .io = init.io });
     //-------------------------------------------------------------
-    try ut.compareInteger("@sizeOf(Value)", 24, @sizeOf(Value));
+    try ut.compareInteger("@sizeOf(Value)", @sizeOf(Value), 24, .{ .src = @src() });
     //-------------------------------------------------------------
     var value: Value = undefined;
     //-------------------------------------------------------------
     {
         value = .{ .string = "getNullString" };
 
-        try ut.compareStringSlice("value.getNullString()", "getNullString", value.getNullString().?);
+        try ut.compareStringSlice("value.getNullString()", value.getNullString().?, "getNullString", .{ .src = @src() });
 
         value = .{ .null = {} };
 
-        try ut.compareNull("value.getNullString()", value.getNullString());
+        try ut.compareNull("value.getNullString()", value.getNullString(), .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .string = "getString" };
 
-        try ut.compareStringSlice("value.getString()", "getString", value.getString());
+        try ut.compareStringSlice("value.getString()", value.getString(), "getString", .{ .src = @src() });
 
         value = .{ .null = {} };
 
-        try ut.compareStringSlice("value.getString()", "", value.getString());
+        try ut.compareStringSlice("value.getString()", value.getString(), "", .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .integer = 42 };
 
-        try ut.compareInteger("value.getInteger()", 42, value.getInteger());
+        try ut.compareInteger("value.getInteger()", value.getInteger(), 42, .{ .src = @src() });
 
         value = .{ .null = {} };
 
-        try ut.compareInteger("value.getInteger()", 0, value.getInteger());
+        try ut.compareInteger("value.getInteger()", value.getInteger(), 0, .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .float = 42.42 };
 
-        try ut.compareFloat("value.getFloat()", 42.42, value.getFloat());
+        try ut.compareFloat("value.getFloat()", value.getFloat(), 42.42, .{ .src = @src() });
 
         value = .{ .null = {} };
 
-        try ut.compareFloat("value.getFloat()", 0, value.getFloat());
+        try ut.compareFloat("value.getFloat()", value.getFloat(), 0, .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .null = {} };
 
-        try ut.compareBool("value.is(.null)", true, value.is(.null));
-        try ut.compareEnum("std.meta.activeTag(value)", Value.null, std.meta.activeTag(value));
+        try ut.compareBool("value.is(.null)", value.is(.null), true, .{ .src = @src() });
+        try ut.compareEnum("std.meta.activeTag(value)", std.meta.activeTag(value), Value.null, .{ .src = @src() });
 
-        try ut.compareNull("value.get(?void)", value.get(?void));
+        try ut.compareNull("value.get(?void)", value.get(?void), .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .integer = 42 };
 
-        try ut.compareBool("value.is(.integer)", true, value.is(.integer));
-        try ut.compareEnum("std.meta.activeTag(value)", Value.integer, std.meta.activeTag(value));
-        try ut.compareType("@TypeOf(value.integer)", i64, @TypeOf(value.integer));
+        try ut.compareBool("value.is(.integer)", value.is(.integer), true, .{ .src = @src() });
+        try ut.compareEnum("std.meta.activeTag(value)", std.meta.activeTag(value), Value.integer, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.integer)", @TypeOf(value.integer), i64, .{ .src = @src() });
 
-        try ut.compareFloat("value.get(f64)", 42, value.get(f64));
-        try ut.compareInteger("value.get(i64)", 42, value.get(i64));
-        try ut.compareStringSlice("value.get([]const u8)", "", value.get([]const u8));
-        try ut.compareNull("value.get(?void)", value.get(?void));
+        try ut.compareFloat("value.get(f64)", value.get(f64), 42, .{ .src = @src() });
+        try ut.compareInteger("value.get(i64)", value.get(i64), 42, .{ .src = @src() });
+        try ut.compareStringSlice("value.get([]const u8)", value.get([]const u8), "", .{ .src = @src() });
+        try ut.compareNull("value.get(?void)", value.get(?void), .{ .src = @src() });
 
-        try ut.compareType("@TypeOf(value.get(f32))", f32, @TypeOf(value.get(f32)));
-        try ut.compareType("@TypeOf(value.get(i32))", i32, @TypeOf(value.get(i32)));
-        try ut.compareType("@TypeOf(value.get([]const u8))", []const u8, @TypeOf(value.get([]const u8)));
+        try ut.compareType("@TypeOf(value.get(f32))", @TypeOf(value.get(f32)), f32, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.get(i32))", @TypeOf(value.get(i32)), i32, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.get([]const u8))", @TypeOf(value.get([]const u8)), []const u8, .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .float = 3.142 };
 
-        try ut.compareBool("value.is(.float)", true, value.is(.float));
-        try ut.compareEnum("std.meta.activeTag(value)", Value.float, std.meta.activeTag(value));
-        try ut.compareType("@TypeOf(value.float)", f64, @TypeOf(value.float));
+        try ut.compareBool("value.is(.float)", value.is(.float), true, .{ .src = @src() });
+        try ut.compareEnum("std.meta.activeTag(value)", std.meta.activeTag(value), Value.float, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.float)", @TypeOf(value.float), f64, .{ .src = @src() });
 
-        try ut.compareFloat("value.get(f64)", 3.142, value.get(f64));
-        try ut.compareType("@TypeOf(value.get(f32))", f32, @TypeOf(value.get(f32)));
+        try ut.compareFloat("value.get(f64)", value.get(f64), 3.142, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.get(f32))", @TypeOf(value.get(f32)), f32, .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .string = "get" };
 
-        try ut.compareBool("value.is(.string)", true, value.is(.string));
-        try ut.compareEnum("std.meta.activeTag(value)", Value.string, std.meta.activeTag(value));
-        try ut.compareType("@TypeOf(value.string)", []const u8, @TypeOf(value.string));
+        try ut.compareBool("value.is(.string)", value.is(.string), true, .{ .src = @src() });
+        try ut.compareEnum("std.meta.activeTag(value)", std.meta.activeTag(value), Value.string, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.string)", @TypeOf(value.string), []const u8, .{ .src = @src() });
 
-        try ut.compareStringSlice("value.get([]const u8)", "get", value.get([]const u8));
-        try ut.compareStringSlice("value.get([]u8)", "get", value.get([]u8));
+        try ut.compareStringSlice("value.get([]const u8)", value.get([]const u8), "get", .{ .src = @src() });
+        try ut.compareStringSlice("value.get([]u8)", value.get([]u8), "get", .{ .src = @src() });
 
-        try ut.compareFloat("value.get(f64)", 0, value.get(f64));
-        try ut.compareType("@TypeOf(value.get(f32))", f32, @TypeOf(value.get(f32)));
+        try ut.compareFloat("value.get(f64)", value.get(f64), 0, .{ .src = @src() });
+        try ut.compareType("@TypeOf(value.get(f32))", @TypeOf(value.get(f32)), f32, .{ .src = @src() });
 
-        try ut.compareNull("value.get(?void)", value.get(?void));
+        try ut.compareNull("value.get(?void)", value.get(?void), .{ .src = @src() });
     }
     //-------------------------------------------------------------
     {
         value = .{ .string = "getWithError" };
 
-        try ut.compareStringSlice("value.getWithError([]const u8)", "getWithError", try value.getWithError([]const u8));
-        try ut.compareStringSlice("value.getWithError([]u8)", "getWithError", try value.getWithError([]u8));
+        try ut.compareStringSlice("value.getWithError([]const u8)", try value.getWithError([]const u8), "getWithError", .{ .src = @src() });
+        try ut.compareStringSlice("value.getWithError([]u8)", try value.getWithError([]u8), "getWithError", .{ .src = @src() });
 
         value = .{ .null = {} };
 
-        try ut.compareNull("value.getWithError(?void)", try value.getWithError(?void));
-        try ut.compareNull("value.getWithError(?[]const u8)", try value.getWithError(?[]const u8));
-        try ut.compareNull("value.getWithError(?u8)", try value.getWithError(?u8));
+        try ut.compareNull("value.getWithError(?void)", try value.getWithError(?void), .{ .src = @src() });
+        try ut.compareNull("value.getWithError(?[]const u8)", try value.getWithError(?[]const u8), .{ .src = @src() });
+        try ut.compareNull("value.getWithError(?u8)", try value.getWithError(?u8), .{ .src = @src() });
 
-        _ = value.getWithError(u8) catch |err| try ut.compareError("value.getWithError(u8)", error.InvalidType, err);
-        _ = value.getWithError(i32) catch |err| try ut.compareError("value.getWithError(i32)", error.InvalidType, err);
+        _ = value.getWithError(u8) catch |err| try ut.compareError("value.getWithError(u8)", err, error.InvalidType, .{ .src = @src() });
+        _ = value.getWithError(i32) catch |err| try ut.compareError("value.getWithError(i32)", err, error.InvalidType, .{ .src = @src() });
     }
     //-------------------------------------------------------------
     try ut.printSummary();
