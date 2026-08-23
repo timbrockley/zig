@@ -24,11 +24,9 @@ tasks:
       - zig build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -L. -lsqlite -O Debug -target native -mcpu=baseline
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmd: ./main-libsqlite
 
   test:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmd: ./main-libsqlite

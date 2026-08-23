@@ -17,14 +17,12 @@ tasks:
   debug:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../main-sqlite.zig -femit-bin=main-sqlite -lc -fstrip -O Debug -mcpu=baseline
+      - zig build-exe ../main-sqlite.zig -femit-bin=main-sqlite -lc -O Debug
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmd: ./main-sqlite
 
   test:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmd: ./main-sqlite

@@ -20,11 +20,9 @@ tasks:
       - zig build-exe ../main.zig -femit-bin=main -lc -fstrip -O Debug -mcpu=baseline
 
   run:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmd: ./main
 
   test:
-    deps: [build]
     dir: "{{.OUTPUT_PATH}}"
     cmd: ./main
