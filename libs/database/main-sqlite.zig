@@ -31,16 +31,16 @@ const RowMap = std.StringHashMap(ds.ColumnValue);
 const Context = struct {
     allocator: std.mem.Allocator,
 
-    string_rows: std.ArrayList(StringsColumn) = .empty,
+    string_columns: std.ArrayList(StringsColumn) = .empty,
     fixed_rows: std.ArrayList(FixedRow) = .empty,
     row_maps: std.ArrayList(RowMap) = .empty,
 
     fn deinit(context: *Context) void {
-        for (context.string_rows.items) |string_row| {
+        for (context.string_columns.items) |string_row| {
             context.allocator.free(string_row.name);
             context.allocator.free(string_row.value);
         }
-        context.string_rows.deinit(context.allocator);
+        context.string_columns.deinit(context.allocator);
 
         for (context.fixed_rows.items) |fixed_row| {
             context.allocator.free(fixed_row.value1);
@@ -56,6 +56,7 @@ const Context = struct {
                 context.allocator.free(entry.key_ptr.*);
                 switch (entry.value_ptr.*) {
                     .string => |s| context.allocator.free(s),
+                    .bytes => |b| context.allocator.free(b),
                     else => {},
                 }
             }
@@ -720,8 +721,8 @@ pub fn main(init: std.process.Init) !u8 {
     //--------------------------------------------------------------------------------
     try ut.printLine();
     //--------------------------------------------------------------------------------
-    const name = context.string_rows.items[0].name;
-    const value = context.string_rows.items[0].value;
+    const name = context.string_columns.items[0].name;
+    const value = context.string_columns.items[0].value;
 
     try ut.compareStringSlice("sqliteExec/callback", name, "journal_mode", .{ .src = @src() });
     try ut.compareStringSlice("sqliteExec/callback", value, "wal", .{ .src = @src() });
@@ -843,7 +844,7 @@ pub fn callback(
         string_column.name = context.allocator.dupe(u8, name) catch return c.SQLITE_ERROR;
         string_column.value = context.allocator.dupe(u8, value) catch return c.SQLITE_ERROR;
         //----------------------------------------
-        context.string_rows.append(context.allocator, string_column) catch return c.SQLITE_ERROR;
+        context.string_columns.append(context.allocator, string_column) catch return c.SQLITE_ERROR;
         //----------------------------------------
     }
     //----------------------------------------
