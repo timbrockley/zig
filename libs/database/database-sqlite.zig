@@ -608,6 +608,10 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
         return self.returnError(c.SQLITE_ERROR, "invalid table_name", error.InvalidTableName);
     }
     //------------------------------------------------------------
+    var arena_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena_allocator.deinit();
+    const temp_allocator = arena_allocator.allocator();
+    //------------------------------------------------------------
     table_ptr.row_count = try getRowCount(self, table_name);
     //------------------------------------------------------------
     var stmt_handle: ?*anyopaque = null;
@@ -632,10 +636,11 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
     table_ptr.column_count = @intCast(c.sqlite3_column_count(stmt_handle));
     if (table_ptr.column_count == 0) return;
     //----------------------------------------
+    var column_name_ptrs = std.StringHashMap([*:0]u8).init(temp_allocator);
+    defer column_name_ptrs.deinit();
+    //----------------------------------------
     const total_sqlite_column_bytes: usize = table_ptr.row_count * table_ptr.column_count * @sizeOf(SQLiteColumn);
     //----------------------------------------
-    const total_backed_bytes = try getTotalColumnDataBytes(self, table_name);
-    //------------------------------------------------------------
     const sqlite_columns_ptr = c.sqlite3_malloc64(total_sqlite_column_bytes);
     if (sqlite_columns_ptr == null) {
         return self.returnError(
@@ -647,15 +652,17 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
     table_ptr.sqlite_columns = @ptrCast(@alignCast(sqlite_columns_ptr));
     const sqlite_columns = table_ptr.sqlite_columns.?;
     //------------------------------------------------------------
-    const backed_mem_ptr = c.sqlite3_malloc64(total_backed_bytes);
-    if (backed_mem_ptr == null) {
+    const total_data_bytes = try getTotalColumnDataBytes(self, table_name);
+    //------------------------------------------------------------
+    const column_data_ptr = c.sqlite3_malloc64(total_data_bytes);
+    if (column_data_ptr == null) {
         return self.returnError(
             c.SQLITE_NOMEM,
-            "sqlite3_malloc64 failed: backed_mem_ptr",
+            "sqlite3_malloc64 failed: column_data_ptr",
             error.SQLiteMalloc64Error,
         );
     }
-    table_ptr.column_data = @ptrCast(@alignCast(backed_mem_ptr));
+    table_ptr.column_data = @ptrCast(@alignCast(column_data_ptr));
     const column_data = table_ptr.column_data.?;
     //------------------------------------------------------------
     var current_row: usize = 0;
@@ -677,11 +684,17 @@ pub fn getSQLiteColumnsTable(self: *Self, table_name: [*c]const u8, table_ptr: *
                 //----------------------------------------
                 const name_len = std.mem.len(sqlite_column.name);
                 //----------------------------------------
-                const name_dest = column_data[data_index .. data_index + name_len];
-                @memcpy(name_dest, sqlite_column.name[0..name_len]);
-                column_data[data_index + name_len] = 0;
-                sqlite_column.name = @ptrCast(&column_data[data_index]);
-                data_index += name_len + 1;
+                var name_dest: [*:0]u8 = undefined;
+                if (column_name_ptrs.get(sqlite_column.name[0..name_len])) |existing_ptr| {
+                    name_dest = existing_ptr;
+                } else {
+                    name_dest = @ptrCast(&column_data[data_index]);
+                    try column_name_ptrs.put(sqlite_column.name[0..name_len], name_dest);
+                    @memcpy(name_dest, sqlite_column.name[0..name_len]);
+                    column_data[data_index + name_len] = 0;
+                    data_index += name_len + 1;
+                }
+                sqlite_column.name = name_dest;
                 //------------------------------------------------------------
                 if (sqlite_column.column_type == .SQLITE_TEXT or sqlite_column.column_type == .SQLITE_BLOB) {
                     //----------------------------------------
@@ -748,7 +761,7 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
         return self.returnError(c.SQLITE_ERROR, "invalid table_name", error.InvalidTableName);
     }
     //------------------------------------------------------------
-    var total_backed_bytes: usize = 0;
+    var total_data_bytes: usize = 0;
     //------------------------------------------------------------
     var stmt_handle: ?*anyopaque = null;
     //------------------------------------------------------------
@@ -768,7 +781,9 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
     const column_count: usize = @intCast(c.sqlite3_column_count(stmt_handle));
     if (column_count == 0) return 0;
     //------------------------------------------------------------
-    while (true) {
+    var row_index: usize = 0;
+    //------------------------------------------------------------
+    while (true) : (row_index += 1) {
         //------------------------------------------------------------
         rc = c.sqlite3_step(stmt_handle);
         //------------------------------------------------------------
@@ -778,17 +793,21 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
                 //------------------------------------------------------------
                 const iCol: i32 = @intCast(column_index);
                 //------------------------------------------------------------
-                const name = c.sqlite3_column_name(stmt_handle, iCol);
-                const name_len = std.mem.len(name);
-                //------------------------------------------------------------
-                total_backed_bytes += name_len + 1;
+                if (row_index == 0) {
+                    //------------------------------------------------------------
+                    const name = c.sqlite3_column_name(stmt_handle, iCol);
+                    const name_len = std.mem.len(name);
+                    //------------------------------------------------------------
+                    total_data_bytes += name_len + 1;
+                    //------------------------------------------------------------
+                }
                 //------------------------------------------------------------
                 const column_type = c.sqlite3_column_type(stmt_handle, iCol);
                 //------------------------------------------------------------
                 const len: usize = @intCast(c.sqlite3_column_bytes(stmt_handle, iCol));
                 //------------------------------------------------------------
                 if (column_type == c.SQLITE_TEXT or column_type == c.SQLITE_BLOB) {
-                    total_backed_bytes += len;
+                    total_data_bytes += len;
                 }
                 //------------------------------------------------------------
             }
@@ -805,7 +824,7 @@ pub fn getTotalColumnDataBytes(self: *Self, table_name: [*c]const u8) !usize {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    return total_backed_bytes;
+    return total_data_bytes;
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------

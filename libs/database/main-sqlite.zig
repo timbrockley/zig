@@ -511,6 +511,11 @@ pub fn main(init: std.process.Init) !u8 {
         try ut.compareInteger("getColumnCount", column_count, 7, .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
+    {
+        const total_data_bytes = try sqlitedb.getTotalColumnDataBytes("test");
+        try ut.compareInteger("getTotalColumnDataBytes", total_data_bytes, 95, .{ .src = @src() });
+    }
+    //--------------------------------------------------------------------------------
     //################################################################################
     //--------------------------------------------------------------------------------
     {
