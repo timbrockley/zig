@@ -15,11 +15,11 @@ const c = @cImport({
 pub const SQLiteColumnType = enum(i32) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
 //--------------------------------------------------------------------------------
 pub const SQLiteColumn = extern struct {
-    index: usize = 0,
+    index: i64 = 0,
     name: [*:0]const u8 = "",
     column_type: SQLiteColumnType = .SQLITE_UNKNOWN,
     ptr: [*]const u8 = "",
-    len: usize = 0,
+    len: i64 = 0,
     integer: i64 = 0,
     float: f64 = 0,
 };
@@ -29,8 +29,8 @@ pub const SQLiteColumnsTable = extern struct {
     sqlite_columns: ?[*]SQLiteColumn = null,
     column_data: ?[*]u8 = null,
     //----------------------------------------
-    row_count: usize = 0,
-    column_count: usize = 0,
+    row_count: i64 = 0,
+    column_count: i64 = 0,
     //----------------------------------------
 };
 //--------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ const Self = @This();
 //################################################################################
 //--------------------------------------------------------------------------------
 /// Open database at filepath location.
-/// Database handle stored as usize in db_handle argument.
 pub export fn sqliteOpen(
     filepath: [*:0]const u8,
     db_handle: *?*anyopaque,
@@ -195,7 +194,7 @@ pub export fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) i32 {
 }
 //--------------------------------------------------------------------------------
 /// Binds blob data to a column.
-pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
+pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: i64, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
     //----------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //----------------------------------------
@@ -206,7 +205,7 @@ pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const
 }
 //--------------------------------------------------------------------------------
 /// Binds text data to a column.
-pub export fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: usize, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
+pub export fn sqliteBindText(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: i64, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
     //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //------------------------------------------------------------
@@ -380,7 +379,7 @@ pub export fn sqliteRealloc64(ptr: ?*anyopaque, len: u64) callconv(.c) ?*anyopaq
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-/// Frees memory previously allocated using sqlite3_malloc/sqlite3_malloc64.
+/// Frees memory previously allocated using sqlite3_malloc64.
 pub export fn sqliteFree(ptr: ?*anyopaque) callconv(.c) void {
     //------------------------------------------------------------
     c.sqlite3_free(ptr);
@@ -394,7 +393,7 @@ pub export fn sqliteFree(ptr: ?*anyopaque) callconv(.c) void {
 pub export fn queryCallback(
     db_handle: ?*anyopaque,
     sql: [*c]const u8,
-    callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, usize) callconv(.c) i32,
+    callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, i32) callconv(.c) i32,
     ctx: ?*anyopaque,
     errmsg: *?[*:0]u8,
 ) callconv(.c) i32 {
@@ -434,10 +433,10 @@ pub export fn queryCallback(
         return c.SQLITE_ERROR;
     }
     //------------------------------------------------------------
-    const total_bytes = column_count * @sizeOf(SQLiteColumn);
+    const total_bytes: u64 = @intCast(column_count * @sizeOf(SQLiteColumn));
     //------------------------------------------------------------
-    const raw_ptr = c.sqlite3_malloc(@intCast(total_bytes)) orelse {
-        errmsg.* = c.sqlite3_mprintf("sqlite3_malloc failed");
+    const raw_ptr = c.sqlite3_malloc64(total_bytes) orelse {
+        errmsg.* = c.sqlite3_mprintf("sqlite3_malloc64 failed");
         return c.SQLITE_NOMEM;
     };
     defer c.sqlite3_free(raw_ptr);
@@ -452,24 +451,24 @@ pub export fn queryCallback(
             //------------------------------------------------------------
             if (callback) |cb| {
                 //------------------------------------------------------------
-                for (0..column_count) |index| {
+                for (0..column_count) |column_index| {
                     //------------------------------------------------------------
-                    columns_ptr[index] = .{};
+                    columns_ptr[column_index] = .{};
                     //------------------------------------------------------------
-                    const update_rc = updateSQLiteColumn(stmt_handle, index, &columns_ptr[index]);
+                    const update_rc = updateSQLiteColumn(stmt_handle, @intCast(column_index), &columns_ptr[column_index]);
                     if (update_rc != c.SQLITE_OK) {
                         //----------------------------------------
-                        errmsg.* = c.sqlite3_mprintf("updateSQLiteColumn error: index = %d", index);
+                        errmsg.* = c.sqlite3_mprintf("updateSQLiteColumn error: index = %d", column_index);
                         return update_rc;
                         //----------------------------------------
                     }
                     //------------------------------------------------------------
                 }
                 //------------------------------------------------------------
-                const return_code = cb(ctx, columns_ptr, column_count);
+                const return_code = cb(ctx, columns_ptr, @intCast(column_count));
                 if (return_code != c.SQLITE_OK) {
                     //----------------------------------------
-                    errmsg.* = c.sqlite3_mprintf("queryCallback aborted: index = %d", return_code);
+                    errmsg.* = c.sqlite3_mprintf("queryCallback aborted (%d)", return_code);
                     return return_code;
                     //----------------------------------------
                 }
@@ -547,7 +546,7 @@ pub export fn getSQLiteColumnsTable(
     table_ptr.column_count = @intCast(c.sqlite3_column_count(stmt));
     if (table_ptr.column_count == 0) return c.SQLITE_OK;
     //------------------------------------------------------------
-    const total_sqlite_column_bytes: usize = table_ptr.row_count * table_ptr.column_count * @sizeOf(SQLiteColumn);
+    const total_sqlite_column_bytes: u64 = @intCast(table_ptr.row_count * table_ptr.column_count * @sizeOf(SQLiteColumn));
     //------------------------------------------------------------
     const sqlite_columns_ptr = c.sqlite3_malloc64(total_sqlite_column_bytes);
     if (sqlite_columns_ptr == null) {
@@ -557,7 +556,7 @@ pub export fn getSQLiteColumnsTable(
     table_ptr.sqlite_columns = @ptrCast(@alignCast(sqlite_columns_ptr));
     const sqlite_columns = table_ptr.sqlite_columns.?;
     //------------------------------------------------------------
-    const total_data_bytes = getTotalColumnDataBytes(db_handle, table_name, errmsg);
+    const total_data_bytes: u64 = @intCast(getTotalColumnDataBytes(db_handle, table_name, errmsg));
     if (errmsg.* != null) {
         return c.SQLITE_ERROR;
     }
@@ -575,6 +574,7 @@ pub export fn getSQLiteColumnsTable(
     //------------------------------------------------------------
     var current_row: usize = 0;
     var data_index: usize = 0;
+    const column_count: usize = @intCast(table_ptr.column_count);
     //------------------------------------------------------------
     while (true) {
         //------------------------------------------------------------
@@ -582,16 +582,16 @@ pub export fn getSQLiteColumnsTable(
         //------------------------------------------------------------
         if (step_rc == c.SQLITE_ROW) {
             //------------------------------------------------------------
-            for (0..table_ptr.column_count) |column_index| {
+            for (0..column_count) |column_index| {
                 //------------------------------------------------------------
-                const table_index: usize = current_row * table_ptr.column_count + column_index;
+                const table_index: usize = current_row * column_count + column_index;
                 //----------------------------------------
                 var sqlite_column = SQLiteColumn{};
                 //----------------------------------------
-                const update_rc = updateSQLiteColumn(stmt_handle, column_index, &sqlite_column);
+                const update_rc = updateSQLiteColumn(stmt_handle, @intCast(column_index), &sqlite_column);
                 if (update_rc != c.SQLITE_OK) {
                     //----------------------------------------
-                    errmsg.* = c.sqlite3_mprintf("updateSQLiteColumn error: index = %d", column_index);
+                    errmsg.* = c.sqlite3_mprintf("updateSQLiteColumn error: column_index = %d", column_index);
                     return update_rc;
                     //----------------------------------------
                 }
@@ -615,10 +615,11 @@ pub export fn getSQLiteColumnsTable(
                 //----------------------------------------
                 if (sqlite_column.column_type == .SQLITE_TEXT or sqlite_column.column_type == .SQLITE_BLOB) {
                     //----------------------------------------
-                    const column_dest = column_data[data_index .. data_index + sqlite_column.len];
-                    @memcpy(column_dest, sqlite_column.ptr[0..sqlite_column.len]);
+                    const len: usize = @intCast(sqlite_column.len);
+                    const column_dest = column_data[data_index .. data_index + len];
+                    @memcpy(column_dest, sqlite_column.ptr[0..len]);
                     sqlite_column.ptr = @ptrCast(&column_data[data_index]);
-                    data_index += sqlite_column.len;
+                    data_index += len;
                     //----------------------------------------
                 }
                 //----------------------------------------
@@ -662,12 +663,12 @@ pub export fn freeSQLiteColumnsTable(table_ptr: ?*SQLiteColumnsTable) callconv(.
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-/// Returns total backed bytes required for name an blob data.
+/// Returns total bytes required for name an blob data.
 pub export fn getTotalColumnDataBytes(
     db_handle: ?*anyopaque,
     table_name: [*c]const u8,
     errmsg: *?[*:0]u8,
-) callconv(.c) usize {
+) callconv(.c) i64 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -683,7 +684,7 @@ pub export fn getTotalColumnDataBytes(
     //------------------------------------------------------------
     const db: *c.sqlite3 = @ptrCast(@alignCast(db_handle.?));
     //------------------------------------------------------------
-    var total_data_bytes: usize = 0;
+    var total_data_bytes: i64 = 0;
     //------------------------------------------------------------
     var stmt: ?*c.sqlite3_stmt = null;
     //------------------------------------------------------------
@@ -721,13 +722,13 @@ pub export fn getTotalColumnDataBytes(
                     const name = c.sqlite3_column_name(stmt, iCol);
                     const name_len = std.mem.len(name);
                     //----------------------------------------
-                    total_data_bytes += name_len + 1;
+                    total_data_bytes += @as(i64, @intCast(name_len)) + 1;
                     //----------------------------------------
                 }
                 //----------------------------------------
                 const column_type = c.sqlite3_column_type(stmt, iCol);
                 //----------------------------------------
-                const len: usize = @intCast(c.sqlite3_column_bytes(stmt, iCol));
+                const len: i64 = @intCast(c.sqlite3_column_bytes(stmt, iCol));
                 //----------------------------------------
                 if (column_type == c.SQLITE_TEXT or column_type == c.SQLITE_BLOB) {
                     total_data_bytes += len;
@@ -753,7 +754,7 @@ pub export fn getTotalColumnDataBytes(
 }
 //--------------------------------------------------------------------------------
 /// Update SQLite column values.
-pub export fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: usize, column: *SQLiteColumn) callconv(.c) i32 {
+pub export fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: i64, column: *SQLiteColumn) callconv(.c) i32 {
     //----------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
     //----------------------------------------
@@ -766,9 +767,9 @@ pub export fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: usize, column:
     const column_type: SQLiteColumnType = @enumFromInt(c.sqlite3_column_type(stmt, iCol));
     //------------------------------------------------------------
     const raw_ptr = c.sqlite3_column_blob(stmt, iCol);
-    const len: usize = @intCast(c.sqlite3_column_bytes(stmt, iCol));
-    const integer = @as(i64, c.sqlite3_column_int64(stmt, iCol));
-    const float = @as(f64, c.sqlite3_column_double(stmt, iCol));
+    const len: i64 = @intCast(c.sqlite3_column_bytes(stmt, iCol));
+    const integer: i64 = @intCast(c.sqlite3_column_int64(stmt, iCol));
+    const float: f64 = c.sqlite3_column_double(stmt, iCol);
     //------------------------------------------------------------
     column.* = .{
         .index = index,
@@ -796,7 +797,7 @@ pub export fn getRowCount(
     db_handle: ?*anyopaque,
     table_name: [*c]const u8,
     errmsg: *?[*:0]u8,
-) callconv(.c) usize {
+) callconv(.c) i64 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -842,7 +843,7 @@ pub export fn getRowCount(
         return 0;
     }
     //------------------------------------------------------------
-    return @intCast(c.sqlite3_column_int64(stmt, 0));
+    return c.sqlite3_column_int64(stmt, 0);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -851,7 +852,7 @@ pub export fn getColumnCount(
     db_handle: ?*anyopaque,
     table_name: [*c]const u8,
     errmsg: *?[*:0]u8,
-) callconv(.c) usize {
+) callconv(.c) i64 {
     //------------------------------------------------------------
     if (errmsg.* != null) errmsg.* = null;
     //------------------------------------------------------------
@@ -893,33 +894,6 @@ pub export fn getColumnCount(
     }
     //------------------------------------------------------------
     return @intCast(c.sqlite3_column_count(stmt));
-    //------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-//################################################################################
-//--------------------------------------------------------------------------------
-/// Returns a pointer to a block of memory at least N bytes.
-pub export fn allocateBytes(len: usize) callconv(.c) [*]u8 {
-    //------------------------------------------------------------
-    const raw_ptr = c.sqlite3_malloc64(@intCast(len));
-    //------------------------------------------------------------
-    return @ptrCast(raw_ptr);
-    //------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-/// Returns a pointer to a reallocated block of memory at least N bytes (old block freed by sqlite).
-pub export fn reallocateBytes(ptr: ?*anyopaque, len: usize) callconv(.c) [*]u8 {
-    //------------------------------------------------------------
-    const raw_ptr = c.sqlite3_realloc64(ptr, @intCast(len));
-    //------------------------------------------------------------
-    return @ptrCast(raw_ptr);
-    //------------------------------------------------------------
-}
-//--------------------------------------------------------------------------------
-/// Frees memory previously allocated using allocateBytes.
-pub export fn freeBytes(ptr: ?*anyopaque) callconv(.c) void {
-    //------------------------------------------------------------
-    c.sqlite3_free(ptr);
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
