@@ -30,6 +30,8 @@ start_time_ns: i96 = 0,
 //------------------------------------------------------------
 count_passed: usize = 0,
 count_failed: usize = 0,
+//------------------------------------------------------------
+show_passes: bool = false,
 //--------------------------------------------------------------------------------
 pub fn init(options: anytype) !Self {
     //------------------------------------------------------------
@@ -117,8 +119,11 @@ pub fn compareType(
     //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -130,12 +135,11 @@ pub fn compareType(
         try self.stdout_print(":   {s}\n", .{@typeName(actual)});
         try self.printExpected();
         try self.stdout_print(": {s}\n", .{@typeName(expected)});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -143,8 +147,11 @@ pub fn compareStringSlice(self: *Self, name: []const u8, actual: []const u8, exp
     //------------------------------------------------------------
     if (std.mem.eql(u8, actual, expected)) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -156,12 +163,11 @@ pub fn compareStringSlice(self: *Self, name: []const u8, actual: []const u8, exp
         try self.stdout_print(":   {s}\n", .{actual});
         try self.printExpected();
         try self.stdout_print(": {s}\n", .{expected});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -243,17 +249,19 @@ pub fn compareStringFormat(self: *Self, name: []const u8, string: []const u8, fo
     //------------------------------------------------------------
     if (string.len == format.len and pass_count == format.len) {
         //------------------------------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //------------------------------------------------------------
     } else {
         //------------------------------------------------------------
         try self.printFail(options);
         try self.stdout_print(": {s}\n", .{name});
+        try self.printLine();
         //------------------------------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -261,8 +269,11 @@ pub fn compareByteSlice(self: *Self, name: []const u8, actual: []const u8, expec
     //------------------------------------------------------------
     if (std.mem.eql(u8, actual, expected)) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -274,12 +285,11 @@ pub fn compareByteSlice(self: *Self, name: []const u8, actual: []const u8, expec
         try self.stdout_print(":   {any}\n", .{actual});
         try self.printExpected();
         try self.stdout_print(": {any}\n", .{expected});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -289,8 +299,11 @@ pub fn compareByte(self: *Self, name: []const u8, actual: u8, expected: u8, opti
     //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -302,12 +315,11 @@ pub fn compareByte(self: *Self, name: []const u8, actual: u8, expected: u8, opti
         try self.stdout_print(":   {d}\n", .{actual});
         try self.printExpected();
         try self.stdout_print(": {d}\n", .{expected});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //------------------------------------------------------------
@@ -323,8 +335,11 @@ pub fn compareInteger(self: *Self, name: []const u8, actual: anytype, expected: 
     //------------------------------------------------------------
     if (_actual == _expected) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -336,12 +351,11 @@ pub fn compareInteger(self: *Self, name: []const u8, actual: anytype, expected: 
         try self.stdout_print(":   {d}\n", .{actual});
         try self.printExpected();
         try self.stdout_print(": {d}\n", .{expected});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //------------------------------------------------------------
@@ -349,8 +363,11 @@ pub fn compareFloat(self: *Self, name: []const u8, actual: f64, expected: f64, o
     //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -362,12 +379,11 @@ pub fn compareFloat(self: *Self, name: []const u8, actual: f64, expected: f64, o
         try self.stdout_print(":   {d}\n", .{actual});
         try self.printExpected();
         try self.stdout_print(": {d}\n", .{expected});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //------------------------------------------------------------
@@ -375,8 +391,11 @@ pub fn compareBool(self: *Self, name: []const u8, actual: bool, expected: bool, 
     //----------------------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -388,12 +407,11 @@ pub fn compareBool(self: *Self, name: []const u8, actual: bool, expected: bool, 
         try self.stdout_print(":   {}\n", .{actual});
         try self.printExpected();
         try self.stdout_print(": {}\n", .{expected});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //----------------------------------------------------------------------------
-    try self.printLine();
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -409,19 +427,33 @@ pub fn compareNull(self: *Self, name: []const u8, actual: anytype, options: anyt
     //----------------------------------------------------------------------------
     if (is_optional) {
         if (actual == null) {
-            try self.printPass(options);
+            //----------------------------------------
+            if (self.show_passes) {
+                try self.printPass(options);
+                try self.stdout_print(": {s}\n", .{name});
+                try self.printLine();
+            }
+            //----------------------------------------
             self.count_passed += 1;
+            //----------------------------------------
         } else {
+            //----------------------------------------
             try self.printFail(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+            //----------------------------------------
             self.count_failed += 1;
+            //----------------------------------------
         }
     } else {
+        //----------------------------------------
         try self.printFail(options);
+        try self.stdout_print(": {s}\n", .{name});
+        try self.printLine();
+        //----------------------------------------
         self.count_failed += 1;
+        //----------------------------------------
     }
-    //----------------------------------------------------------------------------
-    try self.stdout_print(": {s}\n", .{name});
-    try self.printLine();
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -429,8 +461,11 @@ pub fn compareEnum(self: *Self, name: []const u8, actual: anytype, expected: @Ty
     //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -442,12 +477,11 @@ pub fn compareEnum(self: *Self, name: []const u8, actual: anytype, expected: @Ty
         try self.stdout_print(":   .{s}\n", .{@tagName(actual)});
         try self.printExpected();
         try self.stdout_print(": .{s}\n", .{@tagName(expected)});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //------------------------------------------------------------
-    try self.printLine();
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -455,8 +489,11 @@ pub fn compareError(self: *Self, name: []const u8, actual_error: anyerror, expec
     //----------------------------------------------------------------------------
     if (actual_error == expected_error) {
         //----------------------------------------
-        try self.printPass(options);
-        try self.stdout_print(": {s}\n", .{name});
+        if (self.show_passes) {
+            try self.printPass(options);
+            try self.stdout_print(": {s}\n", .{name});
+            try self.printLine();
+        }
         //----------------------------------------
         self.count_passed += 1;
         //----------------------------------------
@@ -468,12 +505,11 @@ pub fn compareError(self: *Self, name: []const u8, actual_error: anyerror, expec
         try self.stdout_print(":   {}\n", .{actual_error});
         try self.printExpected();
         try self.stdout_print(": {}\n", .{expected_error});
+        try self.printLine();
         //----------------------------------------
         self.count_failed += 1;
         //----------------------------------------
     }
-    //----------------------------------------------------------------------------
-    try self.printLine();
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -489,9 +525,9 @@ pub fn pass(self: *Self, name: []const u8, message: []const u8, options: anytype
         try self.stdout_print(": {s}: {s}\n", .{ name, message });
     }
     //----------------------------------------
-    self.count_passed += 1;
-    //----------------------------------------------------------------------------
     try self.printLine();
+    //----------------------------------------
+    self.count_passed += 1;
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -505,9 +541,9 @@ pub fn fail(self: *Self, name: []const u8, message: []const u8, options: anytype
         try self.stdout_print(": {s}: {s}\n", .{ name, message });
     }
     //----------------------------------------
-    self.count_failed += 1;
-    //----------------------------------------------------------------------------
     try self.printLine();
+    //----------------------------------------
+    self.count_failed += 1;
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -521,8 +557,6 @@ pub fn errorPass(self: *Self, name: []const u8, err: anyerror, options: anytype)
     //----------------------------------------
     self.count_passed += 1;
     //----------------------------------------------------------------------------
-    try self.printLine();
-    //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 pub fn errorFail(self: *Self, name: []const u8, err: anyerror, options: anytype) !void {
@@ -531,9 +565,9 @@ pub fn errorFail(self: *Self, name: []const u8, err: anyerror, options: anytype)
     //----------------------------------------
     try self.stdout_print(": {s}: (incorrectly returned: {})\n", .{ name, err });
     //----------------------------------------
-    self.count_failed += 1;
-    //----------------------------------------------------------------------------
     try self.printLine();
+    //----------------------------------------
+    self.count_failed += 1;
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
@@ -543,9 +577,9 @@ pub fn errorExpectedFail(self: *Self, name: []const u8, expected_error: anyerror
     //----------------------------------------
     try self.stdout_print(": {s}: (expected error not returned: {})\n", .{ name, expected_error });
     //----------------------------------------
-    self.count_failed += 1;
-    //----------------------------------------------------------------------------
     try self.printLine();
+    //----------------------------------------
+    self.count_failed += 1;
     //----------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
