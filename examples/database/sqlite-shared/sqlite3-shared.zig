@@ -57,7 +57,7 @@ pub extern fn sqlite3_column_text(stmt_handle: ?*anyopaque, iCol: c_int) callcon
 pub extern fn sqlite3_column_type(stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int;
 pub extern fn sqlite3_data_count(stmt_handle: ?*anyopaque) callconv(.c) c_int;
 pub extern fn sqlite3_errmsg(db_handle: ?*anyopaque) callconv(.c) [*c]const u8;
-pub extern fn sqlite3_exec(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) c_int;
+pub extern fn sqlite3_exec(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (ctx: ?*anyopaque, argc: i32, argv: [*c][*c]u8, azColName: [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) c_int;
 pub extern fn sqlite3_finalize(stmt_handle: ?*anyopaque) callconv(.c) c_int;
 pub extern fn sqlite3_free(ptr: ?*anyopaque) callconv(.c) void;
 pub extern fn sqlite3_free_table(results: [*c][*c]u8) callconv(.c) void;
