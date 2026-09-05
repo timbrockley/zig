@@ -36,7 +36,7 @@ pub fn main() !u8 {
         const sql = "PRAGMA journal_mode=WAL;";
         //----------------------------------------
         var errmsg: [*c]u8 = null;
-        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
+        const rc = c.sqlite3_exec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer c.sqlite3_free(errmsg);
             std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
@@ -50,7 +50,7 @@ pub fn main() !u8 {
         const sql = "DROP TABLE IF EXISTS test;";
         //----------------------------------------
         var errmsg: [*c]u8 = null;
-        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
+        const rc = c.sqlite3_exec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer c.sqlite3_free(errmsg);
             std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
@@ -64,7 +64,7 @@ pub fn main() !u8 {
         const sql = "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255));";
         //----------------------------------------
         var errmsg: [*c]u8 = null;
-        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
+        const rc = c.sqlite3_exec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer c.sqlite3_free(errmsg);
             std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
@@ -81,7 +81,7 @@ pub fn main() !u8 {
         ;
         //----------------------------------------
         var errmsg: [*c]u8 = null;
-        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
+        const rc = c.sqlite3_exec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer c.sqlite3_free(errmsg);
             std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
@@ -95,7 +95,7 @@ pub fn main() !u8 {
         const sql = "SELECT * FROM test;";
         //----------------------------------------
         var errmsg: [*c]u8 = null;
-        const rc = c.sqlite3_exec(db_handle, sql, callback, &context, &errmsg);
+        const rc = c.sqlite3_exec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer c.sqlite3_free(errmsg);
             std.debug.print("sqlite3_exec: {s}\n", .{errmsg});
@@ -111,7 +111,7 @@ pub fn main() !u8 {
     //--------------------------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
-fn callback(
+fn execCallback(
     ctx: ?*anyopaque,
     argc: c_int,
     argv: [*c][*c]u8,

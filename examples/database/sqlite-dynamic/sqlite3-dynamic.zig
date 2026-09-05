@@ -63,7 +63,7 @@ pub var sqlite3_column_text: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) c
 pub var sqlite3_column_type: *const fn (stmt_handle: ?*anyopaque, iCol: c_int) callconv(.c) c_int = undefined;
 pub var sqlite3_data_count: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
 pub var sqlite3_errmsg: *const fn (db_handle: ?*anyopaque) callconv(.c) [*c]const u8 = undefined;
-pub var sqlite3_exec: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, c_int, [*c][*c]u8, [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) c_int = undefined;
+pub var sqlite3_exec: *const fn (db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (ctx: ?*anyopaque, argc: i32, argv: [*c][*c]u8, azColName: [*c][*c]u8) callconv(.c) c_int, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) c_int = undefined;
 pub var sqlite3_finalize: *const fn (stmt_handle: ?*anyopaque) callconv(.c) c_int = undefined;
 pub var sqlite3_free: *const fn (ptr: ?*anyopaque) callconv(.c) void = undefined;
 pub var sqlite3_free_table: *const fn (results: [*c][*c]u8) callconv(.c) void = undefined;
