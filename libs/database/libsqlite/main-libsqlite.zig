@@ -8,14 +8,14 @@ const c = @import("libsqlite-sqlite3.zig");
 //--------------------------------------------------------------------------------
 const DATABASE_FILEPATH = "test-sqlite.db";
 //--------------------------------------------------------------------------------
-pub const SQLiteColumnType = enum(i32) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
+pub const SQLiteColumnType = enum(c_int) { SQLITE_UNKNOWN = 0, SQLITE_INTEGER = 1, SQLITE_FLOAT = 2, SQLITE_TEXT = 3, SQLITE_BLOB = 4, SQLITE_NULL = 5 };
 //--------------------------------------------------------------------------------
 pub const SQLiteColumn = extern struct {
-    index: i64 = 0,
+    index: i32 = 0,
     name: [*:0]const u8 = "",
     column_type: SQLiteColumnType = .SQLITE_UNKNOWN,
     ptr: [*]const u8 = "",
-    len: i64 = 0,
+    len: i32 = 0,
     integer: i64 = 0,
     float: f64 = 0,
 };
@@ -130,7 +130,7 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "PRAGMA journal_mode=WAL;";
         var errmsg: [*c]u8 = null;
-        const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
+        const rc = sqliteExec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("sqliteExec: {s}\n", .{errmsg});
@@ -143,7 +143,7 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "DROP TABLE IF EXISTS test;";
         var errmsg: [*c]u8 = null;
-        const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
+        const rc = sqliteExec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("sqliteExec: {s}\n", .{errmsg});
@@ -154,7 +154,7 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY AUTOINCREMENT, value1 VARCHAR(255) DEFAULT '' NOT NULL, value2 VARCHAR(255) DEFAULT '' NOT NULL, integer INTEGER DEFAULT 0 NOT NULL, float REAL DEFAULT 0 NOT NULL, blob BLOB);";
         var errmsg: [*c]u8 = null;
-        const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
+        const rc = sqliteExec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("sqliteExec: {s}\n", .{errmsg});
@@ -165,7 +165,7 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "INSERT INTO test (value1, integer) VALUES('value1', 1);";
         var errmsg: [*c]u8 = null;
-        const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
+        const rc = sqliteExec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("sqliteExec: {s}\n", .{errmsg});
@@ -176,7 +176,7 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "INSERT INTO test (value2, float, blob) VALUES('value2', 2.2, X'F09F90A7');";
         var errmsg: [*c]u8 = null;
-        const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
+        const rc = sqliteExec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("sqliteExec: {s}\n", .{errmsg});
@@ -266,7 +266,7 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "SELECT * FROM test;";
         var errmsg: [*c]u8 = null;
-        const rc = sqliteExec(db_handle, sql, callback, &context, &errmsg);
+        const rc = sqliteExec(db_handle, sql, execCallback, &context, &errmsg);
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("sqliteExec: {s}\n", .{errmsg});
@@ -279,16 +279,16 @@ pub fn main(init: std.process.Init) !u8 {
     {
         const sql = "SELECT * FROM test;";
         var errmsg: [*c]u8 = null;
-        const rc = queryCallback(
+        const rc = querySQLiteColumns(
             db_handle,
             sql,
-            &newCallback,
+            &queryCallback,
             &context,
             &errmsg,
         );
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
-            std.log.err("queryCallback: ({d}) {s}\n", .{ rc, errmsg });
+            std.log.err("querySQLiteColumns: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
     }
@@ -469,7 +469,7 @@ pub fn main(init: std.process.Init) !u8 {
     //################################################################################
     //--------------------------------------------------------------------------------
     {
-        var errmsg: ?[*:0]u8 = null;
+        var errmsg: [*c]u8 = null;
         const row_count = getRowCount(db_handle, "test", &errmsg);
         if (errmsg != null) {
             defer sqliteFree(errmsg);
@@ -479,7 +479,7 @@ pub fn main(init: std.process.Init) !u8 {
     }
     //--------------------------------------------------------------------------------
     {
-        var errmsg: ?[*:0]u8 = null;
+        var errmsg: [*c]u8 = null;
         const column_count = getColumnCount(db_handle, "test", &errmsg);
         if (errmsg != null) {
             defer sqliteFree(errmsg);
@@ -497,8 +497,8 @@ pub fn main(init: std.process.Init) !u8 {
         //------------------------------------------------------------
         var table_context: ?*anyopaque = null;
         var sqlite_columns: [*c]SQLiteColumn = null;
-        var row_count: i64 = 0;
-        var column_count: i64 = 0;
+        var row_count: i32 = 0;
+        var column_count: i32 = 0;
         var errmsg: [*c]u8 = null;
         //------------------------------------------------------------
         const rc = getSQLiteColumnsTable(
@@ -510,12 +510,13 @@ pub fn main(init: std.process.Init) !u8 {
             &column_count,
             &errmsg,
         );
+        defer freeSQLiteColumnsTable(table_context);
+        //------------------------------------------------------------
         if (rc != c.SQLITE_OK) {
             defer sqliteFree(errmsg);
             std.log.err("getSQLiteColumnsTable: ({d}) {s}\n", .{ rc, errmsg });
             return @intCast(rc);
         }
-        defer freeSQLiteColumnsTable(table_context);
         //------------------------------------------------------------
         try ut.compareInteger("getSQLiteColumnsTable: row_count", row_count, 3, .{ .src = @src() });
         try ut.compareInteger("getSQLiteColumnsTable: column_count", column_count, 6, .{ .src = @src() });
@@ -663,8 +664,8 @@ pub fn main(init: std.process.Init) !u8 {
     const name = context.string_rows.items[0].name;
     const value = context.string_rows.items[0].value;
 
-    try ut.compareStringSlice("sqliteExec/callback", name, "journal_mode", .{ .src = @src() });
-    try ut.compareStringSlice("sqliteExec/callback", value, "wal", .{ .src = @src() });
+    try ut.compareStringSlice("sqliteExec/execCallback", name, "journal_mode", .{ .src = @src() });
+    try ut.compareStringSlice("sqliteExec/execCallback", value, "wal", .{ .src = @src() });
     //--------------------------------------------------------------------------------
     if (context.fixed_rows.items.len >= 2) {
         //----------------------------------------------------------------------
@@ -672,22 +673,22 @@ pub fn main(init: std.process.Init) !u8 {
 
         fixed_rows = context.fixed_rows.items[0];
 
-        try ut.compareInteger("queryCallback/newCallback", fixed_rows.id, 1, .{ .src = @src() });
-        try ut.compareStringSlice("queryCallback/newCallback", fixed_rows.value1, "value1", .{ .src = @src() });
-        try ut.compareStringSlice("queryCallback/newCallback", fixed_rows.value2, "", .{ .src = @src() });
-        try ut.compareInteger("queryCallback/newCallback", fixed_rows.integer, 1, .{ .src = @src() });
-        try ut.compareFloat("queryCallback/newCallback", 0, fixed_rows.float, .{ .src = @src() });
-        try ut.compareStringSlice("queryCallback/newCallback", fixed_rows.blob, "", .{ .src = @src() });
+        try ut.compareInteger("querySQLiteColumns/queryCallback", fixed_rows.id, 1, .{ .src = @src() });
+        try ut.compareStringSlice("querySQLiteColumns/queryCallback", fixed_rows.value1, "value1", .{ .src = @src() });
+        try ut.compareStringSlice("querySQLiteColumns/queryCallback", fixed_rows.value2, "", .{ .src = @src() });
+        try ut.compareInteger("querySQLiteColumns/queryCallback", fixed_rows.integer, 1, .{ .src = @src() });
+        try ut.compareFloat("querySQLiteColumns/queryCallback", 0, fixed_rows.float, .{ .src = @src() });
+        try ut.compareStringSlice("querySQLiteColumns/queryCallback", fixed_rows.blob, "", .{ .src = @src() });
 
         fixed_rows = context.fixed_rows.items[1];
 
-        try ut.compareInteger("queryCallback/newCallback", fixed_rows.id, 2, .{ .src = @src() });
-        try ut.compareStringSlice("queryCallback/newCallback", fixed_rows.value1, "", .{ .src = @src() });
-        try ut.compareStringSlice("queryCallback/newCallback", fixed_rows.value2, "value2", .{ .src = @src() });
-        try ut.compareInteger("queryCallback/newCallback", fixed_rows.integer, 0, .{ .src = @src() });
-        try ut.compareFloat("queryCallback/newCallback", 2.2, fixed_rows.float, .{ .src = @src() });
-        try ut.compareStringSlice("queryCallback/newCallback", fixed_rows.blob, "\xF0\x9F\x90\xA7", .{ .src = @src() });
-        //----------------------------------------------------------------------
+        try ut.compareInteger("querySQLiteColumns/queryCallback", fixed_rows.id, 2, .{ .src = @src() });
+        try ut.compareStringSlice("querySQLiteColumns/queryCallback", fixed_rows.value1, "", .{ .src = @src() });
+        try ut.compareStringSlice("querySQLiteColumns/queryCallback", fixed_rows.value2, "value2", .{ .src = @src() });
+        try ut.compareInteger("querySQLiteColumns/queryCallback", fixed_rows.integer, 0, .{ .src = @src() });
+        try ut.compareFloat("querySQLiteColumns/queryCallback", 2.2, fixed_rows.float, .{ .src = @src() });
+        try ut.compareStringSlice("querySQLiteColumns/queryCallback", fixed_rows.blob, "\xF0\x9F\x90\xA7", .{ .src = @src() });
+        //---------------------------------------   -------------------------------
     } else {
         //----------------------------------------------------------------------
         std.debug.print("\n", .{});
@@ -708,7 +709,7 @@ pub fn main(init: std.process.Init) !u8 {
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
-pub fn callback(
+pub fn execCallback(
     ctx: ?*anyopaque,
     argc: i32,
     argv: [*c][*c]u8,
@@ -751,7 +752,7 @@ pub fn callback(
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
-pub fn newCallback(
+pub fn queryCallback(
     ctx: ?*anyopaque,
     columns: [*]SQLiteColumn,
     column_count: i32,
@@ -814,13 +815,12 @@ pub fn newCallback(
 //--------------------------------------------------------------------------------
 extern fn checkTableName(table_name: [*c]const u8) bool;
 //--------------------------------------------------------------------------------
-extern fn getSQLiteColumnsTable(db_handle: ?*anyopaque, sql: [*c]const u8, table_context: *?*anyopaque, sqlite_columns: *?[*]SQLiteColumn, row_count: *i64, column_count: *i64, errmsg: *?[*:0]u8) callconv(.c) i32;
+extern fn getSQLiteColumnsTable(db_handle: ?*anyopaque, sql: [*c]const u8, table_context: *?*anyopaque, sqlite_columns: *[*c]SQLiteColumn, row_count: *i32, column_count: *i32, errmsg: [*c][*c]u8) callconv(.c) i32;
 extern fn freeSQLiteColumnsTable(table_context: ?*anyopaque) callconv(.c) void;
-extern fn updateSQLiteColumn(stmt_handle: ?*anyopaque, index: i64, column: *SQLiteColumn) callconv(.c) i32;
-extern fn getRowCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: *?[*:0]u8) callconv(.c) i64;
-extern fn getColumnCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: *?[*:0]u8) callconv(.c) i64;
-//--------------------------------------------------------------------------------
-extern fn queryCallback(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, i32) callconv(.c) i32, ctx: ?*anyopaque, errmsg: *?[*:0]u8) callconv(.c) i32;
+extern fn querySQLiteColumns(db_handle: ?*anyopaque, sql: [*c]const u8, callback: ?*const fn (?*anyopaque, [*]SQLiteColumn, i32) callconv(.c) i32, ctx: ?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) i32;
+extern fn updateSQLiteColumn(stmt_handle: ?*anyopaque, iCol: i32, column: *SQLiteColumn) callconv(.c) i32;
+extern fn getRowCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: [*c][*c]u8) callconv(.c) i32;
+extern fn getColumnCount(db_handle: ?*anyopaque, table_name: [*c]const u8, errmsg: [*c][*c]u8) callconv(.c) i32;
 //--------------------------------------------------------------------------------
 extern fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) i32;
 extern fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: i32, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32;
@@ -833,6 +833,7 @@ extern fn sqliteColumnBlob(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c
 extern fn sqliteColumnBytes(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32;
 extern fn sqliteColumnCount(stmt_handle: ?*anyopaque) callconv(.c) i32;
 extern fn sqliteColumnDouble(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) f64;
+extern fn sqliteColumnInt(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32;
 extern fn sqliteColumnInt64(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i64;
 extern fn sqliteColumnText(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) [*c]const u8;
 extern fn sqliteColumnType(stmt_handle: ?*anyopaque, iCol: i32) callconv(.c) i32;
@@ -845,7 +846,7 @@ extern fn sqliteFreeTable(results: [*c][*c]u8) callconv(.c) void;
 extern fn sqliteGetTable(db_handle: ?*anyopaque, sql: [*c]const u8, results: [*c][*c][*c]u8, row_count: [*c]i32, column_count: [*c]i32, errmsg: [*c][*c]u8) callconv(.c) i32;
 extern fn sqliteMalloc64(len: u64) callconv(.c) ?*anyopaque;
 extern fn sqliteOpen(filepath: [*:0]const u8, db_handle: *?*anyopaque) callconv(.c) i32;
-extern fn sqlitePrepare(db_handle: ?*anyopaque, sql: [*c]const u8, stmt_handle: *?*anyopaque, errmsg: *?[*:0]u8) callconv(.c) i32;
+extern fn sqlitePrepare(db_handle: ?*anyopaque, sql: [*c]const u8, stmt_handle: *?*anyopaque, errmsg: [*c][*c]u8) callconv(.c) i32;
 extern fn sqliteRealloc64(ptr: ?*anyopaque, len: u64) callconv(.c) ?*anyopaque;
 extern fn sqliteReset(stmt_handle: ?*anyopaque) callconv(.c) i32;
 extern fn sqliteStep(stmt_handle: ?*anyopaque) callconv(.c) i32;
