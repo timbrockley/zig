@@ -32,6 +32,7 @@ count_passed: usize = 0,
 count_failed: usize = 0,
 //------------------------------------------------------------
 show_passes: bool = false,
+skip_after_fail: bool = false,
 //--------------------------------------------------------------------------------
 pub fn init(options: anytype) !Self {
     //------------------------------------------------------------
@@ -59,6 +60,8 @@ pub fn init(options: anytype) !Self {
 //################################################################################
 //--------------------------------------------------------------------------------
 pub fn compareStringResultError(self: *Self, name: []const u8, result_error: anyerror![]const u8, expected_result: []const u8, expected_error: ?anyerror, options: anytype) !void {
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
     //------------------------------------------------------------
     var fail_count: usize = 0;
     //------------------------------------------------------------
@@ -117,6 +120,8 @@ pub fn compareType(
     options: anytype,
 ) !void {
     //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
         if (self.show_passes) {
@@ -144,6 +149,8 @@ pub fn compareType(
 }
 //--------------------------------------------------------------------------------
 pub fn compareStringSlice(self: *Self, name: []const u8, actual: []const u8, expected: []const u8, options: anytype) !void {
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
     //------------------------------------------------------------
     if (std.mem.eql(u8, actual, expected)) {
         //----------------------------------------
@@ -175,6 +182,8 @@ pub fn compareStringSlice(self: *Self, name: []const u8, actual: []const u8, exp
 //--------------------------------------------------------------------------------
 pub fn compareCString(self: *Self, name: []const u8, actual: ?[*:0]const u8, expected: [*:0]const u8, options: anytype) !void {
     //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     if (actual == null) return self.compareStringSlice(name, "", std.mem.span(expected), options);
     //------------------------------------------------------------
     return self.compareStringSlice(name, std.mem.span(actual.?), std.mem.span(expected), options);
@@ -200,6 +209,8 @@ pub fn compareCString(self: *Self, name: []const u8, actual: ?[*:0]const u8, exp
 ///
 /// (Other characters ignored).
 pub fn compareStringFormat(self: *Self, name: []const u8, string: []const u8, format: []const u8, options: anytype) !void {
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
     //------------------------------------------------------------
     var pass_count: usize = 0;
     //------------------------------------------------------------
@@ -267,6 +278,8 @@ pub fn compareStringFormat(self: *Self, name: []const u8, string: []const u8, fo
 //--------------------------------------------------------------------------------
 pub fn compareByteSlice(self: *Self, name: []const u8, actual: []const u8, expected: []const u8, options: anytype) !void {
     //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     if (std.mem.eql(u8, actual, expected)) {
         //----------------------------------------
         if (self.show_passes) {
@@ -296,6 +309,8 @@ pub fn compareByteSlice(self: *Self, name: []const u8, actual: []const u8, expec
 //################################################################################
 //--------------------------------------------------------------------------------
 pub fn compareByte(self: *Self, name: []const u8, actual: u8, expected: u8, options: anytype) !void {
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
     //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
@@ -330,6 +345,8 @@ pub fn compareInteger(self: *Self, name: []const u8, actual: anytype, expected: 
         if (!isInteger(@TypeOf(expected))) @compileError("expected must be an integer");
     }
     //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     const _actual: i128 = @intCast(actual);
     const _expected: i128 = @intCast(expected);
     //------------------------------------------------------------
@@ -361,6 +378,8 @@ pub fn compareInteger(self: *Self, name: []const u8, actual: anytype, expected: 
 //------------------------------------------------------------
 pub fn compareFloat(self: *Self, name: []const u8, actual: f64, expected: f64, options: anytype) !void {
     //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
         if (self.show_passes) {
@@ -388,7 +407,9 @@ pub fn compareFloat(self: *Self, name: []const u8, actual: f64, expected: f64, o
 }
 //------------------------------------------------------------
 pub fn compareBool(self: *Self, name: []const u8, actual: bool, expected: bool, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
         if (self.show_passes) {
@@ -416,15 +437,17 @@ pub fn compareBool(self: *Self, name: []const u8, actual: bool, expected: bool, 
 }
 //--------------------------------------------------------------------------------
 pub fn compareNull(self: *Self, name: []const u8, actual: anytype, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     const T = @TypeOf(actual);
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     const is_optional = switch (@typeInfo(T)) {
         .null => true,
         .optional => true,
         else => false,
     };
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     if (is_optional) {
         if (actual == null) {
             //----------------------------------------
@@ -454,10 +477,12 @@ pub fn compareNull(self: *Self, name: []const u8, actual: anytype, options: anyt
         self.count_failed += 1;
         //----------------------------------------
     }
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 pub fn compareEnum(self: *Self, name: []const u8, actual: anytype, expected: @TypeOf(actual), options: anytype) !void {
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
     //------------------------------------------------------------
     if (actual == expected) {
         //----------------------------------------
@@ -486,7 +511,9 @@ pub fn compareEnum(self: *Self, name: []const u8, actual: anytype, expected: @Ty
 }
 //--------------------------------------------------------------------------------
 pub fn compareError(self: *Self, name: []const u8, actual_error: anyerror, expected_error: anyerror, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) return;
+    //------------------------------------------------------------
     if (actual_error == expected_error) {
         //----------------------------------------
         if (self.show_passes) {
@@ -510,13 +537,13 @@ pub fn compareError(self: *Self, name: []const u8, actual_error: anyerror, expec
         self.count_failed += 1;
         //----------------------------------------
     }
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
 pub fn pass(self: *Self, name: []const u8, message: []const u8, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     try self.printPass(options);
     //----------------------------------------
     if (message.len == 0) {
@@ -528,11 +555,11 @@ pub fn pass(self: *Self, name: []const u8, message: []const u8, options: anytype
     try self.printLine();
     //----------------------------------------
     self.count_passed += 1;
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 pub fn fail(self: *Self, name: []const u8, message: []const u8, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     try self.printFail(options);
     //----------------------------------------
     if (message.len == 0) {
@@ -544,23 +571,23 @@ pub fn fail(self: *Self, name: []const u8, message: []const u8, options: anytype
     try self.printLine();
     //----------------------------------------
     self.count_failed += 1;
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 //################################################################################
 //--------------------------------------------------------------------------------
 pub fn errorPass(self: *Self, name: []const u8, err: anyerror, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     try self.printPass(options);
     //----------------------------------------
     try self.stdout_print(": {s} (correctly returned: {})\n", .{ name, err });
     //----------------------------------------
     self.count_passed += 1;
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 pub fn errorFail(self: *Self, name: []const u8, err: anyerror, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     try self.printFail(options);
     //----------------------------------------
     try self.stdout_print(": {s}: (incorrectly returned: {})\n", .{ name, err });
@@ -568,11 +595,11 @@ pub fn errorFail(self: *Self, name: []const u8, err: anyerror, options: anytype)
     try self.printLine();
     //----------------------------------------
     self.count_failed += 1;
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 pub fn errorExpectedFail(self: *Self, name: []const u8, expected_error: anyerror, options: anytype) !void {
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
     try self.printFail(options);
     //----------------------------------------
     try self.stdout_print(": {s}: (expected error not returned: {})\n", .{ name, expected_error });
@@ -580,7 +607,7 @@ pub fn errorExpectedFail(self: *Self, name: []const u8, expected_error: anyerror
     try self.printLine();
     //----------------------------------------
     self.count_failed += 1;
-    //----------------------------------------------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 //################################################################################
@@ -624,6 +651,10 @@ pub fn printSummary(self: *Self) !void {
     //------------------------------------------------------------
     const io = self.io orelse return error.InvalidStdIo;
     //------------------------------------------------------------
+    if (self.skip_after_fail and self.count_failed > 0) {
+        try self.stdout_print("(REMAINING TEST SKIPPED) ", .{});
+    }
+    //-----------------------------------------------------------
     try self.stdout_print("PASSED = {d}", .{self.count_passed});
     //------------------------------------------------------------
     if (self.count_failed > 0) {
