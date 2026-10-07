@@ -138,11 +138,11 @@ pub const ChaCha20 = struct {
 //------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
-    std.debug.print("{s}\n", .{"-" ** 80});
+    std.debug.print("{s}\n", .{@as([80]u8, @splat('-'))});
     //------------------------------------------------------------
     {
-        var key: [32]u8 = [_]u8{0} ** 32;
-        var nonce: [12]u8 = [_]u8{0} ** 12;
+        var key: [32]u8 = @splat(32);
+        var nonce: [12]u8 = @splat(12);
 
         var data = "test1234".*;
         std.debug.print("data: {s}\n", .{data});
@@ -154,7 +154,7 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("decrypted: {s}\n", .{data});
     }
     //------------------------------------------------------------
-    std.debug.print("{s}\n", .{"-" ** 80});
+    std.debug.print("{s}\n", .{@as([80]u8, @splat('-'))});
     //------------------------------------------------------------
     {
         var key: [32]u8 = undefined;
@@ -173,7 +173,7 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("decrypted: {s}\n", .{data});
     }
     //------------------------------------------------------------
-    std.debug.print("{s}\n", .{"-" ** 80});
+    std.debug.print("{s}\n", .{@as([80]u8, @splat('-'))});
     //------------------------------------------------------------
 }
 //------------------------------------------------------------

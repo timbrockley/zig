@@ -1,6 +1,8 @@
 version: "3"
 
 vars:
+  CACHE_PATH: ".zig-cache"
+  PACKAGE_PATH: "zig-pkg"
   OUTPUT_PATH: "zig-out"
   OUTPUT:
     sh: |
@@ -13,7 +15,7 @@ vars:
 tasks:
   clean:
     cmds:
-      - rm -rf {{.OUTPUT_PATH}}
+      - rm -rf {{.CACHE_PATH}} {{.PACKAGE_PATH}} {{.OUTPUT_PATH}}
 
   build:
     dir: "{{.OUTPUT_PATH}}"

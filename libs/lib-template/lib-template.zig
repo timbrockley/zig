@@ -12,9 +12,9 @@ pub fn init(options: anytype) Self {
     //------------------------------------------------------------
     var self = Self{};
     //------------------------------------------------------------
-    inline for (std.meta.fields(@TypeOf(self))) |field| {
-        if (@hasField(@TypeOf(options), field.name)) {
-            @field(self, field.name) = @field(options, field.name);
+    inline for (@typeInfo(@TypeOf(self)).@"struct".field_names) |field_name| {
+        if (@hasField(@TypeOf(options), field_name)) {
+            @field(self, field_name) = @field(options, field_name);
         }
     }
     //------------------------------------------------------------

@@ -464,7 +464,11 @@ pub fn printHelp(self: *Self, cmd_name: []const u8) ![]const u8 {
         \\{s} <DATABASE_DIRECTORY> delete <KEY>
         \\
         \\
-    , .{cmd_name} ** 11);
+    , .{
+        cmd_name, cmd_name, cmd_name, cmd_name, cmd_name,
+        cmd_name, cmd_name, cmd_name, cmd_name, cmd_name,
+        cmd_name,
+    });
     //------------------------------------------------------------
     return try buffer.toOwnedSlice(self.allocator);
     //------------------------------------------------------------

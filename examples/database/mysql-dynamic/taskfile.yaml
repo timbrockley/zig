@@ -1,13 +1,14 @@
-version: "3"
+version: '3'
 
 vars:
   CACHE_PATH: ".zig-cache"
+  PACKAGE_PATH: "zig-pkg"
   OUTPUT_PATH: "zig-out"
 
 tasks:
   clean:
     cmds:
-      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+      - rm -rf {{.CACHE_PATH}} {{.PACKAGE_PATH}} {{.OUTPUT_PATH}}
 
   build:
     dir: "{{.OUTPUT_PATH}}"
@@ -21,8 +22,8 @@ tasks:
 
   run:
     dir: "{{.OUTPUT_PATH}}"
-    cmd: ./main
+    cmd: zig run ../main.zig -lc -lmysqlclient
 
   test:
     dir: "{{.OUTPUT_PATH}}"
-    cmd: ./main
+    cmd: zig run ../main.zig -lc -lmysqlclient

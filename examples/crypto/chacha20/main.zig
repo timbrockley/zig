@@ -2,14 +2,14 @@ const std = @import("std");
 //------------------------------------------------------------
 pub fn main(init: std.process.Init) !void {
     //------------------------------------------------------------
-    std.debug.print("{s}\n", .{"-" ** 80});
+    std.debug.print("{s}\n", .{@as([80]u8, @splat('-'))});
     //------------------------------------------------------------
     const ChaCha20Poly1305 = std.crypto.aead.chacha_poly.ChaCha20Poly1305;
     const tag_length = ChaCha20Poly1305.tag_length;
     //------------------------------------------------------------
     // zero values for testing purposes
-    var key: [32]u8 = [_]u8{0} ** 32;
-    var nonce: [12]u8 = [_]u8{0} ** 12;
+    var key: [32]u8 = @splat(32);
+    var nonce: [12]u8 = @splat(12);
     //------------------------------------------------------------
     var data = "test1234".*;
     var encrypted: [data.len]u8 = undefined;
@@ -31,7 +31,7 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("decrypted: {s}\n", .{decrypted});
     }
     //------------------------------------------------------------
-    std.debug.print("{s}\n", .{"-" ** 80});
+    std.debug.print("{s}\n", .{@as([80]u8, @splat('-'))});
     //------------------------------------------------------------
     {
         init.io.random(&key);
@@ -52,7 +52,7 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("decrypted: {s}\n", .{decrypted});
     }
     //------------------------------------------------------------
-    std.debug.print("{s}\n", .{"-" ** 80});
+    std.debug.print("{s}\n", .{@as([80]u8, @splat('-'))});
     //------------------------------------------------------------
 }
 //------------------------------------------------------------

@@ -1,15 +1,24 @@
+//--------------------------------------------------------------------------------
+// sudo apt install -y libsqlite3-dev
+// zig fetch --save git+https://codeberg.org/ziglang/translate-c
+//--------------------------------------------------------------------------------
 const std = @import("std");
+const Translator = @import("translate_c").Translator;
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const translate_c = b.addTranslateC(.{
-        .root_source_file = b.path("src/c.h"),
+    const translate_c = b.dependency("translate_c", .{});
+
+    const translator: Translator = .init(translate_c, .{
+        .c_source_file = b.path("src/c.h"),
         .target = target,
         .optimize = optimize,
+        .link_system_libs = &.{
+            .{ .name = "sqlite3" },
+        },
     });
-    translate_c.linkSystemLibrary("sqlite3", .{});
 
     const exe = b.addExecutable(.{
         .name = "main",
@@ -20,7 +29,7 @@ pub fn build(b: *std.Build) void {
             .imports = &.{
                 .{
                     .name = "c",
-                    .module = translate_c.createModule(),
+                    .module = translator.mod,
                 },
             },
         }),

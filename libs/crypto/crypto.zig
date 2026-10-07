@@ -195,11 +195,11 @@ pub const ObfuscateV0 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn setOptions(T: type, options: anytype) T {
+    fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -413,11 +413,11 @@ pub const ObfuscateV4 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn setOptions(T: type, options: anytype) T {
+    fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -636,11 +636,11 @@ pub const ObfuscateV5 = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn setOptions(T: type, options: anytype) T {
+    fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -826,11 +826,11 @@ pub const ObfuscateXOR = struct {
         //------------------------------------------------------------
     }
     //------------------------------------------------------------
-    pub fn setOptions(T: type, options: anytype) T {
+    fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;

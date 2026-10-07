@@ -1,25 +1,26 @@
-version: "3"
+version: '3'
 
 vars:
   CACHE_PATH: ".zig-cache"
+  PACKAGE_PATH: "zig-pkg"
   OUTPUT_PATH: "zig-out"
 
 tasks:
   clean:
     cmds:
-      - rm -rf {{.CACHE_PATH}} {{.OUTPUT_PATH}}
+      - rm -rf {{.CACHE_PATH}} {{.PACKAGE_PATH}} {{.OUTPUT_PATH}}
 
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -L. -lsqlite3 -fPIC -O ReleaseSmall -target native -mcpu=baseline
+      - zig build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -lsqlite3 -fPIC -O ReleaseSmall -target native -mcpu=baseline
       - patchelf --set-soname libsqlite.so libsqlite.so
       - zig build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -fstrip -L. -lsqlite -O ReleaseSmall -target native -mcpu=baseline
 
   debug:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -L. -lsqlite3 -fPIC -O Debug -target native -mcpu=baseline
+      - zig build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -lsqlite3 -fPIC -O Debug -target native -mcpu=baseline
       - patchelf --set-soname libsqlite.so libsqlite.so
       - zig build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -L. -lsqlite -O Debug -target native -mcpu=baseline
 
