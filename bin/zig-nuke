@@ -3,14 +3,16 @@
 if [ "${1}" == "all" ]
 then
 	#--------------------------------------------------------------------------------
-	find /www/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	find /www/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
 	#--------------------------------------------------------------------------------
 else
 	#--------------------------------------------------------------------------------
-	find /www/c/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
-	find /www/wasm/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
-	find /www/zig/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
-	find /www/zig015/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name "zig-cache" -o -name "zig-out" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	test -d /www/c && find /www/c/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	test -d /www/wasm && find /www/wasm/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	test -d /www/zig && find /www/zig/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	test -d /www/zig015 && find /www/zig015/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	test -d /www/zig016 && find /www/zig016/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
+	test -d /www/zig017 && find /www/zig017/ -type d \( -name ".zig-cache" -o -name ".zig-out" -o -name ".zig-pkg" -o -name "zig-cache" -o -name "zig-out" -o -name "zig-pkg" \) -exec echo "rm -rf {}" \; -exec rm -rf {} +
 	#--------------------------------------------------------------------------------
 fi
 #--------------------------------------------------------------------------------
