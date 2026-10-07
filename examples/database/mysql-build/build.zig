@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------
-// sudo apt install -y libsqlite3-dev
+// sudo apt install libmariadb-dev libmariadb-dev-compat
 // zig fetch --save git+https://codeberg.org/ziglang/translate-c
 //--------------------------------------------------------------------------------
 const std = @import("std");
@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .link_system_libs = &.{
-            .{ .name = "sqlite3" },
+            .{ .name = "mysqlclient" },
         },
     });
 

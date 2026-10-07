@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn main() !void {
-    var output: [10]u8 = [_]u8{0} ** 10;
+    var output: [10]u8 = @splat(10);
 
     var output_index: usize = 0;
 

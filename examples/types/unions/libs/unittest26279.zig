@@ -38,7 +38,6 @@ pub fn init(options: anytype) !Self {
     //------------------------------------------------------------
     var self = Self{};
     //------------------------------------------------------------
-    // may not be working ? show_passes ? unittest26279.zig ? init ? setOptions
     inline for (@typeInfo(@TypeOf(self)).@"struct".field_names) |field_name| {
         if (@hasField(@TypeOf(options), field_name)) {
             @field(self, field_name) = @field(options, field_name);
@@ -545,19 +544,15 @@ pub fn compareError(self: *Self, name: []const u8, actual_error: anyerror, expec
 //--------------------------------------------------------------------------------
 pub fn pass(self: *Self, name: []const u8, message: []const u8, options: anytype) !void {
     //------------------------------------------------------------
-    if (self.show_passes) {
-        //----------------------------------------
-        try self.printPass(options);
-        //----------------------------------------
-        if (message.len == 0) {
-            try self.stdout_print(": {s}\n", .{name});
-        } else {
-            try self.stdout_print(": {s}: {s}\n", .{ name, message });
-        }
-        //----------------------------------------
-        try self.printLine();
-        //----------------------------------------
+    try self.printPass(options);
+    //----------------------------------------
+    if (message.len == 0) {
+        try self.stdout_print(": {s}\n", .{name});
+    } else {
+        try self.stdout_print(": {s}: {s}\n", .{ name, message });
     }
+    //----------------------------------------
+    try self.printLine();
     //----------------------------------------
     self.count_passed += 1;
     //------------------------------------------------------------
@@ -583,13 +578,9 @@ pub fn fail(self: *Self, name: []const u8, message: []const u8, options: anytype
 //--------------------------------------------------------------------------------
 pub fn errorPass(self: *Self, name: []const u8, err: anyerror, options: anytype) !void {
     //------------------------------------------------------------
-    if (self.show_passes) {
-        //----------------------------------------
-        try self.printPass(options);
-        //----------------------------------------
-        try self.stdout_print(": {s} (correctly returned: {})\n", .{ name, err });
-        //----------------------------------------
-    }
+    try self.printPass(options);
+    //----------------------------------------
+    try self.stdout_print(": {s} (correctly returned: {})\n", .{ name, err });
     //----------------------------------------
     self.count_passed += 1;
     //------------------------------------------------------------
@@ -650,7 +641,8 @@ pub fn printColour(self: *Self, colour: []const u8, comptime string: []const u8)
 //------------------------------------------------------------
 pub fn printLine(self: *Self) !void {
     //------------------------------------------------------------
-    try self.stdout_print("{s}\n", .{@as([80]u8, @splat('-'))});
+    const line: [80]u8 = @splat('-');
+    try self.stdout_print("{s}\n", .{line});
     //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------

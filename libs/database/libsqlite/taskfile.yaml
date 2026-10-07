@@ -12,16 +12,16 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -L. -lsqlite3 -fPIC -O ReleaseSmall -target native -mcpu=baseline
+      - zig017 build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -lsqlite3 -fPIC -O ReleaseSmall -target native -mcpu=baseline
       - patchelf --set-soname libsqlite.so libsqlite.so
-      - zig build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -fstrip -L. -lsqlite -O ReleaseSmall -target native -mcpu=baseline
+      - zig017 build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -fstrip -L. -lsqlite -O ReleaseSmall -target native -mcpu=baseline
 
   debug:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -L. -lsqlite3 -fPIC -O Debug -target native -mcpu=baseline
+      - zig017 build-lib ../libsqlite.zig -femit-bin=libsqlite.so -dynamic -lsqlite3 -fPIC -O Debug -target native -mcpu=baseline
       - patchelf --set-soname libsqlite.so libsqlite.so
-      - zig build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -L. -lsqlite -O Debug -target native -mcpu=baseline
+      - zig017 build-exe ../main-libsqlite.zig -femit-bin=main-libsqlite -dynamic -lc -L. -lsqlite -O Debug -target native -mcpu=baseline
 
   run:
     dir: "{{.OUTPUT_PATH}}"

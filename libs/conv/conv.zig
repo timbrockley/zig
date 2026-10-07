@@ -147,9 +147,9 @@ pub const Base = struct {
     //------------------------------------------------------------
     fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -371,9 +371,9 @@ pub const Base64 = struct {
     //------------------------------------------------------------
     fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -661,9 +661,9 @@ pub const Base85 = struct {
     //------------------------------------------------------------
     fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -869,9 +869,9 @@ pub const Base91 = struct {
     //------------------------------------------------------------
     fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;
@@ -925,9 +925,9 @@ pub const Hex = struct {
     //------------------------------------------------------------
     fn setOptions(T: type, options: anytype) T {
         var target = T{};
-        inline for (std.meta.fields(@TypeOf(target))) |field| {
-            if (@hasField(@TypeOf(options), field.name)) {
-                @field(target, field.name) = @field(options, field.name);
+        inline for (@typeInfo(T).@"struct".field_names) |field_name| {
+            if (@hasField(@TypeOf(options), field_name)) {
+                @field(target, field_name) = @field(options, field_name);
             }
         }
         return target;

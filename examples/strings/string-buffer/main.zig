@@ -8,7 +8,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.print("\n", .{});
     //------------------------------------------------------------
     {
-        var buffer: [32]u8 = [_]u8{'_'} ** 32;
+        var buffer: [32]u8 = @splat(32);
 
         std.debug.print("buffer:       {s}\n", .{buffer});
 

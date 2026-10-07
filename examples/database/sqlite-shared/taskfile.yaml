@@ -12,12 +12,12 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../main.zig -femit-bin=main -lc -lsqlite3 -fstrip -O ReleaseSmall -mcpu=baseline
+      - zig017 build-exe ../main.zig -femit-bin=main -lc -lsqlite3 -fstrip -O ReleaseSmall -mcpu=baseline
 
   debug:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../main.zig -femit-bin=main -lc -lsqlite3 -fstrip -O Debug -mcpu=baseline
+      - zig017 build-exe ../main.zig -femit-bin=main -lc -lsqlite3 -fstrip -O Debug -mcpu=baseline
 
   run:
     dir: "{{.OUTPUT_PATH}}"

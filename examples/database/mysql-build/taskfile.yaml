@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 vars:
   CACHE_PATH: ".zig-cache"
@@ -12,17 +12,19 @@ tasks:
   build:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../main.zig -femit-bin=main -lc -lmysqlclient -fstrip -O ReleaseSmall -mcpu=baseline
+      - zig build -Doptimize=${ZIG_BUILD_MODE}
 
   debug:
     dir: "{{.OUTPUT_PATH}}"
     cmds:
-      - zig build-exe ../main.zig -femit-bin=main -lc -lmysqlclient -fstrip -O Debug -mcpu=baseline
+      - zig build -Doptimize=Debug
 
   run:
     dir: "{{.OUTPUT_PATH}}"
-    cmd: ./main
+    cmds:
+      - ./main {{.CLI_ARGS}}
 
   test:
     dir: "{{.OUTPUT_PATH}}"
-    cmd: ./main
+    cmds:
+      - zig run ../src/run-tests.zig -O Debug -- "$@"
