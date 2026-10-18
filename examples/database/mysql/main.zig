@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------
 // sudo apt install libmariadb-dev libmariadb-dev-compat
-// zig translate-c c.h > c.zig
+// zig translate-c -lc c.h > c.zig
 //--------------------------------------------------------------------------------
 const std = @import("std");
 const c = @import("c.zig");

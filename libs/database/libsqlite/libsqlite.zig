@@ -3,7 +3,7 @@
 // This software is licensed under the MIT License.
 //--------------------------------------------------------------------------------
 // sudo apt install -y libsqlite3-dev
-// zig translate-c c.h > c.zig
+// zig translate-c -lc c.h > c.zig
 //--------------------------------------------------------------------------------
 const std = @import("std");
 const c = @import("c.zig");
