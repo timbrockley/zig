@@ -381,6 +381,47 @@ pub fn main(init: std.process.Init) !u8 {
         var errmsg: [*c]u8 = null;
         var stmt_handle: ?*anyopaque = null;
         //------------------------------------------------------------
+        const sql = "INSERT INTO test (blob) VALUES(?);";
+        //----------------------------
+        errmsg = null;
+        var rc = sqlitePrepare(db_handle, sql, &stmt_handle, &errmsg);
+        if (rc != c.SQLITE_OK) {
+            defer sqliteFree(errmsg);
+            std.log.err("sqlitePrepare: ({d}) {s}\n", .{ rc, errmsg });
+            return @intCast(rc);
+        }
+        //------------------------------------------------------------
+        defer _ = sqliteFinalize(stmt_handle);
+        //------------------------------------------------------------
+        const uint64 = 0xF09F90A7F09F90A7;
+        var buffer: [8]u8 = undefined; // optional buffer
+        //------------------------------------------------------------
+        if (rc == c.SQLITE_OK) {
+            rc = sqliteBindBlobUInt64(
+                stmt_handle,
+                1,
+                uint64,
+                &buffer,
+            );
+        }
+        //------------------------------------------------------------
+        if (rc != c.SQLITE_OK) {
+            std.log.err("sqliteBind: ({d}) {s}\n", .{ rc, sqliteErrmsg(db_handle) });
+            return @intCast(rc);
+        }
+        //------------------------------------------------------------
+        if (sqliteStep(stmt_handle) != c.SQLITE_DONE) {
+            std.log.err("sqliteStep: ({d}) {s}\n", .{ rc, sqliteErrmsg(db_handle) });
+            return @intCast(rc);
+        }
+        //------------------------------------------------------------
+    }
+    //--------------------------------------------------------------------------------
+    {
+        //------------------------------------------------------------
+        var errmsg: [*c]u8 = null;
+        var stmt_handle: ?*anyopaque = null;
+        //------------------------------------------------------------
         const sql = "SELECT * FROM test;";
         //------------------------------------------------------------
         errmsg = null;
@@ -406,23 +447,23 @@ pub fn main(init: std.process.Init) !u8 {
             //------------------------------------------------------------
             if (rc == c.SQLITE_ROW) {
                 //------------------------------------------------------------
-                const id: i64 = sqliteColumnInt64(stmt_handle, 0);
-                const uint64: u64 = sqliteColumnUInt64(stmt_handle, 1);
-                const integer: i64 = sqliteColumnInt64(stmt_handle, 2);
-                const float: f64 = sqliteColumnDouble(stmt_handle, 3);
-                const text: [*c]const u8 = sqliteColumnText(stmt_handle, 4);
-                //----------------------------------------
-                var blob: []const u8 = "NULL";
-                if (sqliteColumnBlob(stmt_handle, 5)) |raw| {
-                    const ptr: [*]const u8 = @ptrCast(raw);
-                    const len: usize = @intCast(sqliteColumnBytes(stmt_handle, 5));
-                    blob = ptr[0..len];
-                } else {}
-                //----------------------------------------
-                const unsigned_uint64 = isUnsigned(stmt_handle, 1);
-                const unsigned_integer = isUnsigned(stmt_handle, 2);
-                //----------------------------------------
                 if (row == 2) {
+                    //----------------------------------------
+                    const id: i64 = sqliteColumnInt64(stmt_handle, 0);
+                    const uint64: u64 = sqliteColumnUInt64(stmt_handle, 1);
+                    const integer: i64 = sqliteColumnInt64(stmt_handle, 2);
+                    const float: f64 = sqliteColumnDouble(stmt_handle, 3);
+                    const text: [*c]const u8 = sqliteColumnText(stmt_handle, 4);
+                    //----------------------------------------
+                    var blob: []const u8 = "NULL";
+                    if (sqliteColumnBlob(stmt_handle, 5)) |raw| {
+                        const ptr: [*]const u8 = @ptrCast(raw);
+                        const len: usize = @intCast(sqliteColumnBytes(stmt_handle, 5));
+                        blob = ptr[0..len];
+                    } else {}
+                    //----------------------------------------
+                    const unsigned_uint64 = isUnsigned(stmt_handle, 1);
+                    const unsigned_integer = isUnsigned(stmt_handle, 2);
                     //----------------------------------------
                     try ut.compareInteger("sqliteBindInt64/sqliteColumnInt64", id, 3, .{ .src = @src() });
                     try ut.compareInteger("sqliteBindUInt64/sqliteColumnUInt64", uint64, 0xFFFF_FFFF_FFFF_FFFF, .{ .src = @src() });
@@ -433,6 +474,12 @@ pub fn main(init: std.process.Init) !u8 {
                     //----------------------------------------
                     try ut.compareBool("isUnsigned", unsigned_uint64, true, .{ .src = @src() });
                     try ut.compareBool("isUnsigned", unsigned_integer, false, .{ .src = @src() });
+                    //----------------------------------------
+                } else if (row == 3) {
+                    //----------------------------------------
+                    const uint64: u64 = sqliteColumnBlobUInt64(stmt_handle, 5);
+                    //----------------------------------------
+                    try ut.compareInteger("sqliteBindBlobUInt64/sqliteColumnBlobUInt64", uint64, 0xF09F90A7F09F90A7, .{ .src = @src() });
                     //----------------------------------------
                 }
                 //---------------------------
@@ -462,7 +509,7 @@ pub fn main(init: std.process.Init) !u8 {
             defer sqliteFree(errmsg);
             return c.SQLITE_ERROR;
         }
-        try ut.compareInteger("getRowCount", row_count, 3, .{ .src = @src() });
+        try ut.compareInteger("getRowCount", row_count, 4, .{ .src = @src() });
     }
     //--------------------------------------------------------------------------------
     {
@@ -505,7 +552,7 @@ pub fn main(init: std.process.Init) !u8 {
             return @intCast(rc);
         }
         //------------------------------------------------------------
-        try ut.compareInteger("getSQLiteColumnsTable: row_count", row_count, 3, .{ .src = @src() });
+        try ut.compareInteger("getSQLiteColumnsTable: row_count", row_count, 4, .{ .src = @src() });
         try ut.compareInteger("getSQLiteColumnsTable: column_count", column_count, 7, .{ .src = @src() });
         //------------------------------------------------------------
         if (row_count < 2) {

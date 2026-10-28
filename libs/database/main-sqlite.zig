@@ -511,7 +511,7 @@ pub fn main(init: std.process.Init) !u8 {
             );
         }
         //------------------------------------------------------------
-        var buffer: [8]u8 = undefined;
+        var buffer: [8]u8 = undefined; // optional buffer
         if (rc == c.SQLITE_OK) {
             rc = sqlitedb.sqliteBindBlobUInt64(
                 stmt_handle,

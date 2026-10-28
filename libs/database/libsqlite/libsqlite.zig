@@ -14,7 +14,7 @@ pub const SQLiteColumn = extern struct {
     index: i32 = 0,
     name: [*:0]const u8 = "",
     column_type: SQLiteColumnType = .SQLITE_UNKNOWN,
-    unsigned: bool = false,
+    is_unsigned: bool = false,
     integer: i64 = 0,
     float: f64 = 0,
     ptr: [*]const u8 = "",
@@ -189,28 +189,28 @@ pub export fn sqliteClearBindings(stmt_handle: ?*anyopaque) callconv(.c) i32 {
 //--------------------------------------------------------------------------------
 /// Binds blob data to a column.
 pub export fn sqliteBindBlob(stmt_handle: ?*anyopaque, iCol: i32, ptr: [*c]const u8, len: i32, destructor_function: ?*const fn (?*anyopaque) callconv(.c) void) callconv(.c) i32 {
-    //----------------------------------------
+    //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
-    //----------------------------------------
+    //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
-    //----------------------------------------
+    //------------------------------------------------------------
     return c.sqlite3_bind_blob(stmt, iCol, ptr, len, destructor_function);
-    //----------------------------------------
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Binds a uint64 to a blob column.
 pub export fn sqliteBindBlobUInt64(stmt_handle: ?*anyopaque, iCol: i32, uint64: u64, buffer: ?*[8]u8) callconv(.c) i32 {
-    //----------------------------------------
+    //------------------------------------------------------------
     if (stmt_handle == null) return c.SQLITE_MISUSE;
-    //----------------------------------------
+    //------------------------------------------------------------
     const stmt: *c.sqlite3_stmt = @ptrCast(@alignCast(stmt_handle));
-    // //----------------------------------------
+    //------------------------------------------------------------
     var bytes: [8]u8 = undefined;
     const ptr: *[8]u8 = if (buffer) |buf| buf else &bytes;
     const destructor_function = if (buffer != null) null else c.SQLITE_TRANSIENT;
     //------------------------------------------------------------
     std.mem.writeInt(u64, ptr, uint64, .big);
-    //----------------------------------------
+    //------------------------------------------------------------
     return c.sqlite3_bind_blob(stmt, iCol, ptr, @sizeOf(u64), destructor_function);
     //------------------------------------------------------------
 }
@@ -758,20 +758,20 @@ pub export fn updateSQLiteColumn(stmt_handle: ?*anyopaque, iCol: i32, column: *S
     //----------------------------------------
     const name = c.sqlite3_column_name(stmt, iCol);
     //------------------------------------------------------------
-    const column_type: SQLiteColumnType = @enumFromInt(c.sqlite3_column_type(stmt, iCol));
+    const column_type: SQLiteColumnType = @fromBackingInt(@intCast(c.sqlite3_column_type(stmt, iCol)));
     //------------------------------------------------------------
     const integer: i64 = c.sqlite3_column_int64(stmt, iCol);
     const float: f64 = c.sqlite3_column_double(stmt, iCol);
     const ptr = c.sqlite3_column_blob(stmt, iCol);
     const len: i32 = c.sqlite3_column_bytes(stmt, iCol);
     //------------------------------------------------------------
-    const unsigned = isUnsigned(stmt_handle, iCol);
+    const is_unsigned = isUnsigned(stmt_handle, iCol);
     //------------------------------------------------------------
     column.* = .{
         .index = iCol,
         .name = name,
         .column_type = column_type,
-        .unsigned = unsigned,
+        .is_unsigned = is_unsigned,
         .integer = integer,
         .float = float,
         .ptr = "",

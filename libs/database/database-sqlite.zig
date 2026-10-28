@@ -33,7 +33,7 @@ pub const SQLiteColumn = extern struct {
     index: i32 = 0,
     name: [*:0]const u8 = "",
     column_type: SQLiteColumnType = .SQLITE_UNKNOWN,
-    unsigned: bool = false,
+    is_unsigned: bool = false,
     integer: i64 = 0,
     float: f64 = 0,
     ptr: [*]const u8 = "",
@@ -278,7 +278,7 @@ pub fn sqliteBindBlobUInt64(self: *Self, stmt_handle: ?*anyopaque, iCol: i32, ui
     };
     //------------------------------------------------------------
     std.mem.writeInt(u64, ptr, uint64, .big);
-    //----------------------------------------
+    //------------------------------------------------------------
     return c.sqlite3_bind_blob(
         stmt_handle,
         iCol,
@@ -290,9 +290,12 @@ pub fn sqliteBindBlobUInt64(self: *Self, stmt_handle: ?*anyopaque, iCol: i32, ui
 }
 //--------------------------------------------------------------------------------
 pub fn uint64Destructor(ptr: ?*anyopaque) callconv(.c) void {
+    //------------------------------------------------------------
     if (ptr == null) return;
+    //------------------------------------------------------------
     const p: *[@sizeOf(u64)]u8 = @ptrCast(ptr.?);
     std.heap.c_allocator.destroy(p);
+    //------------------------------------------------------------
 }
 //--------------------------------------------------------------------------------
 /// Binds text data to a column.
@@ -1035,20 +1038,20 @@ pub fn updateSQLiteColumn(
     //------------------------------------------------------------
     const name = c.sqlite3_column_name(stmt_handle, iCol);
     //------------------------------------------------------------
-    const sqlite_column_type: SQLiteColumnType = @enumFromInt(c.sqlite3_column_type(stmt_handle, iCol));
+    const sqlite_column_type: SQLiteColumnType = @fromBackingInt(@intCast(c.sqlite3_column_type(stmt_handle, iCol)));
     //------------------------------------------------------------
     const integer: i64 = c.sqlite3_column_int64(stmt_handle, iCol);
     const float: f64 = c.sqlite3_column_double(stmt_handle, iCol);
     const ptr = c.sqlite3_column_blob(stmt_handle, iCol);
     const len: i32 = c.sqlite3_column_bytes(stmt_handle, iCol);
     //------------------------------------------------------------
-    const unsigned = self.isUnsigned(stmt_handle, iCol);
+    const is_unsigned = self.isUnsigned(stmt_handle, iCol);
     //------------------------------------------------------------
     sqlite_column.* = .{
         .index = iCol,
         .name = name,
         .column_type = sqlite_column_type,
-        .unsigned = unsigned,
+        .is_unsigned = is_unsigned,
         .integer = integer,
         .float = float,
         .ptr = "",
@@ -1085,7 +1088,7 @@ pub fn getSQLiteRow(
         //------------------------------------------------------------
         const name = std.mem.span(c.sqlite3_column_name(stmt_handle, iCol));
         //------------------------------------------------------------
-        const column_type: SQLiteColumnType = @enumFromInt(c.sqlite3_column_type(stmt_handle, iCol));
+        const column_type: SQLiteColumnType = @fromBackingInt(@intCast(c.sqlite3_column_type(stmt_handle, iCol)));
         //------------------------------------------------------------
         const integer: i64 = c.sqlite3_column_int64(stmt_handle, iCol);
         const float: f64 = c.sqlite3_column_double(stmt_handle, iCol);
@@ -1274,7 +1277,7 @@ pub fn updateRowMap(
         //------------------------------------------------------------
         const value: SQLiteColumnValue = switch (sqlite_column.column_type) {
             .SQLITE_NULL => .{ .null = {} },
-            .SQLITE_INTEGER => if (sqlite_column.unsigned)
+            .SQLITE_INTEGER => if (sqlite_column.is_unsigned)
                 .{ .uint64 = @bitCast(sqlite_column.integer) }
             else
                 .{ .integer = sqlite_column.integer },

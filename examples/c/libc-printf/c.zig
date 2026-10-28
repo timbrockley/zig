@@ -1020,9 +1020,9 @@ pub const _____fpos64_t_defined = @as(c_int, 1);
 pub const ____FILE_defined = @as(c_int, 1);
 pub const __FILE_defined = @as(c_int, 1);
 pub const __struct_FILE_defined = @as(c_int, 1);
-pub const __getc_unlocked_body = @compileError("TODO postfix inc/dec expr");
+pub const __getc_unlocked_body = @compileError("TO DO postfix inc/dec expr");
 // /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:105:9
-pub const __putc_unlocked_body = @compileError("TODO postfix inc/dec expr");
+pub const __putc_unlocked_body = @compileError("TO DO postfix inc/dec expr");
 // /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:109:9
 pub const _IO_EOF_SEEN = @as(c_int, 0x0010);
 pub inline fn __feof_unlocked_body(_fp: anytype) @TypeOf((_fp.*._flags & _IO_EOF_SEEN) != @as(c_int, 0)) {
